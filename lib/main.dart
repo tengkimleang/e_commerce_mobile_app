@@ -1,3 +1,5 @@
+
+import 'package:e_commerce_mobile_app/modules/login/view/login_view.dart';
 import 'package:flutter/material.dart';
 import 'modules/counter/view/counter_view.dart';
 
@@ -31,7 +33,8 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const CounterView(),
+      home: const LoginView(),
+      
     );
   }
 }
