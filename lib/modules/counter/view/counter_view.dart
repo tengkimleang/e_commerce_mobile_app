@@ -4,7 +4,7 @@ import 'package:e_commerce_mobile_app/modules/counter/controller/counter_state.d
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 class CounterView extends StatelessWidget {
-  const CounterView({Key? key}) : super(key: key);
+  const CounterView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class CounterView extends StatelessWidget {
 }
 
 class _CounterViewContent extends StatelessWidget {
-  const _CounterViewContent({Key? key}) : super(key: key);
+  const _CounterViewContent();
 
   @override
   Widget build(BuildContext context) {

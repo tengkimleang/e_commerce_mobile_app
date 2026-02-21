@@ -1,7 +1,6 @@
 
 import 'package:e_commerce_mobile_app/modules/login/view/login_view.dart';
 import 'package:flutter/material.dart';
-import 'modules/counter/view/counter_view.dart';
 
 void main() {
   runApp(const MyApp());
