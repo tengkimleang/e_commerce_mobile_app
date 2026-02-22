@@ -13,27 +13,18 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() : super(const LoginInitial()) {
     // Register event handlers
     on<PhoneChanged>(_onPhoneChanged);
-    on<PasswordChanged>(_onPasswordChanged);
     on<LoginPressed>(_onLoginPressed);
-    on<TogglePasswordVisibility>(_onTogglePasswordVisibility);
+   
   }
 
   // Variables to store current form data
   String _currentPhoneNumber = '';
-  String _currentPassword = '';
-  bool _isPasswordVisible = false;
 
   // Validation method for phone number
   bool _isValidPhone(String phoneNumber) {
     // Phone number should be at least 10 digits (including country code)
     final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
     return phoneRegex.hasMatch(phoneNumber);
-  }
-
-  // Validation method for password
-  bool _isValidPassword(String password) {
-    // Password should be at least 6 characters
-    return password.length >= 6;
   }
 
   // Handle phone number input change
@@ -49,33 +40,32 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       LoginUpdated(
         loginModel: LoginModel(
           phoneNumber: _currentPhoneNumber,
-          password: _currentPassword,
+   
         ),
-        isPasswordVisible: _isPasswordVisible,
+   
         isPhoneValid: isPhoneValid,
-        isPasswordValid: _isValidPassword(_currentPassword),
+       
       ),
     );
   }
 
   // Handle password input change
   Future<void> _onPasswordChanged(
-    PasswordChanged event,
+
     Emitter<LoginState> emit,
   ) async {
-    _currentPassword = event.password;
+  
 
     // Validate and emit updated state
-    final isPasswordValid = _isValidPassword(_currentPassword);
     emit(
       LoginUpdated(
         loginModel: LoginModel(
           phoneNumber: _currentPhoneNumber,
-          password: _currentPassword,
+
         ),
-        isPasswordVisible: _isPasswordVisible,
+        
         isPhoneValid: _isValidPhone(_currentPhoneNumber),
-        isPasswordValid: isPasswordValid,
+       
       ),
     );
   }
@@ -91,10 +81,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       return;
     }
 
-    if (!_isValidPassword(_currentPassword)) {
-      emit(const LoginError('Password must be at least 6 characters'));
-      return;
-    }
+   
 
     // Show loading state
     emit(const LoginLoading());
@@ -119,17 +106,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
   // Handle password visibility toggle
   Future<void> _onTogglePasswordVisibility(
-    TogglePasswordVisibility event,
+   
+
     Emitter<LoginState> emit,
   ) async {
-    _isPasswordVisible = !_isPasswordVisible;
-
+   
     // Emit updated state
     if (state is LoginUpdated) {
       final currentState = state as LoginUpdated;
       emit(
         currentState.copyWith(
-          isPasswordVisible: _isPasswordVisible,
+     
         ),
       );
     } else {
@@ -137,11 +124,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         LoginUpdated(
           loginModel: LoginModel(
             phoneNumber: _currentPhoneNumber,
-            password: _currentPassword,
           ),
-          isPasswordVisible: _isPasswordVisible,
+          
           isPhoneValid: _isValidPhone(_currentPhoneNumber),
-          isPasswordValid: _isValidPassword(_currentPassword),
+       
         ),
       );
     }
