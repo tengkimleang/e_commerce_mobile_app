@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import 'package:e_commerce_mobile_app/modules/home/controller/supermarket_category_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/home/controller/supermarket_category_event.dart';
-import 'package:e_commerce_mobile_app/modules/home/controller/supermarket_category_state.dart';
-import 'package:e_commerce_mobile_app/modules/home/model/category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_state.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
 import 'loyalty_view.dart';
 import 'become_partner_view.dart';
 
@@ -40,7 +40,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   @override
   void initState() {
-    _partnerController = PageController(viewportFraction: 0.86);
+    _partnerController = PageController(viewportFraction: 0.95);
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       final next = (_current + 1) % _images.length;
@@ -165,7 +165,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   onPageChanged: (i) => setState(() => _partnerCurrent = i),
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+                      padding: const EdgeInsets.only(left: 16, right: 16),
+                      
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: CachedNetworkImage(
@@ -196,6 +197,54 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       ),
                     );
                   }),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: InkWell(
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BecomePartnerView())),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: Colors.white,
+                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0,4))],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(16.0),
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
+                              gradient: const LinearGradient(colors: [Color(0xFFEC407A), Color(0xFFEA2E6D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                            ),
+                            child: Column(
+                              // crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text('Wholesale Price', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                const SizedBox(height: 6),
+                                Text('High quality products\nwith special price', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.horizontal(right: Radius.circular(14)),
+                          child: Image.asset(
+                            'assets/images/woman.png',
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            // errorBuilder: (c, e, s) => Container(color: Colors.grey[200], width: 120, height: 120),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

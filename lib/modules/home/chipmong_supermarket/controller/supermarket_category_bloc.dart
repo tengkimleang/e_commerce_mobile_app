@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/home/controller/supermarket_category_event.dart';
-import 'package:e_commerce_mobile_app/modules/home/controller/supermarket_category_state.dart';
-import 'package:e_commerce_mobile_app/modules/home/model/category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_state.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
 
 class SupermarketCategoryBloc extends Bloc<SupermarketCategoryEvent, SupermarketCategoryState> {
   SupermarketCategoryBloc() : super(CategoriesInitial()) {

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login/controller/login_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login/controller/login_event.dart';
 import 'package:e_commerce_mobile_app/modules/login/controller/login_state.dart';
-import 'package:e_commerce_mobile_app/modules/home/view/home_view.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/view/home_view.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
