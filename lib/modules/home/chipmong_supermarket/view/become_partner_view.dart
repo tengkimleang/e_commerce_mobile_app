@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'wholesale_form_view.dart';
 
 class BecomePartnerView extends StatelessWidget {
   const BecomePartnerView({super.key});
@@ -41,17 +42,7 @@ class BecomePartnerView extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
-                    // TODO: open inquiry form (could be a dialog or next page)
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Inquiry'),
-                        content: const Text('Inquiry form goes here.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close'))
-                        ],
-                      ),
-                    );
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WholesaleFormView()));
                   },
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: const Text('Drop your Inquiry', style: TextStyle(color: Colors.white, fontSize: 16)),

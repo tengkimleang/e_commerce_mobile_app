@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
 import 'loyalty_view.dart';
 import 'become_partner_view.dart';
@@ -132,7 +131,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                     Expanded(
                       child: _buildOverlayCard(
                         context,
-                        title: 'Become Partner',
+                        title: 'Exchange Points',
                         imageUrl: 'https://www.shutterstock.com/image-vector/cashback-reward-program-advertising-idea-600nw-2553858371.jpg',
                           onTap: () => _showPartnerQr(context),
                       ),

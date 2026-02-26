@@ -34,6 +34,21 @@ class PriceCheckingView extends StatelessWidget {
       'price': '\$ 24.50',
       'image': 'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533'
     },
+    {
+      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
+      'price': '\$ 24.50',
+      'image': 'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533'
+    },
+    {
+      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
+      'price': '\$ 24.50',
+      'image': 'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533'
+    },
+    {
+      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
+      'price': '\$ 24.50',
+      'image': 'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533'
+    },
   ];
 
   @override
@@ -56,7 +71,8 @@ class PriceCheckingView extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final p = _sampleProducts[index];
-            return _ProductCard(title: p['title']!, price: p['price']!, imageUrl: p['image']!);
+            // pass index as id
+            return _ProductCard(id: 'p$index', title: p['title']!, price: p['price']!, imageUrl: p['image']!);
           },
         ),
       ),
@@ -65,46 +81,53 @@ class PriceCheckingView extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
+  final String id;
   final String title;
   final String price;
   final String imageUrl;
 
-  const _ProductCard({required this.title, required this.price, required this.imageUrl});
+  const _ProductCard({required this.id, required this.title, required this.price, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(imageUrl, height: 110, width: double.infinity, fit: BoxFit.cover),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(price, style: const TextStyle(color: Color(0xFFE91E63), fontWeight: FontWeight.bold)),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.favorite_border, color: Colors.pink),
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                    )
-                  ],
-                )
-              ],
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        Navigator.of(context).pop({'id': id, 'title': title, 'image': imageUrl});
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(imageUrl, height: 110, width: double.infinity, fit: BoxFit.cover),
             ),
-          )
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(price, style: const TextStyle(color: Color(0xFFE91E63), fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.favorite_border, color: Colors.pink),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
