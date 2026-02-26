@@ -335,7 +335,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   void _showPartnerQr(BuildContext context) {
     // Placeholder user data — replace with real user data from your auth/profile service
     const username = 'Jame Taki';
-    const phone = '0963267044';
+    const phone = '099 123 4567';
     const points = '0';
 
     final qrData = Uri.encodeComponent('user:$username;phone:$phone;points:$points');
