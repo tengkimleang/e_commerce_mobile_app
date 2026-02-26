@@ -1,16 +1,15 @@
 
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
 import 'loyalty_view.dart';
 import 'become_partner_view.dart';
+import 'price_checking_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
   const SupermarketMainView({super.key});
@@ -111,6 +110,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   ],
                 ),
               ),
+              
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -127,28 +127,26 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: BlocBuilder<SupermarketCategoryBloc, SupermarketCategoryState>(
-                  builder: (context, state) {
-                    if (state is CategoriesLoading || state is CategoriesInitial) {
-                      return const SizedBox(
-                        height: 100,
-                        child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    if (state is CategoriesError) {
-                      return SizedBox(
-                        height: 80,
-                        child: Center(child: Text('Error: ${state.message}')),
-                      );
-                    }
-                    if (state is CategoriesLoaded) {
-                      final cats = state.categories;
-                      return Row(
-                        children: cats.map((c) => _buildCategoryCard(context, c)).toList(),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildOverlayCard(
+                        context,
+                        title: 'Become Partner',
+                        imageUrl: 'https://www.shutterstock.com/image-vector/cashback-reward-program-advertising-idea-600nw-2553858371.jpg',
+                          onTap: () => _showPartnerQr(context),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildOverlayCard(
+                        context,
+                        title: 'Price Checking',
+                        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZ5i8QBjeV3H4nA5m5T3ILCaeeQYcWN0pg9Q&s',
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PriceCheckingView())),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -288,24 +286,136 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(c.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 6),
-                        Text(c.subtitle, style: const TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                )
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildOverlayCard(BuildContext context, {required String title, required String imageUrl, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 120,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: const Offset(0,2))],
+        ),
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (c, s) => Container(color: Colors.grey[200]),
+                errorWidget: (c, s, e) => Container(color: Colors.grey[300]),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              bottom: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(8)),
+                child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPartnerQr(BuildContext context) {
+    // Placeholder user data — replace with real user data from your auth/profile service
+    const username = 'Jame Taki';
+    const phone = '0963267044';
+    const points = '0';
+
+    final qrData = Uri.encodeComponent('user:$username;phone:$phone;points:$points');
+    final qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=$qrData';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (c) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, controller) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: SingleChildScrollView(
+              controller: controller,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(4)),
+                    ),
+                    const SizedBox(height: 18),
+                    Image.network(qrUrl, width: 200, height: 200, fit: BoxFit.contain),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Username:', style: TextStyle(color: Colors.grey)),
+                              Text(username, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Phone number:', style: TextStyle(color: Colors.grey)),
+                              Text(phone, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Supermarket Point:', style: TextStyle(color: Colors.grey)),
+                              Text(points, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

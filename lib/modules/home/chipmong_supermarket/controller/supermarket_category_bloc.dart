@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
@@ -15,14 +16,13 @@ class SupermarketCategoryBloc extends Bloc<SupermarketCategoryEvent, Supermarket
       final categories = <CategoryModel>[
         const CategoryModel(
           id: 'loyalty',
-          // title: 'Loyalty',
-          // subtitle: 'Member rewards & benefits',
+          title: 'Loyalty',
           imageUrl: 'https://wp.sfdcdigital.com/en-us/wp-content/uploads/sites/4/2025/06/customer-loyalty-1680x1120-1.jpg?resize=1024,683',
+          // subtitle: 'Member rewards & benefits',
         ),
         const CategoryModel(
           id: 'partner',
-          // title: 'Become Partner',
-          
+          title: 'Price Checking',
           // subtitle: 'Join our partner program',
           imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZ5i8QBjeV3H4nA5m5T3ILCaeeQYcWN0pg9Q&s',
         ),
