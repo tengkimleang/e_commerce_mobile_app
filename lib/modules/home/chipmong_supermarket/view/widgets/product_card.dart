@@ -147,6 +147,8 @@ class _ProductCardState extends State<ProductCard> {
                         color: Color(0xFFEC407A),
                       ),
                     ),
+                    const Spacer(),
+                      Icon(Icons.shopping_cart, color: Color(0xFFEC407A), size: 16),
                     if (widget.product.originalPrice != null) ...[
                       const SizedBox(width: 4),
                       Text(
@@ -157,6 +159,7 @@ class _ProductCardState extends State<ProductCard> {
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
+                     
                     ],
                   ],
                 ),

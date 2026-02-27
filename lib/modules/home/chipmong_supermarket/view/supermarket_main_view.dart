@@ -5,13 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/product_model.dart';
-import 'loyalty_view.dart';
 import 'become_partner_view.dart';
 import 'price_checking_view.dart';
 import 'widgets/product_card.dart';
-import 'widgets/category_image_card.dart';
+import 'widgets/product_carousel_section.dart';
 
 class SupermarketMainView extends StatefulWidget {
   const SupermarketMainView({super.key});
@@ -235,123 +233,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               ),
               
               const SizedBox(height: 16),
-              
-              // Products Categories Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Fresh Milk', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  
-                    GestureDetector(
-                      onTap: () {},
-                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
-                    ),
-                  ],
-                ),
-              ),
-            
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 180,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  itemCount: _getDairyProducts().length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: SizedBox(
-                          width: 160,
-                          child: CategoryImageCard(
-                            imageUrl: 'https://cdn.britannica.com/53/157153-050-E5582B5A/Holstein-cow.jpg',
-                            onTap: () {},
-                          ),
-                        ),
-                      );
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12.0),
-                      child: SizedBox(
-                        width: 160,
-                        child: ProductCard(
-                          product: _getDairyProducts()[index - 1],
-                          onFavoriteTap: () {},
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Fresh Products Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Fresh Orange', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    GestureDetector(
-                      onTap: () {},
-                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 180,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  itemCount: _getFreshProducts().length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12.0),
-                        child: SizedBox(
-                          width: 160,
-                          child: CategoryImageCard(
-                            imageUrl: 'https://www.thesprucepets.com/thmb/_voKpYXr6JEyy7HkiVaSEOQaiyA=/4000x0/filters:no_upscale():strip_icc()/spruce-pets-can-cats-eat-oranges-e061afd20ccc480b8ba996825df1f0da.jpg',
-                            onTap: () {},
-                          ),
-                        ),
-                      );
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 12.0),
-                      child: SizedBox(
-                        width: 160,
-                        child: ProductCard(
-                          product: _getFreshProducts()[index - 1],
-                          onFavoriteTap: () {},
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
+              ..._buildReusableProductRows(),
 
                Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Fresh Orange', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    GestureDetector(
-                      onTap: () {},
-                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -491,44 +375,73 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     );
   }
 
-  Widget _buildCategoryCard(BuildContext context, CategoryModel c) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.only(right: 12.0),
-        child: InkWell(
-          onTap: () {
-            if (c.id == 'loyalty') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoyaltyView()));
-            } else if (c.id == 'partner') {
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BecomePartnerView()));
-            }
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0,2))],
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
-                  child: CachedNetworkImage(
-                    imageUrl: c.imageUrl,
-                    width: 140,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: Colors.grey[200]),
-                    errorWidget: (context, url, error) => Container(color: Colors.grey[300], child: const Icon(Icons.broken_image)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-            ),
+  List<Widget> _buildReusableProductRows() {
+    final dairyProducts = _getDairyProducts();
+    final freshProducts = _getFreshProducts();
+    final sectionTitles = [
+      'Fresh Milk',
+      'Fresh Orange',
+      'Bakery & Pastry',
+      'Snacks & Chips',
+      'Soft Drinks',
+      'Instant Noodles',
+      'Frozen Foods',
+      'Household Essentials',
+      'Personal Care',
+      'Baby & Kids',
+    ];
+    final sectionCategoryImages = [
+      'https://cdn.britannica.com/53/157153-050-E5582B5A/Holstein-cow.jpg',
+      'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
+      'https://www.prb.co.id/uploads/ngc_global_images/21683-20230707104443.jpeg',
+      'https://m.media-amazon.com/images/I/91WdeFO5cUL._SL1500_.jpg',
+      'https://www.shutterstock.com/image-photo/poznan-pol-oct-31-2024-600nw-2542841489.jpg',
+      'https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_1:1/tk%2Fphoto%2F2025%2F09-2025%2F2025-09-korean-noodles%2Fkorean-noodles-020',
+      'https://platform.eater.com/wp-content/uploads/sites/2/chorus/uploads/chorus_asset/file/25524135/Comparisons.png?quality=90&strip=all&crop=0,3.4613147178592,100,93.077370564282',
+      'https://cdn.shopify.com/s/files/1/0064/8439/4039/files/Household-Essentials.jpg?v=1566467543',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpPkz9FU5o9eUhqXeZuExREfblaKrs2--TGQ&s',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsMliwTws9_e78uKQca3wnv8dZFSX4CUk5MQ&s',
+    ];
+
+    return List<Widget>.generate(10, (index) {
+      final isDairySection = index.isEven;
+      return Padding(
+        padding: EdgeInsets.only(bottom: index == 9 ? 0 : 20),
+        child: ProductCarouselSection(
+          title: sectionTitles[index],
+          products: isDairySection ? dairyProducts : freshProducts,
+          categoryImageUrl: sectionCategoryImages[index],
+          height: isDairySection ? 160 : 180,
+          onViewAllTap: () {},
+          onCategoryTap: () {},
+          onFavoriteTap: (_) {},
+          productCardBuilder: (context, product) => _buildCustomProductCard(
+            product: product,
+            rowIndex: index,
           ),
         ),
+      );
+    });
+  }
+
+  Widget _buildCustomProductCard({required ProductModel product, required int rowIndex}) {
+    final baseCard = ProductCard(
+      product: product,
+      onFavoriteTap: () {},
+    );
+
+    if (rowIndex.isEven) {
+      return baseCard;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x33EC407A)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: baseCard,
       ),
     );
   }
@@ -708,14 +621,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         price: 2.99,
         originalPrice: 3.99,
         discountPercent: 25,
-         imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg',
         isFavorite: false,
       ),
       ProductModel(
         id: '7',
         name: 'Fresh Orange',
         price: 1.99,
-        imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg',
         isFavorite: false,
       ),
       ProductModel(
@@ -724,7 +637,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         price: 0.99,
         originalPrice: 1.49,
         discountPercent: 33,
-         imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
         isFavorite: false,
       ),
     ];
