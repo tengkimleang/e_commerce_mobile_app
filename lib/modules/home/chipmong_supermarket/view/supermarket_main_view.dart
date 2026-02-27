@@ -6,9 +6,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/product_model.dart';
 import 'loyalty_view.dart';
 import 'become_partner_view.dart';
 import 'price_checking_view.dart';
+import 'widgets/product_card.dart';
 
 class SupermarketMainView extends StatefulWidget {
   const SupermarketMainView({super.key});
@@ -111,6 +113,81 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               ),
               
               const SizedBox(height: 16),
+              
+              // Products Categories Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Top Deals', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    GestureDetector(
+                      onTap: () {},
+                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: _getDairyProducts().length,
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: _getDairyProducts()[index],
+                      onFavoriteTap: () {},
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Fresh Products Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Fresh Fruits', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    GestureDetector(
+                      onTap: () {},
+                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: _getFreshProducts().length,
+                  itemBuilder: (context, index) {
+                    return ProductCard(
+                      product: _getFreshProducts()[index],
+                      onFavoriteTap: () {},
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
@@ -416,5 +493,77 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         );
       },
     );
+  }
+
+  List<ProductModel> _getDairyProducts() {
+    return [
+      ProductModel(
+        id: '1',
+        name: 'PHKA CHHOUK STERILISE MILK',
+        price: 0.60,
+        imageUrl: 'https://images.unsplash.com/photo-1587351021759-0ac274a73f0f?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '2',
+        name: 'ទឹកដោះគោ PHKA CHHOUK',
+        price: 1.10,
+        imageUrl: 'https://images.unsplash.com/photo-1576568787621-au006d085368?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '3',
+        name: 'Condensed Milk',
+        price: 0.85,
+        imageUrl: 'https://images.unsplash.com/photo-1550584521-daf3d40ea2ad?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '4',
+        name: 'Yogurt Plain',
+        price: 1.25,
+        imageUrl: 'https://images.unsplash.com/photo-1488477181946-6ca0a360b517?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+    ];
+  }
+
+  List<ProductModel> _getFreshProducts() {
+    return [
+      ProductModel(
+        id: '5',
+        name: 'PAPA MANDARIN PRC 1XKG',
+        price: 2.45,
+        originalPrice: 4.98,
+        discountPercent: 51,
+        imageUrl: 'https://images.unsplash.com/photo-1587735512104-58d8b9a0e001?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '6',
+        name: 'FUJI APPLE PRC',
+        price: 2.99,
+        originalPrice: 3.99,
+        discountPercent: 25,
+        imageUrl: 'https://images.unsplash.com/photo-1560806674-104da1e4f07a?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '7',
+        name: 'Fresh Orange',
+        price: 1.99,
+        imageUrl: 'https://images.unsplash.com/photo-1557872200-817461347587?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+      ProductModel(
+        id: '8',
+        name: 'Banana Bunch',
+        price: 0.99,
+        originalPrice: 1.49,
+        discountPercent: 33,
+        imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&h=500&fit=crop',
+        isFavorite: false,
+      ),
+    ];
   }
 }
