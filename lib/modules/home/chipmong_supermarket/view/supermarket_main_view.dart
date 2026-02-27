@@ -11,6 +11,7 @@ import 'loyalty_view.dart';
 import 'become_partner_view.dart';
 import 'price_checking_view.dart';
 import 'widgets/product_card.dart';
+import 'widgets/category_image_card.dart';
 
 class SupermarketMainView extends StatefulWidget {
   const SupermarketMainView({super.key});
@@ -120,7 +121,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Top Deals', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text('Fresh Milk', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  
                     GestureDetector(
                       onTap: () {},
                       child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
@@ -128,20 +130,33 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   ],
                 ),
               ),
+            
               const SizedBox(height: 12),
               SizedBox(
                 height: 180,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  itemCount: _getDairyProducts().length,
+                  itemCount: _getDairyProducts().length + 1,
                   itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: SizedBox(
+                          width: 160,
+                          child: CategoryImageCard(
+                            imageUrl: 'https://cdn.britannica.com/53/157153-050-E5582B5A/Holstein-cow.jpg',
+                            onTap: () {},
+                          ),
+                        ),
+                      );
+                    }
                     return Padding(
                       padding: const EdgeInsets.only(right: 12.0),
                       child: SizedBox(
                         width: 160,
                         child: ProductCard(
-                          product: _getDairyProducts()[index],
+                          product: _getDairyProducts()[index - 1],
                           onFavoriteTap: () {},
                         ),
                       ),
@@ -157,7 +172,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Fresh Fruits', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    Text('Fresh Orange', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     GestureDetector(
                       onTap: () {},
                       child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
@@ -171,14 +186,26 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  itemCount: _getFreshProducts().length,
+                  itemCount: _getFreshProducts().length + 1,
                   itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12.0),
+                        child: SizedBox(
+                          width: 160,
+                          child: CategoryImageCard(
+                            imageUrl: 'https://www.thesprucepets.com/thmb/_voKpYXr6JEyy7HkiVaSEOQaiyA=/4000x0/filters:no_upscale():strip_icc()/spruce-pets-can-cats-eat-oranges-e061afd20ccc480b8ba996825df1f0da.jpg',
+                            onTap: () {},
+                          ),
+                        ),
+                      );
+                    }
                     return Padding(
                       padding: const EdgeInsets.only(right: 12.0),
                       child: SizedBox(
                         width: 160,
                         child: ProductCard(
-                          product: _getFreshProducts()[index],
+                          product: _getFreshProducts()[index - 1],
                           onFavoriteTap: () {},
                         ),
                       ),
@@ -501,28 +528,28 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         id: '1',
         name: 'PHKA CHHOUK STERILISE MILK',
         price: 0.60,
-        imageUrl: 'https://images.unsplash.com/photo-1587351021759-0ac274a73f0f?w=500&h=500&fit=crop',
+        imageUrl: 'https://cccbic.org/businesses-covers/541-cover.jpg',
         isFavorite: false,
       ),
       ProductModel(
         id: '2',
-        name: 'ទឹកដោះគោ PHKA CHHOUK',
+        name: 'Milk PHKA CHHOUK',
         price: 1.10,
-        imageUrl: 'https://images.unsplash.com/photo-1576568787621-au006d085368?w=500&h=500&fit=crop',
+        imageUrl: 'https://media.makrocambodiaclick.com/PRODUCT_1768386378570.jpeg',
         isFavorite: false,
       ),
       ProductModel(
         id: '3',
         name: 'Condensed Milk',
         price: 0.85,
-        imageUrl: 'https://images.unsplash.com/photo-1550584521-daf3d40ea2ad?w=500&h=500&fit=crop',
+        imageUrl: 'https://megastorecambodia.com/files/products/442_cow-head-pure-milk-1l.gif',
         isFavorite: false,
       ),
       ProductModel(
         id: '4',
         name: 'Yogurt Plain',
         price: 1.25,
-        imageUrl: 'https://images.unsplash.com/photo-1488477181946-6ca0a360b517?w=500&h=500&fit=crop',
+        imageUrl: 'https://foodpanda.dhmedia.io/image/darkstores/nv-global-catalog/kh/de56639d-e599-46d1-97cb-3cf102b2e7f3.jpg?height=176',
         isFavorite: false,
       ),
     ];
@@ -536,7 +563,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         price: 2.45,
         originalPrice: 4.98,
         discountPercent: 51,
-        imageUrl: 'https://images.unsplash.com/photo-1587735512104-58d8b9a0e001?w=500&h=500&fit=crop',
+        imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
         isFavorite: false,
       ),
       ProductModel(
@@ -545,14 +572,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         price: 2.99,
         originalPrice: 3.99,
         discountPercent: 25,
-        imageUrl: 'https://images.unsplash.com/photo-1560806674-104da1e4f07a?w=500&h=500&fit=crop',
+         imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
         isFavorite: false,
       ),
       ProductModel(
         id: '7',
         name: 'Fresh Orange',
         price: 1.99,
-        imageUrl: 'https://images.unsplash.com/photo-1557872200-817461347587?w=500&h=500&fit=crop',
+        imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
         isFavorite: false,
       ),
       ProductModel(
@@ -561,7 +588,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         price: 0.99,
         originalPrice: 1.49,
         discountPercent: 33,
-        imageUrl: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=500&h=500&fit=crop',
+         imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
         isFavorite: false,
       ),
     ];
