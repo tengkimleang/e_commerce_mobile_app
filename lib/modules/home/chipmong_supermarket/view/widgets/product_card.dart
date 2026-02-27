@@ -55,7 +55,7 @@ class _ProductCardState extends State<ProductCard> {
                     imageUrl: widget.product.imageUrl,
                     height: double.infinity,
                     width: double.infinity,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fill,
                     placeholder: (context, url) =>
                         Container(color: Colors.grey[200]),
                     errorWidget: (context, url, error) =>
