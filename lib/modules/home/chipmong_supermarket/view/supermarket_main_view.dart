@@ -129,22 +129,22 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 ),
               ),
               const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.65,
-                  ),
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _getDairyProducts().length,
                   itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: _getDairyProducts()[index],
-                      onFavoriteTap: () {},
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: SizedBox(
+                        width: 160,
+                        child: ProductCard(
+                          product: _getDairyProducts()[index],
+                          onFavoriteTap: () {},
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -166,22 +166,22 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 ),
               ),
               const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.65,
-                  ),
+              SizedBox(
+                height: 280,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   itemCount: _getFreshProducts().length,
                   itemBuilder: (context, index) {
-                    return ProductCard(
-                      product: _getFreshProducts()[index],
-                      onFavoriteTap: () {},
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: SizedBox(
+                        width: 160,
+                        child: ProductCard(
+                          product: _getFreshProducts()[index],
+                          onFavoriteTap: () {},
+                        ),
+                      ),
                     );
                   },
                 ),
