@@ -62,14 +62,135 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     return BlocProvider(
       create: (_) => SupermarketCategoryBloc()..add(LoadCategories()),
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Chip Mong Supermarket'),
-        backgroundColor: const Color(0xFFEC407A),
+      appBar: PreferredSize(
+        
+        preferredSize: const Size.fromHeight(150),
+        child: Container(
+          
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: const BoxDecoration(
+            borderRadius:BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),
+            color: Color(0xFFEC407A),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Top Row: Profile Icon and Cart
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.person, color: Colors.white, size: 28),
+                      onPressed: () {},
+                    ),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Stack(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.shopping_cart, color: Colors.white, size: 28),
+                            onPressed: () {},
+                          ),
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Text(
+                                '1',
+                                style: TextStyle(
+                                  color: Color(0xFFEC407A),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                // Location Text
+                Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Welcome',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'CHIP MONG SUPERMARKET 271 MEGA MALL',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.expand_more, color: Colors.white, size: 20),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(maxWidth: 24),
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Search Bar
+              Container(
+              
+               color: Color(0xFFEC407A),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search products, brands and more',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFFEC407A)),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ),
               SizedBox(
                 height: 300,
                 child: Stack(
@@ -211,6 +332,21 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       ),
                     );
                   },
+                ),
+              ),
+              const SizedBox(height: 12),
+
+               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Fresh Orange', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    GestureDetector(
+                      onTap: () {},
+                      child: const Text('View all', style: TextStyle(color: Color(0xFFEC407A), fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 32),
