@@ -28,6 +28,7 @@ class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
+    
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -52,6 +53,7 @@ class _ProductCardState extends State<ProductCard> {
                   ),
                   child: CachedNetworkImage(
                     imageUrl: widget.product.imageUrl,
+                    height: double.infinity,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (context, url) =>

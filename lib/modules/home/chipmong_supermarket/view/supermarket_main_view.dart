@@ -130,7 +130,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 280,
+                height: 180,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -167,7 +167,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               ),
               const SizedBox(height: 12),
               SizedBox(
-                height: 280,
+                height: 180,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
