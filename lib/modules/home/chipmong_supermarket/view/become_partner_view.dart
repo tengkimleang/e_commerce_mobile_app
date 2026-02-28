@@ -16,7 +16,7 @@ class BecomePartnerView extends StatelessWidget {
             ClipRRect(
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
               child: Image.network(
-                'https://images.unsplash.com/photo-1441986300352-c8b586dc6ccf?w=600&h=400&fit=crop',
+                'https://techpacker.com/blog/content/images/2020/08/Wholesale-Vs-Retail.jpg',
                 width: double.infinity,
                 height: 280,
                 fit: BoxFit.cover,
