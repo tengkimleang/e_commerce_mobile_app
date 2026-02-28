@@ -9,7 +9,7 @@ import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
 
 class SupermarketMainView extends StatefulWidget {
-  const SupermarketMainView({super.key});
+const SupermarketMainView({super.key});
 
   @override
   State<SupermarketMainView> createState() => _SupermarketMainViewState();
@@ -256,6 +256,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
             const SizedBox(height: 16),
             ..._buildReusableProductRows(),
+
+        
             SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),

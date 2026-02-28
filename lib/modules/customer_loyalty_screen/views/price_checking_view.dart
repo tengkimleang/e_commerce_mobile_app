@@ -1,65 +1,14 @@
 import 'package:flutter/material.dart';
+
+import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+
+import '../models/customer_loyalty_data.dart';
 import 'product_detail_view.dart';
 
 class PriceCheckingView extends StatelessWidget {
-  const PriceCheckingView({super.key});
+  final bool selectionMode;
 
-  static const _sampleProducts = [
-    {
-      'title': 'NR-OSTRA FZ-BABY WHOLE OCTOPUS',
-      'price': '\$ 8.50',
-      'image':
-          'https://allansvending.com/wp-content/uploads/2024/05/coke-products.png',
-    },
-    {
-      'title': 'NR-OSTRA FZ-SQUID FLOWER 500G',
-      'price': '\$ 5.50',
-      'image':
-          'https://media.allure.com/photos/66b399da6d09ec3641ed7e7a/16:9/w_2560%2Cc_limit/Best%2520Japanese%2520Skin%2520Care%2520082024%2520Lede.jpg',
-    },
-    {
-      'title': 'NR-OSTRA FZ-TUNA SAKU 300-350G',
-      'price': '\$ 8.00',
-      'image':
-          'https://foodindustryexecutive.com/wp-content/uploads/2023/03/daring-new-products.png',
-    },
-    {
-      'title': 'NR-OSTRA FZ-SALMON FIN 500G',
-      'price': '\$ 3.75',
-      'image':
-          'https://www.ift.org/-/media/food-technology/feature-images/2022/04/0422_f1_mt_top10functional/0422_mt_top10functional_2hostessboost_s.jpg?la=en&h=467&mw=1290&w=700&hash=34B16E2A5ADFEE8817345848B437FBF9',
-    },
-    {
-      'title': 'NR-OSTRA FZ-USA SCALLOPS 500G',
-      'price': '\$ 23.00',
-      'image':
-          'https://www.flavorchem.com/wp-content/uploads/2023/01/1-immunity.jpg',
-    },
-    {
-      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
-      'price': '\$ 24.50',
-      'image':
-          'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533',
-    },
-    {
-      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
-      'price': '\$ 24.50',
-      'image':
-          'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533',
-    },
-    {
-      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
-      'price': '\$ 24.50',
-      'image':
-          'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533',
-    },
-    {
-      'title': 'NR-OSTRA FZ-JUMBO LUMP CRAB',
-      'price': '\$ 24.50',
-      'image':
-          'https://eatanytime.in/cdn/shop/files/Artboard2_9508d23c-e023-4424-b2fe-e39176856f33.png?v=1761777624&width=533',
-    },
-  ];
+  const PriceCheckingView({super.key, this.selectionMode = false});
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +21,7 @@ class PriceCheckingView extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
         child: GridView.builder(
-          itemCount: _sampleProducts.length,
+          itemCount: customerLoyaltySampleProducts.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 0.85,
@@ -80,13 +29,26 @@ class PriceCheckingView extends StatelessWidget {
             mainAxisSpacing: 12,
           ),
           itemBuilder: (context, index) {
-            final p = _sampleProducts[index];
-            // pass index as id
+            final product = customerLoyaltySampleProducts[index];
             return _ProductCard(
-              id: 'p$index',
-              title: p['title']!,
-              price: p['price']!,
-              imageUrl: p['image']!,
+              product: product,
+              onTap: () {
+                if (selectionMode) {
+                  Navigator.of(context).pop({
+                    'id': product.id,
+                    'title': product.name,
+                    'price': '\$ ${product.price.toStringAsFixed(2)}',
+                    'image': product.imageUrl,
+                  });
+                  return;
+                }
+
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ProductDetailView(product: product),
+                  ),
+                );
+              },
             );
           },
         ),
@@ -96,34 +58,16 @@ class PriceCheckingView extends StatelessWidget {
 }
 
 class _ProductCard extends StatelessWidget {
-  final String id;
-  final String title;
-  final String price;
-  final String imageUrl;
+  final ProductItem product;
+  final VoidCallback onTap;
 
-  const _ProductCard({
-    required this.id,
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-  });
+  const _ProductCard({required this.product, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ProductDetailView(
-              id: id,
-              title: title,
-              price: price,
-              imageUrl: imageUrl,
-            ),
-          ),
-        );
-      },
+      onTap: onTap,
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
@@ -134,7 +78,7 @@ class _ProductCard extends StatelessWidget {
                 top: Radius.circular(12),
               ),
               child: Image.network(
-                imageUrl,
+                product.imageUrl,
                 height: 110,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -146,7 +90,7 @@ class _ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    product.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -159,20 +103,16 @@ class _ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        price,
+                        '\$ ${product.price.toStringAsFixed(2)}',
                         style: const TextStyle(
                           color: Color(0xFFE91E63),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.favorite_border,
-                          color: Colors.pink,
-                        ),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
+                      const Icon(
+                        Icons.favorite_border,
+                        color: Colors.pink,
+                        size: 20,
                       ),
                     ],
                   ),

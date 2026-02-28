@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 
-class ProductDetailView extends StatelessWidget {
-  final String id;
-  final String title;
-  final String price;
-  final String imageUrl;
+import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
-  const ProductDetailView({
-    super.key,
-    required this.id,
-    required this.title,
-    required this.price,
-    required this.imageUrl,
-  });
+class ProductDetailView extends StatelessWidget {
+  final ProductItem product;
+
+  const ProductDetailView({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +17,23 @@ class ProductDetailView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              imageUrl,
+              product.imageUrl,
               height: 220,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
             const SizedBox(height: 12),
             Text(
-              title,
+              product.name,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              price,
+              '\$ ${product.price.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 16, color: Color(0xFFE91E63)),
             ),
             const SizedBox(height: 8),
-            Text('ID: $id'),
+            Text('ID: ${product.id}'),
           ],
         ),
       ),

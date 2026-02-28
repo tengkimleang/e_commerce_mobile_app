@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/home_screen/controller/supermarket_category_event.dart';
-import 'package:e_commerce_mobile_app/modules/home_screen/controller/supermarket_category_state.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 
 class SupermarketCategoryBloc

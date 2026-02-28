@@ -57,7 +57,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                           final result = await Navigator.of(context)
                               .push<Map<String, String>>(
                                 MaterialPageRoute(
-                                  builder: (_) => const PriceCheckingView(),
+                                  builder: (_) => const PriceCheckingView(
+                                    selectionMode: true,
+                                  ),
                                 ),
                               );
                           if (result != null) {
@@ -65,8 +67,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                               // avoid duplicates by id
                               if (!_selected.any(
                                 (e) => e['id'] == result['id'],
-                              ))
+                              )) {
                                 _selected.add(result);
+                              }
                             });
                           }
                         },
