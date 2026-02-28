@@ -6,3 +6,4 @@ class CategoryModel {
 
   const CategoryModel({required this.id, this.title = '', this.subtitle = '', required this.imageUrl});
 }
+

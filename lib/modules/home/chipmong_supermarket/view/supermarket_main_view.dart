@@ -1,10 +1,8 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/controller/supermarket_category_event.dart';
+
 import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/product_model.dart';
 import 'become_partner_view.dart';
 import 'price_checking_view.dart';
@@ -24,6 +22,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   late final Timer _timer;
   late final PageController _partnerController;
   int _partnerCurrent = 0;
+  int _selectedIndex = 0;
 
   final List<String> _images = [
     'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
@@ -57,9 +56,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SupermarketCategoryBloc()..add(LoadCategories()),
-      child: Scaffold(
+    return Scaffold(
       appBar: PreferredSize(
         
         preferredSize: const Size.fromHeight(150),
@@ -81,6 +78,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                     IconButton(
                       icon: const Icon(Icons.person, color: Colors.white, size: 28),
                       onPressed: () {},
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Text('Welcome', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                     GestureDetector(
                       onTap: () {},
@@ -117,19 +118,11 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 // Location Text
                 Row(
                   children: [
-                    const SizedBox(width: 8),
+                    // const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Welcome',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
                           const SizedBox(height: 2),
                           Row(
                             children: [
@@ -164,7 +157,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
+        body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -234,7 +227,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               
               const SizedBox(height: 16),
               ..._buildReusableProductRows(),
-
+              SizedBox(height: 20),
                Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
@@ -371,6 +364,49 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             ],
           ),
         ),
+        bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Container(
+          height: 68,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0,6))],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildBottomNavItem(index: 0, icon: Icons.home, label: 'Home'),
+              _buildBottomNavItem(index: 1, icon: Icons.local_offer, label: 'Promo'),
+              _buildBottomNavItem(index: 2, icon: Icons.qr_code, label: 'QR'),
+              _buildBottomNavItem(index: 3, icon: Icons.list_alt, label: 'Orders'),
+              _buildBottomNavItem(index: 4, icon: Icons.person, label: 'Profile'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem({required int index, required IconData icon, String? label}) {
+    final selected = _selectedIndex == index;
+    const accent = Color(0xFFEC407A);
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedIndex = index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: selected ? const EdgeInsets.all(10) : const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: selected ? accent : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 22, color: selected ? Colors.white : accent),
+          ),
+        ],
       ),
     );
   }
@@ -618,44 +654,43 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     ];
   }
 
-  List<ProductModel> _getOrangeProducts() {
-    return [
-      ProductModel(
-        id: '5',
-        name: 'PAPA MANDARIN PRC 1XKG',
-        price: 2.45,
-        originalPrice: 4.98,
-        discountPercent: 51,
-        imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '6',
-        name: 'FUJI APPLE PRC',
-        price: 2.99,
-        originalPrice: 3.99,
-        discountPercent: 25,
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '7',
-        name: 'Fresh Orange',
-        price: 1.99,
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '8',
-        name: 'Banana Bunch',
-        price: 0.99,
-        originalPrice: 1.49,
-        discountPercent: 33,
-        imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
-        isFavorite: false,
-      ),
-    ];
-  }
+List<ProductModel> _getOrangeProducts() {
+  return [
+    ProductModel(
+      id: '5',
+      name: 'PAPA MANDARIN PRC 1XKG',
+      price: 2.45,
+      originalPrice: 4.98,
+      discountPercent: 51,
+      imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
+      isFavorite: false,
+    ),
+    ProductModel(
+      id: '6',
+      name: 'FUJI APPLE PRC',
+      price: 2.99,
+      originalPrice: 3.99,
+      discountPercent: 25,
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg',
+      isFavorite: false,
+    ),
+    ProductModel(
+      id: '7',
+      name: 'Fresh Orange',
+      price: 1.99,
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg',
+      isFavorite: false,
+    ),
+    ProductModel(
+      id: '8',
+      name: 'Banana Bunch',
+      price: 0.99,
+      originalPrice: 1.49,
+      discountPercent: 33,
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
+      isFavorite: false,
+    ),
+  ];
 }
 
 List<ProductModel> _getBakeryProducts() {
@@ -888,35 +923,36 @@ List<ProductModel> _getBakeryProducts() {
     ];
   }
 
-  List<ProductModel> _getBabyProducts() {
-    return [
-      ProductModel(
-        id: '38',
-        name: 'Baby Diapers',
-        price: 19.99,
-        imageUrl: 'https://www.menmoms.in/cdn/shop/files/MM-3060-M-_PK-of-28_-1.jpg?v=1734341164&width=600',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '39',
-        name: 'Baby Wipes',
-        price: 4.50,
-        imageUrl: 'https://i5.walmartimages.com/seo/WaterWipes-Original-99-9-Water-Based-Baby-Wipes-Unscented-9-Resealable-Packs-540-Wipes_acb2b827-b0f5-454f-988c-9be4e1fae873.4622633907b4c335e5e290f9fe1c9319.jpeg',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '40',
-        name: 'Baby Formula',
-        price: 29.99,
-        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlfplo8vbKxzEyGQ65R-ATUQqUnZreBVXYUw&s',
-        isFavorite: false,
-      ),
-      ProductModel(
-        id: '41',
-        name: 'Baby Lotion',
-        price: 6.25,
-        imageUrl: 'https://themothercare.pk/cdn/shop/files/Baby_Lotion_French_Berries_Family_300ml.jpg?v=1748253694',
-        isFavorite: false,
-      ),
-    ];
+    List<ProductModel> _getBabyProducts() {
+      return [
+        ProductModel(
+          id: '38',
+          name: 'Baby Diapers',
+          price: 19.99,
+          imageUrl: 'https://www.menmoms.in/cdn/shop/files/MM-3060-M-_PK-of-28_-1.jpg?v=1734341164&width=600',
+          isFavorite: false,
+        ),
+        ProductModel(
+          id: '39',
+          name: 'Baby Wipes',
+          price: 4.50,
+          imageUrl: 'https://i5.walmartimages.com/seo/WaterWipes-Original-99-9-Water-Based-Baby-Wipes-Unscented-9-Resealable-Packs-540-Wipes_acb2b827-b0f5-454f-988c-9be4e1fae873.4622633907b4c335e5e290f9fe1c9319.jpeg',
+          isFavorite: false,
+        ),
+        ProductModel(
+          id: '40',
+          name: 'Baby Formula',
+          price: 29.99,
+          imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlfplo8vbKxzEyGQ65R-ATUQqUnZreBVXYUw&s',
+          isFavorite: false,
+        ),
+        ProductModel(
+          id: '41',
+          name: 'Baby Lotion',
+          price: 6.25,
+          imageUrl: 'https://themothercare.pk/cdn/shop/files/Baby_Lotion_French_Berries_Family_300ml.jpg?v=1748253694',
+          isFavorite: false,
+        ),
+      ];
+    }
   }
