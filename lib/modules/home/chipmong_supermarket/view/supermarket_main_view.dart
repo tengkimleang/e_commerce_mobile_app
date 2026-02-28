@@ -64,7 +64,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: const BoxDecoration(
-            borderRadius:BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),
+            // borderRadius:BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),
             color: Color(0xFFEC407A),
           ),
           child: SafeArea(
@@ -437,11 +437,11 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       'Baby & Kids',
     ];
     final sectionCategoryImages = [
-      'https://cdn.britannica.com/53/157153-050-E5582B5A/Holstein-cow.jpg',
-      'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
-      'https://www.prb.co.id/uploads/ngc_global_images/21683-20230707104443.jpeg',
-      'https://m.media-amazon.com/images/I/91WdeFO5cUL._SL1500_.jpg',
-      'https://www.shutterstock.com/image-photo/poznan-pol-oct-31-2024-600nw-2542841489.jpg',
+      'https://cdn.vectorstock.com/i/500p/66/59/cute-cartoon-cow-vector-1146659.jpg',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThxysu6Ll2xNQDH-3bhYnyYu75uzsCzF2QWQ&s',
+      'https://thumbs.dreamstime.com/b/adorable-bakery-scene-featuring-whimsical-storefront-adorned-adorable-bakery-scene-featuring-whimsical-storefront-adorned-370748772.jpg',
+      'https://img.freepik.com/free-vector/hand-drawn-food-elements-collection_23-2148903178.jpg',
+      'https://img.freepik.com/free-vector/kawaii-fast-food-cute-drinks-illustration_24908-60622.jpg?semt=ais_rp_progressive&w=740&q=80',
       'https://cdn.apartmenttherapy.info/image/upload/f_jpg,q_auto:eco,c_fill,g_auto,w_1500,ar_1:1/tk%2Fphoto%2F2025%2F09-2025%2F2025-09-korean-noodles%2Fkorean-noodles-020',
       'https://platform.eater.com/wp-content/uploads/sites/2/chorus/uploads/chorus_asset/file/25524135/Comparisons.png?quality=90&strip=all&crop=0,3.4613147178592,100,93.077370564282',
       'https://cdn.shopify.com/s/files/1/0064/8439/4039/files/Household-Essentials.jpg?v=1566467543',
