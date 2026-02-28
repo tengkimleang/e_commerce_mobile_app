@@ -1,6 +1,6 @@
 // States represent different screens the user sees
 // Example: Loading spinner, Success message, Error message, etc.
-import 'package:e_commerce_mobile_app/modules/login/model/login_model.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/models/login_model.dart';
 
 abstract class LoginState {
   const LoginState();

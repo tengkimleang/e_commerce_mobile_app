@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/login/controller/login_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/login/controller/login_event.dart';
-import 'package:e_commerce_mobile_app/modules/login/controller/login_state.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/view/home_view.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
+import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -23,6 +23,7 @@ class _LoginContent extends StatefulWidget {
   @override
   State<_LoginContent> createState() => _LoginContentState();
 }
+
 class _LoginContentState extends State<_LoginContent> {
   late TextEditingController _phoneController;
 
@@ -40,11 +41,9 @@ class _LoginContentState extends State<_LoginContent> {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -123,14 +122,27 @@ class _LoginContentState extends State<_LoginContent> {
                       hintStyle: TextStyle(color: Colors.grey[500]),
                       filled: true,
                       fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFEC407A), width: 1.8),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFEC407A),
+                          width: 1.8,
+                        ),
                       ),
-                      errorText: (state is LoginUpdated &&
+                      errorText:
+                          (state is LoginUpdated &&
                               state.isPhoneValid == false &&
                               _phoneController.text.isNotEmpty)
                           ? "Please enter a valid phone number"
@@ -150,17 +162,29 @@ class _LoginContentState extends State<_LoginContent> {
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
                   children: [
-                    const TextSpan(text: "By clicking Next button you are agreeing to the "),
+                    const TextSpan(
+                      text: "By clicking Next button you are agreeing to the ",
+                    ),
                     TextSpan(
                       text: "Terms of Use",
-                      style: const TextStyle(color: Color(0xFFEC407A), decoration: TextDecoration.underline),
+                      style: const TextStyle(
+                        color: Color(0xFFEC407A),
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                     const TextSpan(text: " and the "),
                     TextSpan(
                       text: "Privacy Policy",
-                      style: const TextStyle(color: Color(0xFFEC407A), decoration: TextDecoration.underline),
+                      style: const TextStyle(
+                        color: Color(0xFFEC407A),
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ],
                 ),
@@ -175,7 +199,8 @@ class _LoginContentState extends State<_LoginContent> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HomeView(),   // ← goes to home screen
+                        builder: (context) =>
+                            const IndexView(), // ← goes to home screen
                       ),
                     );
                   },
@@ -201,23 +226,33 @@ class _LoginContentState extends State<_LoginContent> {
                       onPressed: state is LoginLoading
                           ? null
                           : () {
-                              context.read<LoginBloc>().add(const LoginPressed());
+                              context.read<LoginBloc>().add(
+                                const LoginPressed(),
+                              );
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEC407A),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
                       child: state is LoginLoading
                           ? const SizedBox(
                               height: 24,
                               width: 24,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
                             )
                           : const Text(
                               "Login",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                     ),
                   );

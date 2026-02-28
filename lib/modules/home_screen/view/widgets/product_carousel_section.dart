@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/product_model.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/view/widgets/category_image_card.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/view/widgets/product_card.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
 class ProductCarouselSection extends StatelessWidget {
   final String title;
@@ -12,7 +12,8 @@ class ProductCarouselSection extends StatelessWidget {
   final VoidCallback? onCategoryTap;
   final ValueChanged<ProductModel>? onFavoriteTap;
   final Widget Function(BuildContext context)? categoryCardBuilder;
-  final Widget Function(BuildContext context, ProductModel product)? productCardBuilder;
+  final Widget Function(BuildContext context, ProductModel product)?
+  productCardBuilder;
 
   const ProductCarouselSection({
     super.key,
@@ -39,9 +40,9 @@ class ProductCarouselSection extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               GestureDetector(
                 onTap: onViewAllTap,
@@ -70,7 +71,8 @@ class ProductCarouselSection extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 12.0),
                   child: SizedBox(
                     width: 160,
-                    child: categoryCardBuilder?.call(context) ??
+                    child:
+                        categoryCardBuilder?.call(context) ??
                         CategoryImageCard(
                           imageUrl: categoryImageUrl,
                           onTap: onCategoryTap ?? () {},
@@ -84,7 +86,8 @@ class ProductCarouselSection extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 12.0),
                 child: SizedBox(
                   width: 160,
-                  child: productCardBuilder?.call(context, product) ??
+                  child:
+                      productCardBuilder?.call(context, product) ??
                       ProductCard(
                         product: product,
                         onFavoriteTap: () => onFavoriteTap?.call(product),

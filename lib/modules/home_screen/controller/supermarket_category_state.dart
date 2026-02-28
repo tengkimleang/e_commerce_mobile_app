@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 
 abstract class SupermarketCategoryState extends Equatable {
   const SupermarketCategoryState();

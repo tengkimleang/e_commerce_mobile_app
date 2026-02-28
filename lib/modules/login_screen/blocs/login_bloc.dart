@@ -5,16 +5,15 @@
 // - Emits different states based on results
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/login/controller/login_event.dart';
-import 'package:e_commerce_mobile_app/modules/login/controller/login_state.dart';
-import 'package:e_commerce_mobile_app/modules/login/model/login_model.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/models/login_model.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() : super(const LoginInitial()) {
     // Register event handlers
     on<PhoneChanged>(_onPhoneChanged);
     on<LoginPressed>(_onLoginPressed);
-   
   }
 
   // Variables to store current form data
@@ -38,34 +37,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     final isPhoneValid = _isValidPhone(_currentPhoneNumber);
     emit(
       LoginUpdated(
-        loginModel: LoginModel(
-          phoneNumber: _currentPhoneNumber,
-   
-        ),
-   
+        loginModel: LoginModel(phoneNumber: _currentPhoneNumber),
+
         isPhoneValid: isPhoneValid,
-       
       ),
     );
   }
 
   // Handle password input change
-  Future<void> _onPasswordChanged(
-
-    Emitter<LoginState> emit,
-  ) async {
-  
-
+  Future<void> _onPasswordChanged(Emitter<LoginState> emit) async {
     // Validate and emit updated state
     emit(
       LoginUpdated(
-        loginModel: LoginModel(
-          phoneNumber: _currentPhoneNumber,
+        loginModel: LoginModel(phoneNumber: _currentPhoneNumber),
 
-        ),
-        
         isPhoneValid: _isValidPhone(_currentPhoneNumber),
-       
       ),
     );
   }
@@ -80,8 +66,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(const LoginError('Please enter a valid phone number'));
       return;
     }
-
-   
 
     // Show loading state
     emit(const LoginLoading());
@@ -105,29 +89,17 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   }
 
   // Handle password visibility toggle
-  Future<void> _onTogglePasswordVisibility(
-   
-
-    Emitter<LoginState> emit,
-  ) async {
-   
+  Future<void> _onTogglePasswordVisibility(Emitter<LoginState> emit) async {
     // Emit updated state
     if (state is LoginUpdated) {
       final currentState = state as LoginUpdated;
-      emit(
-        currentState.copyWith(
-     
-        ),
-      );
+      emit(currentState.copyWith());
     } else {
       emit(
         LoginUpdated(
-          loginModel: LoginModel(
-            phoneNumber: _currentPhoneNumber,
-          ),
-          
+          loginModel: LoginModel(phoneNumber: _currentPhoneNumber),
+
           isPhoneValid: _isValidPhone(_currentPhoneNumber),
-       
         ),
       );
     }

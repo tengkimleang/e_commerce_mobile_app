@@ -1,5 +1,4 @@
-
-import 'package:e_commerce_mobile_app/modules/login/view/login_view.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -34,7 +33,6 @@ class MyApp extends StatelessWidget {
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const LoginView(),
-      
     );
   }
 }

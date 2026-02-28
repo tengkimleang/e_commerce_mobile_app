@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce_mobile_app/modules/home/chipmong_supermarket/model/product_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
 class ProductCard extends StatefulWidget {
   final ProductModel product;
   final VoidCallback? onFavoriteTap;
 
-  const ProductCard({
-    super.key,
-    required this.product,
-    this.onFavoriteTap,
-  });
+  const ProductCard({super.key, required this.product, this.onFavoriteTap});
 
   @override
   State<ProductCard> createState() => _ProductCardState();
@@ -28,7 +24,6 @@ class _ProductCardState extends State<ProductCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-    
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -148,7 +143,11 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                     const Spacer(),
-                      Icon(Icons.shopping_cart, color: Color(0xFFEC407A), size: 16),
+                    Icon(
+                      Icons.shopping_cart,
+                      color: Color(0xFFEC407A),
+                      size: 16,
+                    ),
                     if (widget.product.originalPrice != null) ...[
                       const SizedBox(width: 4),
                       Text(
@@ -159,7 +158,6 @@ class _ProductCardState extends State<ProductCard> {
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                     
                     ],
                   ],
                 ),
