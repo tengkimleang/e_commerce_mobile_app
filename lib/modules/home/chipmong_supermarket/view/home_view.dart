@@ -68,7 +68,6 @@ class HomeView extends StatelessWidget {
 							),
 						),
 						const SizedBox(height: 16),
-
 					InkWell(
 						onTap: () {
 							Navigator.of(context).push(

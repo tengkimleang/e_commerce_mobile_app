@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'product_detail_view.dart';
 
 class PriceCheckingView extends StatelessWidget {
   const PriceCheckingView({super.key});
@@ -93,7 +94,9 @@ class _ProductCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        Navigator.of(context).pop({'id': id, 'title': title, 'image': imageUrl});
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ProductDetailView(id: id, title: title, price: price, imageUrl: imageUrl),
+        ));
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
