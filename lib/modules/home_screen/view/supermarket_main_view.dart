@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'become_partner_view.dart';
-import 'price_checking_view.dart';
+import '../../customer_loyalty_screen/views/price_checking_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
 
