@@ -182,46 +182,49 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: 300,
-                child: Stack(
-                  children: [
-                    PageView.builder(
-                      controller: _controller,
-                      itemCount: _images.length,
-                      onPageChanged: (i) => setState(() => _current = i),
-                      itemBuilder: (context, index) {
-                        return ClipRRect(
-                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                          child: Image.network(
-                            _images[index],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 12,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_images.length, (i) {
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _current == i ? 12 : 8,
-                            height: _current == i ? 12 : 8,
-                            decoration: BoxDecoration(
-                              color: _current == i ? Colors.white : Colors.white54,
-                              shape: BoxShape.circle,
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
+                child: SizedBox(
+                  height: 300,
+                  child: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: _controller,
+                        itemCount: _images.length,
+                        onPageChanged: (i) => setState(() => _current = i),
+                        itemBuilder: (context, index) {
+                          return ClipRRect(
+                            borderRadius: const BorderRadius.all(Radius.circular(16)),
+                            child: Image.network(
+                              _images[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
                             ),
                           );
-                        }),
+                        },
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 12,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_images.length, (i) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _current == i ? 12 : 8,
+                              height: _current == i ? 12 : 8,
+                              decoration: BoxDecoration(
+                                color: _current == i ? Colors.white : Colors.white54,
+                                shape: BoxShape.circle,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               
