@@ -49,9 +49,15 @@ class TermConditionView extends StatelessWidget {
           children: [
             _Banner(type: type),
             Container(
-              color: const Color(0xFFF2F2F4),
+           
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
               child: _PolicyContent(type: type),
+            ),
+            Container(
+              alignment: Alignment.center,
+              color: Colors.grey[700],
+              padding: const EdgeInsets.all(16.0),
+              child: const Text('© 2024 Chip Mong Retails. All rights reserved.', style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold,color: Colors.white)),
             ),
           ],
         ),
