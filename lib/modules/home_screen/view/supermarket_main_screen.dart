@@ -5,10 +5,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'become_partner_view.dart';
-import '../../customer_loyalty_screen/views/price_checking_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
-import 'profile_view.dart';
+import '../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
 const SupermarketMainView({super.key});
@@ -455,7 +454,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         setState(() => _selectedIndex = index);
         if (index == 4) {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProfileView()),
+            MaterialPageRoute(builder: (_) => const UserInfoView()),
           );
         }
       },
