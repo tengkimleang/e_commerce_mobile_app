@@ -5,12 +5,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'become_partner_view.dart';
+import 'product_list_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
 import '../../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
-const SupermarketMainView({super.key});
+  const SupermarketMainView({super.key});
 
   @override
   State<SupermarketMainView> createState() => _SupermarketMainViewState();
@@ -258,10 +259,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             const SizedBox(height: 16),
             ..._buildReusableProductRows(),
 
-         //Customer Loyalty Section
+            //Customer Loyalty Section
             SizedBox(height: 20),
             CustomerLoyaltySection(),
-            
 
             const SizedBox(height: 24),
             Padding(
@@ -453,9 +453,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       onTap: () {
         setState(() => _selectedIndex = index);
         if (index == 4) {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const UserInfoView()),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const UserInfoView()));
         }
       },
       child: Column(
@@ -520,18 +520,30 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     ];
 
     return List<Widget>.generate(10, (index) {
+      final sectionTitle = sectionTitles[index];
+      final sectionProducts = productsList[index];
+      final sectionImage = sectionCategoryImages[index];
+
       return Padding(
         padding: EdgeInsets.only(bottom: index == 9 ? 0 : 20),
         child: ProductCarouselSection(
-          title: sectionTitles[index],
-          products: productsList[index],
-          categoryImageUrl: sectionCategoryImages[index],
+          title: sectionTitle,
+          products: sectionProducts,
+          categoryImageUrl: sectionImage,
           height:
               index == 0 || index == 2 || index == 4 || index == 6 || index == 8
               ? 160
               : 180,
-          onViewAllTap: () {},
-          onCategoryTap: () {},
+          onViewAllTap: () => _openCategoryProducts(
+            title: sectionTitle,
+            categoryImageUrl: sectionImage,
+            products: sectionProducts,
+          ),
+          onCategoryTap: () => _openCategoryProducts(
+            title: sectionTitle,
+            categoryImageUrl: sectionImage,
+            products: sectionProducts,
+          ),
           onFavoriteTap: (_) {},
           productCardBuilder: (context, product) =>
               _buildCustomProductCard(product: product, rowIndex: index),
@@ -598,6 +610,22 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       default:
         return ProductCard(product: product);
     }
+  }
+
+  void _openCategoryProducts({
+    required String title,
+    required String categoryImageUrl,
+    required List<ProductModel> products,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProductListView(
+          title: title,
+          categoryImageUrl: categoryImageUrl,
+          products: products,
+        ),
+      ),
+    );
   }
 
   Widget _buildOverlayCard(

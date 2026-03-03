@@ -116,7 +116,7 @@ class UserInfoView extends StatelessWidget {
                               ),
                               Switch(
                                 value: true,
-                                activeColor: accent,
+                                activeThumbColor: accent,
                                 activeTrackColor: const Color(0xFFF9DCEA),
                                 inactiveTrackColor: const Color(0xFFF9DCEA),
                                 onChanged: (_) {},

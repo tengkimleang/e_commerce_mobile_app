@@ -194,7 +194,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 12),
         const Text(
           sectionBodyIntro,
-          style: const TextStyle(
+          style: TextStyle(
             color: Color.fromARGB(221, 86, 84, 84),
             fontSize: 20,
             height: 1.55,
@@ -248,7 +248,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 28),
         const Text(
           sectionBody4,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black87,
             fontSize: 20,
             height: 1.55,
@@ -283,7 +283,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 10),
         const Text(
           sectionBody6,
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.black87,
             fontSize: 20,
             height: 1.55,
@@ -297,7 +297,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 28),
         const Text(
           sectionTitle6,
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFFEC407A),     
             fontSize: 25,
             height: 1.2,
@@ -317,7 +317,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 28),
         const Text(
           sectionTitle7,
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFFEC407A),
             fontSize: 25,
             height: 1.2,
@@ -337,7 +337,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 28),
         const Text(
           sectionTitle8,
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFFEC407A),
             fontSize: 25,
             height: 1.2,

@@ -1,58 +1,103 @@
-// import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
-// class ProductListView extends StatelessWidget {
-//   const ProductListView({super.key});
+class ProductListView extends StatelessWidget {
+  final String title;
+  final String categoryImageUrl;
+  final List<ProductModel> products;
+  final String? subtitle;
 
-//   static const _sample = [
-//     {
-//       'id': 'p1',
-//       'title': 'TABASCO RED PEPPER SAUCE 150ML',
-//       'image': 'https://i.imgur.com/BoN9kdC.png'
-//     },
-//     {
-//       'id': 'p2',
-//       'title': 'COCA-COLA 330ML',
-//       'image': 'https://allansvending.com/wp-content/uploads/2024/05/coke-products.png'
-//     },
-//     {
-//       'id': 'p3',
-//       'title': 'NISSIN INSTANT NOODLE CUP',
-//       'image': 'https://www.flavorchem.com/wp-content/uploads/2023/01/1-immunity.jpg'
-//     },
-//   ];
+  const ProductListView({
+    super.key,
+    required this.title,
+    required this.categoryImageUrl,
+    required this.products,
+    this.subtitle,
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('Products'), backgroundColor: const Color(0xFFEC407A)),
-//       body: ListView.separated(
-//         padding: const EdgeInsets.all(12),
-//         itemCount: _sample.length,
-//         separatorBuilder: (_, __) => const SizedBox(height: 12),
-//         itemBuilder: (context, i) {
-//           final p = _sample[i];
-//           return InkWell(
-//             onTap: () {
-//               Navigator.of(context).pop({'id': p['id']!, 'title': p['title']!, 'image': p['image']!});
-//             },
-//             borderRadius: BorderRadius.circular(12),
-//             child: Container(
-//               padding: const EdgeInsets.all(12),
-//               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [
-//                 BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 4))
-//               ]),
-//               child: Row(
-//                 children: [
-//                   Container(width: 56, height: 56, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.grey[200]), child: Image.network(p['image']!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image))),
-//                   const SizedBox(width: 12),
-//                   Expanded(child: Text(p['title']!, style: const TextStyle(fontWeight: FontWeight.w600))),
-//                   const Icon(Icons.add_circle_outline, color: Color(0xFFEC407A))
-//                 ],
-//               ),
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 460,
+                  width: double.infinity,
+                  child: CategoryImageCard(imageUrl: categoryImageUrl),
+                ),
+                Positioned(
+                  top: topPadding + 12,
+                  left: 16,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.85),
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle ?? '$title (${products.length} products)',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (products.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: Text('No products found')),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return ProductCard(product: products[index]);
+                }, childCount: products.length),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 0.65,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
