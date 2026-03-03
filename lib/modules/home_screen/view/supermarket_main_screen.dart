@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -7,6 +8,7 @@ import 'become_partner_view.dart';
 import '../../customer_loyalty_screen/views/price_checking_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
+import 'profile_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
 const SupermarketMainView({super.key});
@@ -257,56 +259,11 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             const SizedBox(height: 16),
             ..._buildReusableProductRows(),
 
-        
+         //Customer Loyalty Section
             SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Customer Loyalty',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text('01-28 Feb 2026 — Special promotions and bundles.'),
-                ],
-              ),
-            ),
+            CustomerLoyaltySection(),
+            
 
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildOverlayCard(
-                      context,
-                      title: 'Exchange Points',
-                      imageUrl:
-                          'https://www.shutterstock.com/image-vector/cashback-reward-program-advertising-idea-600nw-2553858371.jpg',
-                      onTap: () => _showPartnerQr(context),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildOverlayCard(
-                      context,
-                      title: 'Price Checking',
-                      imageUrl:
-                          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZ5i8QBjeV3H4nA5m5T3ILCaeeQYcWN0pg9Q&s',
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const PriceCheckingView(),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -494,7 +451,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     const accent = Color(0xFFEC407A);
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        if (index == 4) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfileView()),
+          );
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

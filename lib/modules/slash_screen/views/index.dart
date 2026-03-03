@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../home_screen/view/supermarket_main_view.dart';
+import '../../home_screen/view/supermarket_main_screen.dart';
 
 class IndexView extends StatelessWidget {
   const IndexView({super.key});
