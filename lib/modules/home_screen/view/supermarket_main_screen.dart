@@ -7,7 +7,7 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.da
 import 'become_partner_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
-import '../user_info_screen/views/user_info_view.dart';
+import '../../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
 const SupermarketMainView({super.key});
