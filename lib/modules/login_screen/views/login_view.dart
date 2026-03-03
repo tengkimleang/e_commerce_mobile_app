@@ -78,7 +78,12 @@ class _LoginContentState extends State<_LoginContent> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      // TODO: go to sign up screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const IndexView(),
+                        ),
+                      );
                     },
                     child: const Text(
                       "Sign Up",
