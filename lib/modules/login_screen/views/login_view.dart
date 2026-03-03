@@ -1,3 +1,5 @@
+import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart';
@@ -19,23 +21,36 @@ class LoginView extends StatelessWidget {
 
 class _LoginContent extends StatefulWidget {
   const _LoginContent();
+  
 
   @override
   State<_LoginContent> createState() => _LoginContentState();
 }
 
 class _LoginContentState extends State<_LoginContent> {
-  late TextEditingController _phoneController;
-
+ late TextEditingController _phoneController;
+ late TapGestureRecognizer _termsTapRecognizer;
+ late TapGestureRecognizer _privacyTapRecognizer;
   @override
   void initState() {
     super.initState();
     _phoneController = TextEditingController();
+     _termsTapRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openTermConditionPage(TermConditionType.termsOfUse);
+    _privacyTapRecognizer = TapGestureRecognizer()
+      ..onTap = () => _openTermConditionPage(TermConditionType.privacyPolicy);
   }
-
+  void _openTermConditionPage(TermConditionType type) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => TermConditionView(type: type)),
+    );
+  }
   @override
   void dispose() {
     _phoneController.dispose();
+    _termsTapRecognizer.dispose();
+    _privacyTapRecognizer.dispose();
     super.dispose();
   }
 
@@ -171,20 +186,25 @@ class _LoginContentState extends State<_LoginContent> {
                     const TextSpan(
                       text: "By clicking Next button you are agreeing to the ",
                     ),
+                    
                     TextSpan(
                       text: "Terms of Use",
                       style: const TextStyle(
                         color: Color(0xFFEC407A),
                         decoration: TextDecoration.underline,
                       ),
+                      recognizer: _termsTapRecognizer,
+                      
                     ),
                     const TextSpan(text: " and the "),
                     TextSpan(
+                      
                       text: "Privacy Policy",
                       style: const TextStyle(
                         color: Color(0xFFEC407A),
                         decoration: TextDecoration.underline,
                       ),
+                      recognizer: _privacyTapRecognizer,
                     ),
                   ],
                 ),
