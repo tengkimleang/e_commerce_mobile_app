@@ -1,3 +1,4 @@
+// lib/modules/login_screen/views/login_view.dart
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -21,31 +22,39 @@ class LoginView extends StatelessWidget {
 
 class _LoginContent extends StatefulWidget {
   const _LoginContent();
-  
 
   @override
   State<_LoginContent> createState() => _LoginContentState();
 }
 
 class _LoginContentState extends State<_LoginContent> {
- late TextEditingController _phoneController;
- late TapGestureRecognizer _termsTapRecognizer;
- late TapGestureRecognizer _privacyTapRecognizer;
+  late TextEditingController _phoneController;
+  late TapGestureRecognizer _termsTapRecognizer;
+  late TapGestureRecognizer _privacyTapRecognizer;
+
   @override
   void initState() {
     super.initState();
     _phoneController = TextEditingController();
-     _termsTapRecognizer = TapGestureRecognizer()
-      ..onTap = () => _openTermConditionPage(TermConditionType.termsOfUse);
+    _termsTapRecognizer = TapGestureRecognizer()..onTap = _openTermsOfUsePage;
     _privacyTapRecognizer = TapGestureRecognizer()
-      ..onTap = () => _openTermConditionPage(TermConditionType.privacyPolicy);
+      ..onTap = _openPrivacyPolicyPage;
   }
-  void _openTermConditionPage(TermConditionType type) {
+
+  void _openTermsOfUsePage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TermConditionView(type: type)),
+      MaterialPageRoute(builder: (context) => const TermsOfUseView()),
     );
   }
+
+  void _openPrivacyPolicyPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PrivacyPolicyView()),
+    );
+  }
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -64,7 +73,6 @@ class _LoginContentState extends State<_LoginContent> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top bar (unchanged)
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -85,27 +93,18 @@ class _LoginContentState extends State<_LoginContent> {
                   const Text("🇬🇧", style: TextStyle(fontSize: 20)),
                 ],
               ),
-
-              // Logo (unchanged)
               Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 180,
-                      height: 180,
-                      decoration: const BoxDecoration(shape: BoxShape.circle),
-                      child: Image.asset(
-                        'assets/images/Chipmong_Logo.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: const BoxDecoration(shape: BoxShape.circle),
+                  child: Image.asset(
+                    'assets/images/Chipmong_Logo.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
-
               const Spacer(flex: 1),
-
-              // Phone number* (your nice RichText version)
               RichText(
                 text: const TextSpan(
                   style: TextStyle(
@@ -122,10 +121,7 @@ class _LoginContentState extends State<_LoginContent> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 8),
-
-              // TextField with Bloc (unchanged)
               BlocBuilder<LoginBloc, LoginState>(
                 builder: (context, state) {
                   return TextField(
@@ -158,10 +154,10 @@ class _LoginContentState extends State<_LoginContent> {
                       ),
                       errorText:
                           (state is LoginUpdated &&
-                              state.isPhoneValid == false &&
-                              _phoneController.text.isNotEmpty)
-                          ? "Please enter a valid phone number"
-                          : null,
+                                  state.isPhoneValid == false &&
+                                  _phoneController.text.isNotEmpty)
+                              ? "Please enter a valid phone number"
+                              : null,
                       errorStyle: const TextStyle(fontSize: 12),
                     ),
                     onChanged: (value) {
@@ -170,10 +166,7 @@ class _LoginContentState extends State<_LoginContent> {
                   );
                 },
               ),
-
               const SizedBox(height: 16),
-
-              // Terms (unchanged)
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
@@ -186,7 +179,6 @@ class _LoginContentState extends State<_LoginContent> {
                     const TextSpan(
                       text: "By clicking Next button you are agreeing to the ",
                     ),
-                    
                     TextSpan(
                       text: "Terms of Use",
                       style: const TextStyle(
@@ -194,11 +186,9 @@ class _LoginContentState extends State<_LoginContent> {
                         decoration: TextDecoration.underline,
                       ),
                       recognizer: _termsTapRecognizer,
-                      
                     ),
                     const TextSpan(text: " and the "),
                     TextSpan(
-                      
                       text: "Privacy Policy",
                       style: const TextStyle(
                         color: Color(0xFFEC407A),
@@ -209,18 +199,14 @@ class _LoginContentState extends State<_LoginContent> {
                   ],
                 ),
               ),
-
               const Spacer(flex: 5),
-
-              // 🔥 UPDATED: Continue as guest → now navigates!
               Center(
                 child: TextButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const IndexView(), // ← goes to home screen
+                        builder: (context) => const IndexView(),
                       ),
                     );
                   },
@@ -234,10 +220,7 @@ class _LoginContentState extends State<_LoginContent> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // Pink Login button (unchanged)
               BlocBuilder<LoginBloc, LoginState>(
                 builder: (context, state) {
                   return SizedBox(
@@ -247,8 +230,8 @@ class _LoginContentState extends State<_LoginContent> {
                           ? null
                           : () {
                               context.read<LoginBloc>().add(
-                                const LoginPressed(),
-                              );
+                                    const LoginPressed(),
+                                  );
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEC407A),
@@ -278,10 +261,7 @@ class _LoginContentState extends State<_LoginContent> {
                   );
                 },
               ),
-
               const SizedBox(height: 24),
-
-              // Footer (unchanged)
               Center(
                 child: Text(
                   "@2026 CHIP MONG GROUP | v1.8.3",

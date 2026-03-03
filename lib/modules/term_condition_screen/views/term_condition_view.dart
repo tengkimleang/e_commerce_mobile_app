@@ -1,6 +1,25 @@
+// lib/modules/term_condition_screen/views/term_condition_view.dart
 import 'package:flutter/material.dart';
 
 enum TermConditionType { termsOfUse, privacyPolicy }
+
+class TermsOfUseView extends StatelessWidget {
+  const TermsOfUseView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const TermConditionView(type: TermConditionType.termsOfUse);
+  }
+}
+
+class PrivacyPolicyView extends StatelessWidget {
+  const PrivacyPolicyView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const TermConditionView(type: TermConditionType.privacyPolicy);
+  }
+}
 
 class TermConditionView extends StatelessWidget {
   const TermConditionView({super.key, required this.type});
@@ -16,11 +35,11 @@ class TermConditionView extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Term of Condition',
+          'Terms of Conditions',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w600,
-            fontSize: 30,
+            fontSize: 25,
           ),
         ),
       ),
@@ -70,13 +89,11 @@ class _Banner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Text(
-            type == TermConditionType.privacyPolicy
-                ? 'Privacy Policy'
-                : 'Terms of Use',
-            style: const TextStyle(
+          const Text(
+            'Privacy Policy',
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 48,
+              fontSize: 28,
               fontWeight: FontWeight.w400,
             ),
           ),
@@ -93,15 +110,13 @@ class _PolicyContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final intro = type == TermConditionType.privacyPolicy
-        ? "At CHIP MONG RETAIL APP, we are committed to protecting Customers' privacy and ensuring Customers' personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, disclose, and protect your information when you use our mobile application (the “App”) and any services provided through the App (collectively, the “Service”)."
-        : "By using CHIP MONG RETAIL APP, you agree to these Terms of Use. These terms describe the conditions for accessing and using our app and services, including your rights and responsibilities when placing orders, using promotions, and interacting with content in the app.";
-    final sectionTitle = type == TermConditionType.privacyPolicy
-        ? '1. Personal Data Protection Principles'
-        : '1. User Responsibilities';
-    final sectionBody = type == TermConditionType.privacyPolicy
-        ? 'We are conducting the following efforts to ensure the basic policy of personal data protection:'
-        : 'You are responsible for providing accurate account information and for using the service in compliance with applicable laws and regulations.';
+    final intro =
+        "At Chip Mong Retail App, we are committed to protecting Customers' privacy and ensuring Customers' personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, disclose, and protect your information when you use our mobile application (the “App”) and any services provided through the App (collectively, the “Service”).";
+
+    const sectionTitle = '1. Personal Data Protection Principles';
+
+    const sectionBody =
+        'We are conducting the following efforts to ensure the basic policy of personal data protection:';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
