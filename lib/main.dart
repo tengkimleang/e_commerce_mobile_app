@@ -1,7 +1,12 @@
+import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
+import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDependenciesInjection();
+  await registerPartnerPrivilegeModuleDi();
   runApp(const MyApp());
 }
 
