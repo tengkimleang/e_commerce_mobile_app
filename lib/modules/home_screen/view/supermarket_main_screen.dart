@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'become_partner_view.dart';
+import 'product_detail_view.dart';
 import 'product_list_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
@@ -84,7 +85,13 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         color: Colors.white,
                         size: 28,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const UserInfoView(),
+                          ),
+                        );
+                      },
                     ),
                     Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -556,59 +563,40 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     required ProductModel product,
     required int rowIndex,
   }) {
+    final sectionProducts = _getProductsByRowIndex(rowIndex);
+    return ProductCard(
+      product: product,
+      onTap: () => _openProductDetails(
+        product: product,
+        relatedProducts: sectionProducts,
+      ),
+    );
+  }
+
+  List<ProductModel> _getProductsByRowIndex(int rowIndex) {
     switch (rowIndex) {
       case 0:
-        return _getMilkProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getMilkProducts();
       case 1:
-        return _getOrangeProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getOrangeProducts();
       case 2:
-        return _getBakeryProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getBakeryProducts();
       case 3:
-        return _getSnackProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getSnackProducts();
       case 4:
-        return _getSoftDrinkProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getSoftDrinkProducts();
       case 5:
-        return _getNoodleProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getNoodleProducts();
       case 6:
-        return _getFrozenProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getFrozenProducts();
       case 7:
-        return _getHouseholdProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getHouseholdProducts();
       case 8:
-        return _getPersonalCareProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getPersonalCareProducts();
       case 9:
-        return _getBabyProducts()
-            .where((p) => p.id == product.id)
-            .map((p) => ProductCard(product: p))
-            .first;
+        return _getBabyProducts();
       default:
-        return ProductCard(product: product);
+        return const [];
     }
   }
 
@@ -623,6 +611,20 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           title: title,
           categoryImageUrl: categoryImageUrl,
           products: products,
+        ),
+      ),
+    );
+  }
+
+  void _openProductDetails({
+    required ProductModel product,
+    required List<ProductModel> relatedProducts,
+  }) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProductDetailView(
+          product: product,
+          relatedProducts: relatedProducts,
         ),
       ),
     );

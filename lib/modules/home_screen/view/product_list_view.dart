@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
@@ -29,7 +30,7 @@ class ProductListView extends StatelessWidget {
             child: Stack(
               children: [
                 SizedBox(
-                  height: 460,
+                  height: 360,
                   width: double.infinity,
                   child: CategoryImageCard(imageUrl: categoryImageUrl),
                 ),
@@ -86,7 +87,18 @@ class ProductListView extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate((context, index) {
-                  return ProductCard(product: products[index]);
+                  final product = products[index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ProductDetailView(
+                          product: product,
+                          relatedProducts: products,
+                        ),
+                      ),
+                    ),
+                  );
                 }, childCount: products.length),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
