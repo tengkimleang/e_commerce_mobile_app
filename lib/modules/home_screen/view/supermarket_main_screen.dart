@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
+import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'become_partner_view.dart';
@@ -458,6 +460,30 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
     return GestureDetector(
       onTap: () {
+        if (index == 2) {
+          final previous = _selectedIndex;
+          setState(() => _selectedIndex = index);
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const QrCodeView()))
+              .then((_) {
+                if (!mounted) return;
+                setState(() => _selectedIndex = previous);
+              });
+          return;
+        }
+
+        if (index == 3) {
+          final previous = _selectedIndex;
+          setState(() => _selectedIndex = index);
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const OrderHistoryView()))
+              .then((_) {
+                if (!mounted) return;
+                setState(() => _selectedIndex = previous);
+              });
+          return;
+        }
+
         setState(() => _selectedIndex = index);
         if (index == 4) {
           Navigator.of(
