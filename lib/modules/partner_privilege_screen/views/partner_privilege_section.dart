@@ -1,12 +1,13 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/privilege_partner.dart';
+import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../blocs/partner_privilege_bloc.dart';
 import '../blocs/partner_privilege_event.dart';
 import '../blocs/partner_privilege_state.dart';
-import 'become_partner_screendart';
+// import 'become_partner_screendart';
 import 'widgets/partner_carousel.dart';
 import 'widgets/wholesale_price_card.dart';
 

@@ -55,3 +55,6 @@ ios/Runner.xcworkspace/contents.xcworkspacedata
 macos/Podfile
 macos/Flutter/Flutter-Debug.xcconfig
 macos/Flutter/Flutter-Release.xcconfig
+
+# FVM Version Cache
+.fvm/
