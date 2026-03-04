@@ -1,1 +1,1 @@
-export 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screendart';
+
