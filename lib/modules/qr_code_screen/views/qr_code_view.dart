@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
 class QrCodeView extends StatelessWidget {
@@ -131,7 +132,9 @@ class QrCodeView extends StatelessWidget {
               _buildBottomNavItem(
                 icon: Icons.local_offer_outlined,
                 isSelected: false,
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PromotionView()),
+                ),
               ),
               _buildBottomNavItem(
                 icon: Icons.qr_code_2_outlined,
