@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
+import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_date_of_birth_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class UserInfoView extends StatefulWidget {
   final bool showBottomNavigation;
@@ -18,6 +24,8 @@ class UserInfoView extends StatefulWidget {
 
 class _UserInfoViewState extends State<UserInfoView> {
   String _username = 'Jame Taki';
+  DateTime? _dateOfBirth;
+  File? _profileImageFile;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +40,11 @@ class _UserInfoViewState extends State<UserInfoView> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _HeaderCard(username: _username),
+                    _HeaderCard(
+                      username: _username,
+                      profileImageFile: _profileImageFile,
+                      onTapCamera: _pickProfileImage,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Column(
@@ -48,11 +60,12 @@ class _UserInfoViewState extends State<UserInfoView> {
                             onTrailingTap: _openEditUsername,
                           ),
                           const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          const _InfoRow(
+                          _InfoRow(
                             label: 'Date of Birth:',
-                            value: 'Not Added',
+                            value: _dateOfBirthLabel,
                             trailingIcon: Icons.edit,
                             trailingColor: accent,
+                            onTrailingTap: _openEditDateOfBirth,
                           ),
                           const Divider(height: 28, color: Color(0xFFD7D1D6)),
                           const _InfoRow(
@@ -257,6 +270,58 @@ class _UserInfoViewState extends State<UserInfoView> {
     setState(() => _username = trimmed);
   }
 
+  Future<void> _openEditDateOfBirth() async {
+    final selectedDate = await showDateOfBirthPickerDialog(
+      context,
+      initialDate: _dateOfBirth,
+    );
+
+    if (!mounted || selectedDate == null) return;
+    setState(() {
+      _dateOfBirth = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+      );
+    });
+  }
+
+  Future<void> _pickProfileImage() async {
+    final source = await showProfileImageSourceBottomSheet(context);
+    if (source == null) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1200,
+    );
+
+    if (!mounted || picked == null) return;
+    setState(() => _profileImageFile = File(picked.path));
+  }
+
+  String get _dateOfBirthLabel {
+    if (_dateOfBirth == null) return 'Not Added';
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final date = _dateOfBirth!;
+    final day = date.day.toString().padLeft(2, '0');
+    return '$day ${monthNames[date.month - 1]} ${date.year}';
+  }
+
   void _onBottomNavTap(BuildContext context, int index) {
     if (index == 4) return;
 
@@ -290,9 +355,15 @@ class _UserInfoViewState extends State<UserInfoView> {
 }
 
 class _HeaderCard extends StatelessWidget {
-  const _HeaderCard({required this.username});
+  const _HeaderCard({
+    required this.username,
+    required this.profileImageFile,
+    required this.onTapCamera,
+  });
 
   final String username;
+  final File? profileImageFile;
+  final VoidCallback onTapCamera;
 
   @override
   Widget build(BuildContext context) {
@@ -334,7 +405,18 @@ class _HeaderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.notifications_none, color: accent, size: 30),
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const NotificationView()),
+                  );
+                },
+                icon: const Icon(
+                  Icons.notifications_none,
+                  color: accent,
+                  size: 30,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -351,22 +433,36 @@ class _HeaderCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: accent, width: 2),
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Color(0xFFEAA4C3),
-                    ),
+                    child: profileImageFile != null
+                        ? ClipOval(
+                            child: Image.file(
+                              profileImageFile!,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.person,
+                            size: 60,
+                            color: Color(0xFFEAA4C3),
+                          ),
                   ),
-                  const Positioned(
+                  Positioned(
                     right: -2,
                     bottom: 4,
-                    child: CircleAvatar(
-                      radius: 19,
-                      backgroundColor: accent,
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
+                    child: Material(
+                      color: accent,
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onTapCamera,
+                        child: const Padding(
+                          padding: EdgeInsets.all(9),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
                       ),
                     ),
                   ),
