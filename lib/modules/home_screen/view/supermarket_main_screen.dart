@@ -3,12 +3,12 @@ import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/cust
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
-import 'become_partner_view.dart';
 import 'product_detail_view.dart';
 import 'product_list_view.dart';
 import 'widgets/product_card.dart';
@@ -410,126 +410,60 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Container(
-          height: 68,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 12,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavItem(index: 0, icon: Icons.home, label: 'Home'),
-              _buildBottomNavItem(
-                index: 1,
-                icon: Icons.local_offer,
-                label: 'Promo',
-              ),
-              _buildBottomNavItem(index: 2, icon: Icons.qr_code, label: 'QR'),
-              _buildBottomNavItem(
-                index: 3,
-                icon: Icons.list_alt,
-                label: 'Orders',
-              ),
-              _buildBottomNavItem(
-                index: 4,
-                icon: Icons.person,
-                label: 'Profile',
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: SupermarketBottomNavigation(
+        selectedIndex: _selectedIndex,
+        onTap: _onBottomNavTap,
       ),
     );
   }
 
-  Widget _buildBottomNavItem({
-    required int index,
-    required IconData icon,
-    String? label,
-  }) {
-    final selected = _selectedIndex == index;
-    const accent = Color(0xFFEC407A);
-
-    return GestureDetector(
-      onTap: () {
-        if (index == 1) {
-          final previous = _selectedIndex;
-          setState(() => _selectedIndex = index);
-          Navigator.of(context)
-              .push(
-                MaterialPageRoute(
-                  builder: (_) => PromotionView(products: _getAllProducts()),
-                ),
-              )
-              .then((_) {
-                if (!mounted) return;
-                setState(() => _selectedIndex = previous);
-              });
-          return;
-        }
-
-        if (index == 2) {
-          final previous = _selectedIndex;
-          setState(() => _selectedIndex = index);
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const QrCodeView()))
-              .then((_) {
-                if (!mounted) return;
-                setState(() => _selectedIndex = previous);
-              });
-          return;
-        }
-
-        if (index == 3) {
-          final previous = _selectedIndex;
-          setState(() => _selectedIndex = index);
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const OrderHistoryView()))
-              .then((_) {
-                if (!mounted) return;
-                setState(() => _selectedIndex = previous);
-              });
-          return;
-        }
-
-        setState(() => _selectedIndex = index);
-        if (index == 4) {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const UserInfoView()));
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: selected
-                ? const EdgeInsets.all(10)
-                : const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: selected ? accent : Colors.transparent,
-              shape: BoxShape.circle,
+  void _onBottomNavTap(int index) {
+    if (index == 1) {
+      final previous = _selectedIndex;
+      setState(() => _selectedIndex = index);
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute(
+              builder: (_) => PromotionView(products: _getAllProducts()),
             ),
-            child: Icon(
-              icon,
-              size: 22,
-              color: selected ? Colors.white : accent,
-            ),
-          ),
-        ],
-      ),
-    );
+          )
+          .then((_) {
+            if (!mounted) return;
+            setState(() => _selectedIndex = previous);
+          });
+      return;
+    }
+
+    if (index == 2) {
+      final previous = _selectedIndex;
+      setState(() => _selectedIndex = index);
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const QrCodeView())).then((_) {
+        if (!mounted) return;
+        setState(() => _selectedIndex = previous);
+      });
+      return;
+    }
+
+    if (index == 3) {
+      final previous = _selectedIndex;
+      setState(() => _selectedIndex = index);
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const OrderHistoryView()))
+          .then((_) {
+            if (!mounted) return;
+            setState(() => _selectedIndex = previous);
+          });
+      return;
+    }
+
+    setState(() => _selectedIndex = index);
+    if (index == 4) {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const UserInfoView()));
+    }
   }
 
   List<Widget> _buildReusableProductRows() {

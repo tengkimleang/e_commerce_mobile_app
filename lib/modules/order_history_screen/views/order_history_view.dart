@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
@@ -49,92 +50,42 @@ class OrderHistoryView extends StatelessWidget {
           const Expanded(child: Center(child: _EmptyOrderState())),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        child: Container(
-          height: 68,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavItem(
-                context,
-                icon: Icons.home_outlined,
-                isSelected: false,
-                onTap: () => Navigator.of(context).pop(),
-              ),
-              _buildBottomNavItem(
-                context,
-                icon: Icons.local_offer_outlined,
-                isSelected: false,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const PromotionView()),
-                ),
-              ),
-              _buildBottomNavItem(
-                context,
-                icon: Icons.qr_code_2_outlined,
-                isSelected: false,
-                onTap: () => Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const QrCodeView())),
-              ),
-              _buildBottomNavItem(
-                context,
-                icon: Icons.receipt_long_rounded,
-                isSelected: true,
-                onTap: () {},
-              ),
-              _buildBottomNavItem(
-                context,
-                icon: Icons.person_outline,
-                isSelected: false,
-                onTap: () => Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const UserInfoView())),
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: SupermarketBottomNavigation(
+        selectedIndex: 3,
+        onTap: (index) => _onBottomNavTap(context, index),
       ),
     );
   }
 
-  Widget _buildBottomNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    const accent = Color(0xFFEC407A);
+  void _onBottomNavTap(BuildContext context, int index) {
+    if (index == 3) return;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: isSelected ? accent : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          size: 29,
-          color: isSelected ? Colors.white : accent.withValues(alpha: 0.55),
-        ),
-      ),
-    );
+    if (index == 0) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      return;
+    }
+
+    if (index == 1) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const PromotionView()),
+      );
+      return;
+    }
+
+    if (index == 2) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const QrCodeView()));
+      return;
+    }
+
+    if (index == 4) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const UserInfoView()),
+      );
+    }
   }
 }
 
