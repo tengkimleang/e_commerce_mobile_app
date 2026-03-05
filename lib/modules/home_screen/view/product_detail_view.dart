@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'package:e_commerce_mobile_app/modules/cart/controller/cart_controller.dart';
+import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
 class ProductDetailView extends StatelessWidget {
@@ -15,6 +17,8 @@ class ProductDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+    final cart = CartController.instance;
     final suggestions = relatedProducts
         .where((item) => item.id != product.id)
         .take(6)
@@ -110,27 +114,99 @@ class ProductDetailView extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEC407A),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
+                child: AnimatedBuilder(
+                  animation: cart,
+                  builder: (context, _) {
+                    final quantity = cart.quantityFor(product.id);
+
+                    if (quantity == 0) {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () => cart.addProduct(product),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: accent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add to cart',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return Container(
+                      height: 62,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F7F7),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: const Color(0xFFE8E8E8)),
                       ),
-                    ),
-                    child: const Text(
-                      'Add to cart',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => cart.remove(product.id),
+                            icon: const Icon(Icons.delete_outline),
+                            color: Colors.grey[500],
+                          ),
+                          const Spacer(),
+                          Text(
+                            '$quantity',
+                            style: const TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF1D1B24),
+                            ),
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: GestureDetector(
+                              onTap: () => cart.increase(product.id),
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.add, size: 24),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
+              ),
+              const SizedBox(height: 10),
+              AnimatedBuilder(
+                animation: cart,
+                builder: (context, _) {
+                  final quantity = cart.quantityFor(product.id);
+                  if (quantity == 0) return const SizedBox.shrink();
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                    child: Text(
+                      '$quantity in cart',
+                      style: const TextStyle(
+                        color: accent,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                },
               ),
               const Padding(
                 padding: EdgeInsets.fromLTRB(16, 18, 16, 8),
@@ -211,6 +287,77 @@ class ProductDetailView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: cart,
+        builder: (context, _) {
+          if (cart.distinctItemCount == 0) return const SizedBox.shrink();
+
+          return SafeArea(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              decoration: const BoxDecoration(
+                color: accent,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${cart.distinctItemCount} Items detail',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Total: \$ ${cart.totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 170,
+                    height: 64,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const CartView()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: accent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Check Out',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

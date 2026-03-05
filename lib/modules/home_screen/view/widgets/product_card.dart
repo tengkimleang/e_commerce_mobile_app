@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/modules/cart/controller/cart_controller.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
 class ProductCard extends StatefulWidget {
@@ -150,12 +151,6 @@ class _ProductCardState extends State<ProductCard> {
                           color: Color(0xFFEC407A),
                         ),
                       ),
-                      const Spacer(),
-                      Icon(
-                        Icons.shopping_cart,
-                        color: Color(0xFFEC407A),
-                        size: 16,
-                      ),
                       if (widget.product.originalPrice != null) ...[
                         const SizedBox(width: 4),
                         Text(
@@ -167,6 +162,45 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                         ),
                       ],
+                      const Spacer(),
+                      AnimatedBuilder(
+                        animation: CartController.instance,
+                        builder: (context, _) {
+                          final quantity = CartController.instance.quantityFor(
+                            widget.product.id,
+                          );
+                          return Row(
+                            children: [
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minHeight: 24,
+                                  minWidth: 24,
+                                ),
+                                onPressed: () => CartController.instance
+                                    .addProduct(widget.product),
+                                icon: Icon(
+                                  quantity > 0
+                                      ? Icons.shopping_cart
+                                      : Icons.add_shopping_cart,
+                                  color: const Color(0xFFEC407A),
+                                  size: 18,
+                                ),
+                              ),
+                              if (quantity > 0)
+                                Text(
+                                  '$quantity',
+                                  style: const TextStyle(
+                                    color: Color(0xFFEC407A),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],

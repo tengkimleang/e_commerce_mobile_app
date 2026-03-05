@@ -4,9 +4,13 @@ import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/bec
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/cart/controller/cart_controller.dart';
+import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
+import 'package:e_commerce_mobile_app/modules/shop_selector/models/shop_option.dart';
+import 'package:e_commerce_mobile_app/modules/shop_selector/views/shop_selector_bottom_sheet.dart';
 
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'product_detail_view.dart';
@@ -27,6 +31,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   int _current = 0;
   late final Timer _timer;
   late final PageController _partnerController;
+  late ShopOption _selectedShop;
   int _partnerCurrent = 0;
   int _selectedIndex = 0;
 
@@ -41,10 +46,49 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     'https://www.chipmong.com/wp-content/uploads/2020/12/DSC_7842-1-585x391.jpg',
     'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
   ];
+  final List<ShopOption> _shops = const [
+    ShopOption(
+      storeName: 'CHIP MONG SUPERMARKET SORLA',
+      branchLabel: 'EDEN GARDEN',
+      imageUrl:
+          'https://www.chipmong.com/wp-content/uploads/2020/12/DSC_7842-1-585x391.jpg',
+    ),
+    ShopOption(
+      storeName: 'CHIP MONG SUPERMARKET NORO',
+      branchLabel: 'NORO SUPERMARKET',
+      imageUrl:
+          'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
+    ),
+    ShopOption(
+      storeName: 'CHIP MONG EXPRESS BAK TOUK',
+      branchLabel: 'EXPRESS BAK TOUK',
+      imageUrl:
+          'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
+    ),
+    ShopOption(
+      storeName: 'CHIP MONG SEN SOK SUPERMARKET',
+      branchLabel: 'SEN SOK SUPERMARKET',
+      imageUrl:
+          'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
+    ),
+    ShopOption(
+      storeName: 'CHIP MONG 271 MEGA MALL',
+      branchLabel: '271 MEGA MALL',
+      imageUrl:
+          'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+    ),
+    ShopOption(
+      storeName: 'CHIP MONG RETAIL OUTLET',
+      branchLabel: 'RETAIL OUTLET',
+      imageUrl:
+          'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
+    ),
+  ];
 
   @override
   void initState() {
     _partnerController = PageController(viewportFraction: 0.95);
+    _selectedShop = _shops.first;
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || _selectedIndex != 0 || !_controller.hasClients) return;
@@ -119,39 +163,53 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Stack(
-                        children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.shopping_cart,
-                              color: Colors.white,
-                              size: 28,
-                            ),
-                            onPressed: () {},
-                          ),
-                          Positioned(
-                            right: 8,
-                            top: 8,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
+                    AnimatedBuilder(
+                      animation: CartController.instance,
+                      builder: (context, _) {
+                        final itemTypes =
+                            CartController.instance.distinctItemCount;
+                        return Stack(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.shopping_cart,
                                 color: Colors.white,
-                                shape: BoxShape.circle,
+                                size: 28,
                               ),
-                              child: const Text(
-                                '1',
-                                style: TextStyle(
-                                  color: Color(0xFFEC407A),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const CartView(),
+                                  ),
+                                );
+                              },
+                            ),
+                            if (itemTypes > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 2,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '$itemTypes',
+                                    style: const TextStyle(
+                                      color: Color(0xFFEC407A),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -166,10 +224,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'CHIP MONG SUPERMARKET 271 MEGA MALL',
-                                  style: TextStyle(
+                                  _selectedShop.storeName,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -187,7 +245,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                 ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(maxWidth: 24),
-                                onPressed: () {},
+                                onPressed: _showShopSelectorBottomSheet,
                               ),
                             ],
                           ),
@@ -449,6 +507,17 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Future<void> _showShopSelectorBottomSheet() async {
+    final selected = await showShopSelectorBottomSheet(
+      context,
+      shops: _shops,
+      selectedShop: _selectedShop,
+    );
+
+    if (!mounted || selected == null) return;
+    setState(() => _selectedShop = selected);
   }
 
   List<Widget> _buildReusableProductRows() {
