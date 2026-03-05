@@ -1,14 +1,23 @@
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
 import 'package:flutter/material.dart';
 
-class UserInfoView extends StatelessWidget {
+class UserInfoView extends StatefulWidget {
   final bool showBottomNavigation;
 
   const UserInfoView({super.key, this.showBottomNavigation = true});
+
+  @override
+  State<UserInfoView> createState() => _UserInfoViewState();
+}
+
+class _UserInfoViewState extends State<UserInfoView> {
+  String _username = 'Jame Taki';
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +32,7 @@ class UserInfoView extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    _HeaderCard(),
+                    _HeaderCard(username: _username),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       child: Column(
@@ -31,11 +40,12 @@ class UserInfoView extends StatelessWidget {
                         children: [
                           const _SectionTitle(title: 'Personal Information'),
                           const SizedBox(height: 18),
-                          const _InfoRow(
+                          _InfoRow(
                             label: 'Your Name:',
-                            value: 'Jame Taki',
+                            value: _username,
                             trailingIcon: Icons.edit,
                             trailingColor: accent,
+                            onTrailingTap: _openEditUsername,
                           ),
                           const Divider(height: 28, color: Color(0xFFD7D1D6)),
                           const _InfoRow(
@@ -225,13 +235,26 @@ class UserInfoView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: showBottomNavigation
+      bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
               selectedIndex: 4,
               onTap: (index) => _onBottomNavTap(context, index),
             )
           : null,
     );
+  }
+
+  Future<void> _openEditUsername() async {
+    final updatedName = await showEditUsernameBottomSheet(
+      context,
+      initialUsername: _username,
+    );
+
+    if (!mounted || updatedName == null) return;
+    final trimmed = updatedName.trim();
+    if (trimmed.isEmpty || trimmed == _username) return;
+
+    setState(() => _username = trimmed);
   }
 
   void _onBottomNavTap(BuildContext context, int index) {
@@ -267,6 +290,10 @@ class UserInfoView extends StatelessWidget {
 }
 
 class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({required this.username});
+
+  final String username;
+
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
@@ -283,7 +310,7 @@ class _HeaderCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -291,12 +318,23 @@ class _HeaderCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Icon(Icons.favorite_border, color: accent, size: 30),
-              SizedBox(width: 22),
-              Icon(Icons.notifications_none, color: accent, size: 30),
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FavoriteView()),
+                  );
+                },
+                icon: const Icon(
+                  Icons.favorite_border,
+                  color: accent,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.notifications_none, color: accent, size: 30),
             ],
           ),
           const SizedBox(height: 8),
@@ -337,11 +375,11 @@ class _HeaderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Jame Taki',
-              style: TextStyle(
+              username,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1B22),
@@ -413,12 +451,14 @@ class _InfoRow extends StatelessWidget {
     required this.value,
     required this.trailingIcon,
     required this.trailingColor,
+    this.onTrailingTap,
   });
 
   final String label;
   final String value;
   final IconData trailingIcon;
   final Color trailingColor;
+  final VoidCallback? onTrailingTap;
 
   @override
   Widget build(BuildContext context) {
@@ -446,7 +486,13 @@ class _InfoRow extends StatelessWidget {
             ],
           ),
         ),
-        Icon(trailingIcon, color: trailingColor, size: 30),
+        onTrailingTap != null
+            ? IconButton(
+                onPressed: onTrailingTap,
+                icon: Icon(trailingIcon, color: trailingColor, size: 30),
+                splashRadius: 18,
+              )
+            : Icon(trailingIcon, color: trailingColor, size: 30),
       ],
     );
   }
