@@ -6,7 +6,9 @@ import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_c
 import 'package:flutter/material.dart';
 
 class UserInfoView extends StatelessWidget {
-  const UserInfoView({super.key});
+  final bool showBottomNavigation;
+
+  const UserInfoView({super.key, this.showBottomNavigation = true});
 
   @override
   Widget build(BuildContext context) {
@@ -223,10 +225,12 @@ class UserInfoView extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: SupermarketBottomNavigation(
-        selectedIndex: 4,
-        onTap: (index) => _onBottomNavTap(context, index),
-      ),
+      bottomNavigationBar: showBottomNavigation
+          ? SupermarketBottomNavigation(
+              selectedIndex: 4,
+              onTap: (index) => _onBottomNavTap(context, index),
+            )
+          : null,
     );
   }
 

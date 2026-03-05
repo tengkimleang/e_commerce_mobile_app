@@ -6,7 +6,9 @@ import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_v
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
 class QrCodeView extends StatelessWidget {
-  const QrCodeView({super.key});
+  final bool showBottomNavigation;
+
+  const QrCodeView({super.key, this.showBottomNavigation = true});
 
   @override
   Widget build(BuildContext context) {
@@ -108,10 +110,12 @@ class QrCodeView extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: SupermarketBottomNavigation(
-        selectedIndex: 2,
-        onTap: (index) => _onBottomNavTap(context, index),
-      ),
+      bottomNavigationBar: showBottomNavigation
+          ? SupermarketBottomNavigation(
+              selectedIndex: 2,
+              onTap: (index) => _onBottomNavTap(context, index),
+            )
+          : null,
     );
   }
 

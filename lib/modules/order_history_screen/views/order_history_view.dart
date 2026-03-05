@@ -6,7 +6,9 @@ import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
 class OrderHistoryView extends StatelessWidget {
-  const OrderHistoryView({super.key});
+  final bool showBottomNavigation;
+
+  const OrderHistoryView({super.key, this.showBottomNavigation = true});
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +52,12 @@ class OrderHistoryView extends StatelessWidget {
           const Expanded(child: Center(child: _EmptyOrderState())),
         ],
       ),
-      bottomNavigationBar: SupermarketBottomNavigation(
-        selectedIndex: 3,
-        onTap: (index) => _onBottomNavTap(context, index),
-      ),
+      bottomNavigationBar: showBottomNavigation
+          ? SupermarketBottomNavigation(
+              selectedIndex: 3,
+              onTap: (index) => _onBottomNavTap(context, index),
+            )
+          : null,
     );
   }
 

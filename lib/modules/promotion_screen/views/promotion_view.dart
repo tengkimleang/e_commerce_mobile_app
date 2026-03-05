@@ -11,8 +11,13 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_v
 
 class PromotionView extends StatelessWidget {
   final List<ProductModel> products;
+  final bool showBottomNavigation;
 
-  const PromotionView({super.key, this.products = const []});
+  const PromotionView({
+    super.key,
+    this.products = const [],
+    this.showBottomNavigation = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +87,12 @@ class PromotionView extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: SupermarketBottomNavigation(
-        selectedIndex: 1,
-        onTap: (index) => _onBottomNavTap(context, index),
-      ),
+      bottomNavigationBar: showBottomNavigation
+          ? SupermarketBottomNavigation(
+              selectedIndex: 1,
+              onTap: (index) => _onBottomNavTap(context, index),
+            )
+          : null,
     );
   }
 

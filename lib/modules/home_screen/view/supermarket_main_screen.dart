@@ -47,6 +47,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     _partnerController = PageController(viewportFraction: 0.95);
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || _selectedIndex != 0 || !_controller.hasClients) return;
       final next = (_current + 1) % _images.length;
       _controller.animateToPage(
         next,
@@ -66,6 +67,16 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedIndex != 0) {
+      return Scaffold(
+        body: _buildSecondaryTabBody(),
+        bottomNavigationBar: SupermarketBottomNavigation(
+          selectedIndex: _selectedIndex,
+          onTap: _onBottomNavTap,
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(150),
@@ -418,51 +429,25 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   }
 
   void _onBottomNavTap(int index) {
-    if (index == 1) {
-      final previous = _selectedIndex;
-      setState(() => _selectedIndex = index);
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute(
-              builder: (_) => PromotionView(products: _getAllProducts()),
-            ),
-          )
-          .then((_) {
-            if (!mounted) return;
-            setState(() => _selectedIndex = previous);
-          });
-      return;
-    }
-
-    if (index == 2) {
-      final previous = _selectedIndex;
-      setState(() => _selectedIndex = index);
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const QrCodeView())).then((_) {
-        if (!mounted) return;
-        setState(() => _selectedIndex = previous);
-      });
-      return;
-    }
-
-    if (index == 3) {
-      final previous = _selectedIndex;
-      setState(() => _selectedIndex = index);
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (_) => const OrderHistoryView()))
-          .then((_) {
-            if (!mounted) return;
-            setState(() => _selectedIndex = previous);
-          });
-      return;
-    }
-
+    if (_selectedIndex == index) return;
     setState(() => _selectedIndex = index);
-    if (index == 4) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const UserInfoView()));
+  }
+
+  Widget _buildSecondaryTabBody() {
+    switch (_selectedIndex) {
+      case 1:
+        return PromotionView(
+          products: _getAllProducts(),
+          showBottomNavigation: false,
+        );
+      case 2:
+        return const QrCodeView(showBottomNavigation: false);
+      case 3:
+        return const OrderHistoryView(showBottomNavigation: false);
+      case 4:
+        return const UserInfoView(showBottomNavigation: false);
+      default:
+        return const SizedBox.shrink();
     }
   }
 
