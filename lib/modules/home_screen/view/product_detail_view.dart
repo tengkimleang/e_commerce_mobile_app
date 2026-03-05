@@ -153,8 +153,18 @@ class ProductDetailView extends StatelessWidget {
                       child: Row(
                         children: [
                           IconButton(
-                            onPressed: () => cart.remove(product.id),
-                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () {
+                              if (quantity > 1) {
+                                cart.decrease(product.id);
+                              } else {
+                                cart.remove(product.id);
+                              }
+                            },
+                            icon: Icon(
+                              quantity > 1
+                                  ? Icons.remove
+                                  : Icons.delete_outline,
+                            ),
                             color: Colors.grey[500],
                           ),
                           const Spacer(),
