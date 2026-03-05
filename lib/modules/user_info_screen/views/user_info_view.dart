@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
+import 'package:e_commerce_mobile_app/modules/location_screen/views/receiving_address_view.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_date_of_birth_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +27,7 @@ class UserInfoView extends StatefulWidget {
 class _UserInfoViewState extends State<UserInfoView> {
   String _username = 'Jame Taki';
   DateTime? _dateOfBirth;
+  String _languageCode = 'en';
   File? _profileImageFile;
 
   @override
@@ -68,18 +71,20 @@ class _UserInfoViewState extends State<UserInfoView> {
                             onTrailingTap: _openEditDateOfBirth,
                           ),
                           const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          const _InfoRow(
+                          _InfoRow(
                             label: 'Address',
                             value: '',
                             trailingIcon: Icons.chevron_right,
                             trailingColor: accent,
+                            onTrailingTap: _openReceivingAddress,
                           ),
                           const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          const _InfoRow(
+                          _InfoRow(
                             label: 'Language',
-                            value: 'English',
-                            trailingIcon: Icons.translate,
+                            value: _languageLabel,
+                            trailingIcon: Icons.g_translate,
                             trailingColor: accent,
+                            onTrailingTap: _openEditLanguage,
                           ),
                           const SizedBox(height: 12),
                           const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
@@ -286,6 +291,25 @@ class _UserInfoViewState extends State<UserInfoView> {
     });
   }
 
+  Future<void> _openEditLanguage() async {
+    final selectedCode = await showLanguageBottomSheet(
+      context,
+      selectedLanguageCode: _languageCode,
+    );
+
+    if (!mounted || selectedCode == null || selectedCode == _languageCode) {
+      return;
+    }
+
+    setState(() => _languageCode = selectedCode);
+  }
+
+  Future<void> _openReceivingAddress() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ReceivingAddressView()));
+  }
+
   Future<void> _pickProfileImage() async {
     final source = await showProfileImageSourceBottomSheet(context);
     if (source == null) return;
@@ -320,6 +344,11 @@ class _UserInfoViewState extends State<UserInfoView> {
     final date = _dateOfBirth!;
     final day = date.day.toString().padLeft(2, '0');
     return '$day ${monthNames[date.month - 1]} ${date.year}';
+  }
+
+  String get _languageLabel {
+    if (_languageCode == 'km') return 'Khmer';
+    return 'English';
   }
 
   void _onBottomNavTap(BuildContext context, int index) {
