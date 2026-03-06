@@ -1,8 +1,35 @@
 import 'package:flutter/material.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
+import '../../user_info_screen/views/edit_language_view.dart';
+import '../../login_screen/views/login_view.dart';
 
-class IndexView extends StatelessWidget {
+class IndexView extends StatefulWidget {
   const IndexView({super.key});
+
+  @override
+  State<IndexView> createState() => _IndexViewState();
+}
+
+class _IndexViewState extends State<IndexView> {
+  String _languageCode = 'en';
+
+  String get _languageLabel {
+    if (_languageCode == 'km') return 'ភាសាខ្មែរ';
+    return 'English';
+  }
+
+  Future<void> _openLanguageSelector() async {
+    final selectedCode = await showLanguageBottomSheet(
+      context,
+      selectedLanguageCode: _languageCode,
+    );
+
+    if (!mounted || selectedCode == null || selectedCode == _languageCode) {
+      return;
+    }
+
+    setState(() => _languageCode = selectedCode);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,24 +37,31 @@ class IndexView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFFEC407A),
         elevation: 0,
-        flexibleSpace: const Padding(
-          padding: EdgeInsets.only(
+        flexibleSpace: Padding(
+          padding: const EdgeInsets.only(
             left: 16,
             bottom: 30,
             right: 70,
           ), // ← adjust these numbers
           child: Align(
             alignment: Alignment.bottomLeft, // title sticks to bottom
-            child: Text(
-              'Login or Signup',
-              style: TextStyle(fontSize: 15, color: Colors.white),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LoginView()),
+                );
+              },
+              child: const Text(
+                'Login or Signup',
+                style: TextStyle(fontSize: 15, color: Colors.white),
+              ),
             ),
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {},
+            onPressed: _openLanguageSelector,
           ),
         ],
         toolbarHeight: 220,
@@ -137,3 +171,5 @@ class IndexView extends StatelessWidget {
     );
   }
 }
+
+enum _LanguageMenuAction { language }

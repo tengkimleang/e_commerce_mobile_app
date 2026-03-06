@@ -1,5 +1,6 @@
 // lib/modules/login_screen/views/login_view.dart
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,7 +96,19 @@ class _LoginContentState extends State<_LoginContent> {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text("🇬🇧", style: TextStyle(fontSize: 20)),
+                  IconButton(
+                    onPressed: () {
+                      showLanguageBottomSheet(
+                        context,
+                        selectedLanguageCode: 'en',
+                      ).then((selectedCode) {
+                        if (selectedCode != null) {
+                          // Handle language change if needed
+                        }
+                      });
+                    },
+                    icon: const Text("🇬🇧", style: TextStyle(fontSize: 20)),
+                  ),
                 ],
               ),
               Center(
