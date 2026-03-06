@@ -11,6 +11,7 @@ import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_c
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_date_of_birth_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -144,7 +145,7 @@ class _UserInfoViewState extends State<UserInfoView> {
                             title: 'Change PIN:',
                             value: '****',
                             trailingText: 'Change',
-                            onTap: () {},
+                            onTap: _openChangePin,
                           ),
                           const Divider(height: 30, color: Color(0xFFD7D1D6)),
                           Row(
@@ -308,6 +309,12 @@ class _UserInfoViewState extends State<UserInfoView> {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const ReceivingAddressView()));
+  }
+
+  Future<void> _openChangePin() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ChangePinOldPinView()));
   }
 
   Future<void> _pickProfileImage() async {
