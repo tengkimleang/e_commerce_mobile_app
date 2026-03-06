@@ -8,6 +8,8 @@ import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
+import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -16,7 +18,19 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => LoginBloc(),
-      child: const _LoginContent(),
+      child: BlocListener<LoginBloc, LoginState>(
+        listener: (context, state) {
+          if (state is LoginOtpSent) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpView(phoneNumber: state.phoneNumber),
+              ),
+            );
+          }
+        },
+        child: const _LoginContent(),
+      ),
     );
   }
 }
@@ -82,7 +96,7 @@ class _LoginContentState extends State<_LoginContent> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const IndexView(),
+                          builder: (context) => const SignupView(),
                         ),
                       );
                     },

@@ -81,8 +81,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       //   password: _currentPassword,
       // );
 
-      // For now, simulate success
-      emit(const LoginSuccess('Login successful! Redirecting...'));
+      // For now, simulate OTP send instead of direct success
+      // Emit an OTP sent state so UI can navigate to OTP input
+      emit(LoginOtpSent(_currentPhoneNumber));
     } catch (e) {
       emit(LoginError('Login failed: ${e.toString()}'));
     }

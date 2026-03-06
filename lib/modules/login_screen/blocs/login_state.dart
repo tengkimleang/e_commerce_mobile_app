@@ -22,6 +22,12 @@ class LoginSuccess extends LoginState {
   const LoginSuccess(this.message);
 }
 
+// When OTP has been sent / requested for verification
+class LoginOtpSent extends LoginState {
+  final String phoneNumber;
+  const LoginOtpSent(this.phoneNumber);
+}
+
 // When login fails with error
 class LoginError extends LoginState {
   final String message;
