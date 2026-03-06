@@ -10,6 +10,12 @@ class SignupView extends StatefulWidget {
 }
 
 class _SignupViewState extends State<SignupView> {
+  
+  bool _isPhoneValid = false;
+  bool _isValidPhone(String phone) {
+  final regex = RegExp(r'^0\d{8,9}$');
+  return regex.hasMatch(phone);
+}
   late TextEditingController _phoneController;
   late TextEditingController _fullNameController;
   late TapGestureRecognizer _termsTapRecognizer;
@@ -83,35 +89,40 @@ class _SignupViewState extends State<SignupView> {
               const Text('Phone number*', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
               TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  hintText: 'Enter phone number',
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              onChanged: (value) => setState(() => _isPhoneValid = _isValidPhone(value)),
+              decoration: InputDecoration(
+                hintText: 'Enter phone number',
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                errorText: (!_isPhoneValid && _phoneController.text.isNotEmpty)
+                    ? 'Please enter a valid phone number'
+                    : null,
               ),
+            ),
               const SizedBox(height: 16),
               const Text('Full name*', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
-              TextField(
-                controller: _fullNameController,
-                decoration: InputDecoration(
-                  hintText: 'Full name',
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+             TextField(
+              controller: _fullNameController,
+              onChanged: (_) => setState((){}),
+              decoration: InputDecoration(
+                hintText: 'Full name',
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
               ),
+            ),
               const SizedBox(height: 20),
               RichText(
                 textAlign: TextAlign.center,
@@ -134,20 +145,27 @@ class _SignupViewState extends State<SignupView> {
                 ),
               ),
               const Spacer(),
-              SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: implement signup action / OTP flow
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEC407A),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('NEXT', style: TextStyle(fontSize: 16,color: Colors.white, fontWeight: FontWeight.w600)),
-                ),
-              ),
-              const SizedBox(height: 12),
+Builder(
+  builder: (context) {
+    final isButtonEnabled = _isPhoneValid && _fullNameController.text.trim().isNotEmpty;
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton(
+        onPressed: isButtonEnabled
+            ? () {
+                // TODO: implement signup action / OTP flow
+              }
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFEC407A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: const Text('NEXT', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600)),
+      ),
+    );
+  },
+),
+const SizedBox(height: 12),
             ],
           ),
         ),

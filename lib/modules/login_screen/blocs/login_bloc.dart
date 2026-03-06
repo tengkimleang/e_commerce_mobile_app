@@ -20,11 +20,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   String _currentPhoneNumber = '';
 
   // Validation method for phone number
-  bool _isValidPhone(String phoneNumber) {
-    // Phone number should be at least 10 digits (including country code)
-    final phoneRegex = RegExp(r'^\+?[0-9]{10,15}$');
-    return phoneRegex.hasMatch(phoneNumber);
-  }
+ bool _isValidPhone(String phone) {
+  final regex = RegExp(r'^0\d{8,9}$');
+  return regex.hasMatch(phone);
+}
 
   // Handle phone number input change
   Future<void> _onPhoneChanged(

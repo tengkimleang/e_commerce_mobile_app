@@ -66,12 +66,17 @@ class _OtpViewState extends State<OtpView> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
+          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              IconButton(
+              Row(
+                children: [
+                IconButton(
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.chevron_left, size: 28),
+              ),
+                ],
               ),
               const SizedBox(height: 8),
               Center(
