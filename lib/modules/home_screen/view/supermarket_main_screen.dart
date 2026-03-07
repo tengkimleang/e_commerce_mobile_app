@@ -123,7 +123,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(150),
+        preferredSize: const Size.fromHeight(120),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: const BoxDecoration(
@@ -215,45 +215,32 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 ),
                 // Location Text
                 Row(
-                  children: [
-                    // const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _selectedShop.storeName,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.expand_more,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(maxWidth: 24),
-                                onPressed: _showShopSelectorBottomSheet,
-                              ),
-                            ],
-                          ),
-                        ],
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedShop.storeName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    padding: const EdgeInsets.only(right: 150),
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(
+                      Icons.expand_more,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: _showShopSelectorBottomSheet,
+                  ),
+                ],
+              )
               ],
             ),
           ),
