@@ -28,50 +28,52 @@ class FavoriteView extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 58,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7BDD5),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.receipt_long_rounded,
-                    color: accent,
-                    size: 36,
-                  ),
-                ),
-                Positioned(
-                  right: -10,
-                  top: -2,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: const BoxDecoration(
-                      color: accent,
-                      shape: BoxShape.circle,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 84,
+                          height: 84,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAD3E3),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.receipt_long_rounded,
+                            size: 46,
+                            color: accent.withValues(alpha: 0.95),
+                          ),
+                        ),
+                        Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: const BoxDecoration(
+                              color: accent,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.check, color: Colors.white, size: 18),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.circle, color: accent, size: 1),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'No result found',
-              style: TextStyle(
-                color: Color(0xFFF08AB8),
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'No result found',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: accent.withValues(alpha: 0.65),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+    ),
       ),
     );
   }
