@@ -52,7 +52,7 @@ class ProductDetailView extends StatelessWidget {
                       icon: const Icon(Icons.arrow_back_ios_new, size: 20),
                     ),
                     SizedBox(
-                      height: 350,
+                      height: 300,
                       width: double.infinity,
                       child: CachedNetworkImage(
                         imageUrl: product.imageUrl,
@@ -77,7 +77,7 @@ class ProductDetailView extends StatelessWidget {
                         child: const Text(
                           '1/1',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.black54,
                           ),
@@ -89,7 +89,7 @@ class ProductDetailView extends StatelessWidget {
                       child: Text(
                         product.name.toUpperCase(),
                         style: const TextStyle(
-                          fontSize: 40,
+                          fontSize: 16,
                           fontWeight: FontWeight.w800,
                           height: 1.05,
                           color: Color(0xFF1D1B24),
@@ -106,7 +106,7 @@ class ProductDetailView extends StatelessWidget {
                 child: Text(
                   '\$ ${product.price.toStringAsFixed(2)}',
                   style: const TextStyle(
-                    fontSize: 56,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFFEC407A),
                   ),
@@ -122,7 +122,7 @@ class ProductDetailView extends StatelessWidget {
                     if (quantity == 0) {
                       return SizedBox(
                         width: double.infinity,
-                        height: 54,
+                        height: 44,
                         child: ElevatedButton(
                           onPressed: () => cart.addProduct(product),
                           style: ElevatedButton.styleFrom(
@@ -135,7 +135,7 @@ class ProductDetailView extends StatelessWidget {
                           child: const Text(
                             'Add to cart',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -144,7 +144,7 @@ class ProductDetailView extends StatelessWidget {
                     }
 
                     return Container(
-                      height: 62,
+                      height: 52,
                       decoration: BoxDecoration(
                         color: const Color(0xFFF7F7F7),
                         borderRadius: BorderRadius.circular(30),
@@ -171,7 +171,7 @@ class ProductDetailView extends StatelessWidget {
                           Text(
                             '$quantity',
                             style: const TextStyle(
-                              fontSize: 30,
+                              fontSize: 20,
                               fontWeight: FontWeight.w500,
                               color: Color(0xFF1D1B24),
                             ),
@@ -330,7 +330,7 @@ class ProductDetailView extends StatelessWidget {
                           'Total: \$ ${cart.totalAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 30,
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -338,8 +338,8 @@ class ProductDetailView extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 170,
-                    height: 64,
+                    width: 150,
+                    height: 44,
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).push(
@@ -356,7 +356,7 @@ class ProductDetailView extends StatelessWidget {
                       child: const Text(
                         'Check Out',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.4,
                         ),
