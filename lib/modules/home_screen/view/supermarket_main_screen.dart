@@ -16,7 +16,7 @@ import 'product_detail_view.dart';
 import 'product_list_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
-import 'search_view.dart';
+import 'search_products.dart';
 import '../../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
@@ -257,7 +257,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   final all = _getAllProducts();
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => SearchView(products: all),
+                      builder: (_) => SearchProducts(products: all),
                     ),
                   );
                 },

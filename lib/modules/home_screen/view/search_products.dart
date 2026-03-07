@@ -3,16 +3,16 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.da
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
-class SearchView extends StatefulWidget {
+class SearchProducts extends StatefulWidget {
   final List<ProductModel> products;
 
-  const SearchView({super.key, required this.products});
+  const SearchProducts({super.key, required this.products});
 
   @override
-  State<SearchView> createState() => _SearchViewState();
+  State<SearchProducts> createState() => _SearchProductsState();
 }
 
-class _SearchViewState extends State<SearchView> {
+class _SearchProductsState extends State<SearchProducts> {
   final _controller = TextEditingController();
   late List<ProductModel> _filtered;
 
@@ -79,7 +79,7 @@ class _SearchViewState extends State<SearchView> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.65,
+                  childAspectRatio: 0.80,
                 ),
                 itemBuilder: (context, index) {
                   final product = _filtered[index];
