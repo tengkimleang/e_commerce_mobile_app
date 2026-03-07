@@ -1,9 +1,10 @@
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/product_detail_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
-import '../models/customer_loyalty_data.dart';
-import 'product_detail_view.dart';
+import '../../customer_loyalty_screen/models/customer_loyalty_data.dart';
+
 
 class PriceCheckingView extends StatelessWidget {
   final bool selectionMode;
@@ -22,7 +23,7 @@ class PriceCheckingView extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
         child: GridView.builder(
-          itemCount: customerLoyaltySampleProducts.length,
+          itemCount: PriceCheckingProducts.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 0.85,
@@ -30,7 +31,7 @@ class PriceCheckingView extends StatelessWidget {
             mainAxisSpacing: 12,
           ),
           itemBuilder: (context, index) {
-            final product = customerLoyaltySampleProducts[index];
+            final product = PriceCheckingProducts[index];
             return _ProductCard(
               product: product,
               onTap: () {

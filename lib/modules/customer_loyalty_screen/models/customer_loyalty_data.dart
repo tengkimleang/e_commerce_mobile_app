@@ -29,7 +29,7 @@ const customerLoyaltyDefaultData = CustomerLoyaltyData(
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZ5i8QBjeV3H4nA5m5T3ILCaeeQYcWN0pg9Q&s',
 );
 
-const customerLoyaltySampleProducts = <ProductItem>[
+const List<ProductItem> PriceCheckingProducts = <ProductItem>[
   ProductItem(
     id: 'p0',
     name: 'NR-OSTRA FZ-BABY WHOLE OCTOPUS',
@@ -87,6 +87,34 @@ const customerLoyaltySampleProducts = <ProductItem>[
   ),
   ProductItem(
     id: 'p8',
+    name: 'NR-OSTRA FZ-FISH FILLET',
+    price: 9.95,
+    imageUrl:
+        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+  ),
+   ProductItem(
+    id: 'p9',
+    name: 'NR-OSTRA FZ-FISH FILLET',
+    price: 9.95,
+    imageUrl:
+        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+  ),
+   ProductItem(
+    id: 'p10',
+    name: 'NR-OSTRA FZ-FISH FILLET',
+    price: 9.95,
+    imageUrl:
+        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+  ),
+   ProductItem(
+    id: 'p11',
+    name: 'NR-OSTRA FZ-FISH FILLET',
+    price: 9.95,
+    imageUrl:
+        'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
+  ),
+   ProductItem(
+    id: 'p12',
     name: 'NR-OSTRA FZ-FISH FILLET',
     price: 9.95,
     imageUrl:

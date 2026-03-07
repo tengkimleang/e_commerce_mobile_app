@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/customer_loyalty_bloc.dart';
 import '../blocs/customer_loyalty_event.dart';
 import '../blocs/customer_loyalty_state.dart';
-import 'price_checking_view.dart';
+import '../../price_checking/views/price_checking_view.dart';
 import 'widgets/loyalty_action_cards.dart';
 import 'widgets/partner_qr_sheet.dart';
 

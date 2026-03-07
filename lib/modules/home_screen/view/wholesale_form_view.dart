@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/price_checking_view.dart';
+import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 
 class WholesaleFormView extends StatefulWidget {
   const WholesaleFormView({super.key});
