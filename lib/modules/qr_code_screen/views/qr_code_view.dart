@@ -14,8 +14,8 @@ class QrCodeView extends StatelessWidget {
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
     const username = 'Jame Taki';
-    const phone = '0963267044';
-    const points = '0';
+    const phone = '094754475';
+    const points = '10';
 
     final qrData = Uri.encodeComponent(
       'user:$username;phone:$phone;points:$points',

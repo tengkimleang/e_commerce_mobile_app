@@ -181,7 +181,7 @@ class CartView extends StatelessWidget {
                           '${cart.distinctItemCount} Items detail',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -190,7 +190,7 @@ class CartView extends StatelessWidget {
                           'Total: \$ ${cart.totalAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 34,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -198,8 +198,8 @@ class CartView extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    width: 170,
-                    height: 64,
+                    width: 150,
+                    height: 44,
                     child: ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
@@ -212,7 +212,7 @@ class CartView extends StatelessWidget {
                       child: const Text(
                         'Check Out',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.4,
                         ),

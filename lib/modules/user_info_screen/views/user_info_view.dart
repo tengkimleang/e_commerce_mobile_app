@@ -14,310 +14,348 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_userna
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_event.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_state.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
 
-class UserInfoView extends StatefulWidget {
+class UserInfoView extends StatelessWidget {
   final bool showBottomNavigation;
 
   const UserInfoView({super.key, this.showBottomNavigation = true});
 
   @override
-  State<UserInfoView> createState() => _UserInfoViewState();
-}
-
-class _UserInfoViewState extends State<UserInfoView> {
-  String _username = 'Jame Taki';
-  DateTime? _dateOfBirth;
-  String _languageCode = 'en';
-  File? _profileImageFile;
-
-  @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _HeaderCard(
-                      username: _username,
-                      profileImageFile: _profileImageFile,
-                      onTapCamera: _pickProfileImage,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
+    return BlocProvider(
+      create: (_) => UserInfoBloc(),
+      child: BlocBuilder<UserInfoBloc, UserInfoState>(
+        builder: (context, state) {
+          final userInfo = state is UserInfoUpdated
+              ? state.userInfo
+              : state is UserInfoInitial
+                  ? state.userInfo
+                  : UserInfoModel.initial();
+
+          final String username = userInfo.username;
+          final DateTime? dateOfBirth = userInfo.dateOfBirth;
+          final String languageCode = userInfo.languageCode;
+          final File? profileImageFile = userInfo.profileImagePath != null
+              ? File(userInfo.profileImagePath!)
+              : null;
+
+          String dateOfBirthLabel() {
+            if (dateOfBirth == null) return 'Not Added';
+            const monthNames = [
+              'Jan',
+              'Feb',
+              'Mar',
+              'Apr',
+              'May',
+              'Jun',
+              'Jul',
+              'Aug',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dec',
+            ];
+            final date = dateOfBirth;
+            final day = date!.day.toString().padLeft(2, '0');
+            return '$day ${monthNames[date.month - 1]} ${date.year}';
+          }
+
+          String languageLabel() {
+            if (languageCode == 'km') return 'Khmer';
+            return 'English';
+          }
+
+          return Scaffold(
+            backgroundColor: const Color(0xFFF3F3F3),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _SectionTitle(title: 'Personal Information'),
-                          const SizedBox(height: 18),
-                          _InfoRow(
-                            label: 'Your Name:',
-                            value: _username,
-                            trailingIcon: Icons.edit,
-                            trailingColor: accent,
-                            onTrailingTap: _openEditUsername,
+                          _HeaderCard(
+                            username: username,
+                            profileImageFile: profileImageFile,
+                            onTapCamera: () => _pickProfileImage(context),
                           ),
-                          const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          _InfoRow(
-                            label: 'Date of Birth:',
-                            value: _dateOfBirthLabel,
-                            trailingIcon: Icons.edit,
-                            trailingColor: accent,
-                            onTrailingTap: _openEditDateOfBirth,
-                          ),
-                          const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          _InfoRow(
-                            label: 'Address',
-                            value: '',
-                            trailingIcon: Icons.chevron_right,
-                            trailingColor: accent,
-                            onTrailingTap: _openReceivingAddress,
-                          ),
-                          const Divider(height: 28, color: Color(0xFFD7D1D6)),
-                          _InfoRow(
-                            label: 'Language',
-                            value: _languageLabel,
-                            trailingIcon: Icons.g_translate,
-                            trailingColor: accent,
-                            onTrailingTap: _openEditLanguage,
-                          ),
-                          const SizedBox(height: 12),
-                          const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
-                          const SizedBox(height: 20),
-                          const _SectionTitle(title: 'Account Information'),
-                          const SizedBox(height: 18),
-                          const Text(
-                            'Phone number:',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFFB0AAB3),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '(+855) 96 909 098',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Color(0xFF34313A),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDFF5E7),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Color(0xFF0D9A58),
-                                  size: 18,
+                                const _SectionTitle(title: 'Personal Information'),
+                                const SizedBox(height: 18),
+                                _InfoRow(
+                                  label: 'Your Name:',
+                                  value: username,
+                                  trailingIcon: Icons.edit,
+                                  trailingColor: accent,
+                                  onTrailingTap: () => _openEditUsername(context, username),
                                 ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Verified',
+                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                _InfoRow(
+                                  label: 'Date of Birth:',
+                                  value: dateOfBirthLabel(),
+                                  trailingIcon: Icons.edit,
+                                  trailingColor: accent,
+                                  onTrailingTap: () => _openEditDateOfBirth(context, dateOfBirth),
+                                ),
+                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                _InfoRow(
+                                  label: 'Address',
+                                  value: '',
+                                  trailingIcon: Icons.chevron_right,
+                                  trailingColor: accent,
+                                  onTrailingTap: () => _openReceivingAddress(context),
+                                ),
+                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                _InfoRow(
+                                  label: 'Language',
+                                  value: languageLabel(),
+                                  trailingIcon: Icons.g_translate,
+                                  trailingColor: accent,
+                                  onTrailingTap: () => _openEditLanguage(context, languageCode),
+                                ),
+                                const SizedBox(height: 12),
+                                const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                                const SizedBox(height: 20),
+                                const _SectionTitle(title: 'Account Information'),
+                                const SizedBox(height: 18),
+                                const Text(
+                                  'Phone number:',
                                   style: TextStyle(
-                                    color: Color(0xFF0D9A58),
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18,
+                                    color: Color(0xFFB0AAB3),
                                   ),
                                 ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  '(+855) 96 909 098',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: Color(0xFF34313A),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDFF5E7),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Color(0xFF0D9A58),
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        'Verified',
+                                        style: TextStyle(
+                                          color: Color(0xFF0D9A58),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                                const SizedBox(height: 20),
+                                const _SectionTitle(title: 'Account Security'),
+                                const SizedBox(height: 18),
+                                _SecurityRow(
+                                  title: 'Change PIN:',
+                                  value: '****',
+                                  trailingText: 'Change',
+                                  onTap: () => _openChangePin(context),
+                                ),
+                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Login with Face ID:',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Color(0xFFB0AAB3),
+                                        ),
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: true,
+                                      activeThumbColor: accent,
+                                      activeTrackColor: const Color(0xFFF9DCEA),
+                                      inactiveTrackColor: const Color(0xFFF9DCEA),
+                                      onChanged: (_) {},
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                Row(
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Term of Condition',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Color(0xFFB0AAB3),
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => const TermsOfUseView(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text(
+                                        'See More',
+                                        style: TextStyle(fontSize: 15, color: accent),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                const Text(
+                                  'Account Deletion',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Color(0xFFB0AAB3),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Delete Account!',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1D1B22),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                const Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    'v1.8.3 | 1830',
+                                    style: TextStyle(
+                                      color: Color(0xFFCFA6BD),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 52,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFE2E2E7),
+                                      foregroundColor: const Color(0xFF1D1B22),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    onPressed: () {},
+                                    child: const Text(
+                                      'Logout',
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 18),
-                          const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
-                          const SizedBox(height: 20),
-                          const _SectionTitle(title: 'Account Security'),
-                          const SizedBox(height: 18),
-                          _SecurityRow(
-                            title: 'Change PIN:',
-                            value: '****',
-                            trailingText: 'Change',
-                            onTap: _openChangePin,
-                          ),
-                          const Divider(height: 30, color: Color(0xFFD7D1D6)),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Login with Face ID:',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Color(0xFFB0AAB3),
-                                  ),
-                                ),
-                              ),
-                              Switch(
-                                value: true,
-                                activeThumbColor: accent,
-                                activeTrackColor: const Color(0xFFF9DCEA),
-                                inactiveTrackColor: const Color(0xFFF9DCEA),
-                                onChanged: (_) {},
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 30, color: Color(0xFFD7D1D6)),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Term of Condition',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Color(0xFFB0AAB3),
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const TermsOfUseView(),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  'See More',
-                                  style: TextStyle(fontSize: 18, color: accent),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Divider(height: 30, color: Color(0xFFD7D1D6)),
-                          const Text(
-                            'Account Deletion',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFFB0AAB3),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Delete Account!',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1D1B22),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          const Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              'v1.8.3 | 1830',
-                              style: TextStyle(
-                                color: Color(0xFFCFA6BD),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFE2E2E7),
-                                foregroundColor: const Color(0xFF1D1B22),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              onPressed: () {},
-                              child: const Text(
-                                'Logout',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+            bottomNavigationBar: showBottomNavigation
+                ? SupermarketBottomNavigation(
+                    selectedIndex: 4,
+                    onTap: (index) => _onBottomNavTap(context, index),
+                  )
+                : null,
+          );
+        },
       ),
-      bottomNavigationBar: widget.showBottomNavigation
-          ? SupermarketBottomNavigation(
-              selectedIndex: 4,
-              onTap: (index) => _onBottomNavTap(context, index),
-            )
-          : null,
     );
   }
 
-  Future<void> _openEditUsername() async {
+  Future<void> _openEditUsername(BuildContext context, String current) async {
     final updatedName = await showEditUsernameBottomSheet(
       context,
-      initialUsername: _username,
+      initialUsername: current,
     );
 
-    if (!mounted || updatedName == null) return;
+    if (updatedName == null) return;
     final trimmed = updatedName.trim();
-    if (trimmed.isEmpty || trimmed == _username) return;
+    if (trimmed.isEmpty || trimmed == current) return;
 
-    setState(() => _username = trimmed);
+    context.read<UserInfoBloc>().add(UpdateUsername(trimmed));
   }
 
-  Future<void> _openEditDateOfBirth() async {
+  Future<void> _openEditDateOfBirth(BuildContext context, DateTime? current) async {
     final selectedDate = await showDateOfBirthPickerDialog(
       context,
-      initialDate: _dateOfBirth,
+      initialDate: current,
     );
 
-    if (!mounted || selectedDate == null) return;
-    setState(() {
-      _dateOfBirth = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-      );
-    });
+    if (selectedDate == null) return;
+
+    final newDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+    context.read<UserInfoBloc>().add(UpdateDateOfBirth(newDate));
   }
 
-  Future<void> _openEditLanguage() async {
+  Future<void> _openEditLanguage(BuildContext context, String currentCode) async {
     final selectedCode = await showLanguageBottomSheet(
       context,
-      selectedLanguageCode: _languageCode,
+      selectedLanguageCode: currentCode,
     );
 
-    if (!mounted || selectedCode == null || selectedCode == _languageCode) {
-      return;
-    }
-
-    setState(() => _languageCode = selectedCode);
+    if (selectedCode == null || selectedCode == currentCode) return;
+    context.read<UserInfoBloc>().add(UpdateLanguage(selectedCode));
   }
 
-  Future<void> _openReceivingAddress() async {
+  Future<void> _openReceivingAddress(BuildContext context) async {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const ReceivingAddressView()));
   }
 
-  Future<void> _openChangePin() async {
+  Future<void> _openChangePin(BuildContext context) async {
     await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const ChangePinOldPinView()));
   }
 
-  Future<void> _pickProfileImage() async {
+  Future<void> _pickProfileImage(BuildContext context) async {
     final source = await showProfileImageSourceBottomSheet(context);
     if (source == null) return;
 
@@ -328,34 +366,8 @@ class _UserInfoViewState extends State<UserInfoView> {
       maxWidth: 1200,
     );
 
-    if (!mounted || picked == null) return;
-    setState(() => _profileImageFile = File(picked.path));
-  }
-
-  String get _dateOfBirthLabel {
-    if (_dateOfBirth == null) return 'Not Added';
-    const monthNames = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    final date = _dateOfBirth!;
-    final day = date.day.toString().padLeft(2, '0');
-    return '$day ${monthNames[date.month - 1]} ${date.year}';
-  }
-
-  String get _languageLabel {
-    if (_languageCode == 'km') return 'Khmer';
-    return 'English';
+    if (picked == null) return;
+    context.read<UserInfoBloc>().add(UpdateProfileImage(picked.path));
   }
 
   void _onBottomNavTap(BuildContext context, int index) {
@@ -512,7 +524,7 @@ class _HeaderCard extends StatelessWidget {
             child: Text(
               username,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1B22),
               ),
@@ -523,8 +535,8 @@ class _HeaderCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               'Supermarket Point',
-              style: TextStyle(
-                fontSize: 18,
+              style:  TextStyle(
+                fontSize: 15,
                 color: Color(0xFF9B9B9B),
                 fontWeight: FontWeight.w500,
               ),
@@ -546,7 +558,7 @@ class _HeaderCard extends StatelessWidget {
               const Text(
                 '0',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1D1B22),
                 ),
@@ -569,7 +581,7 @@ class _SectionTitle extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: 16,
         fontWeight: FontWeight.w700,
         color: Color(0xFF1D1B22),
       ),
@@ -603,14 +615,14 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontSize: 18, color: Color(0xFFB0AAB3)),
+                style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
               ),
               if (value.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: 15,
                     color: Color(0xFF34313A),
                   ),
                 ),
@@ -653,13 +665,13 @@ class _SecurityRow extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 18, color: Color(0xFFB0AAB3)),
+                style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 36,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF1D1B22),
                 ),
@@ -671,7 +683,7 @@ class _SecurityRow extends StatelessWidget {
           onPressed: onTap,
           child: Text(
             trailingText,
-            style: const TextStyle(fontSize: 18, color: Color(0xFFEC407A)),
+            style: const TextStyle(fontSize: 15, color: Color(0xFFEC407A)),
           ),
         ),
       ],
