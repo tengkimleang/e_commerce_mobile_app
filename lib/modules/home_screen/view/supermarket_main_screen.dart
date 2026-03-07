@@ -16,6 +16,7 @@ import 'product_detail_view.dart';
 import 'product_list_view.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_carousel_section.dart';
+import 'search_view.dart';
 import '../../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
@@ -237,7 +238,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -247,25 +248,40 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar
+            // Search Bar (opens dedicated search view) - slightly shorter
             Container(
-              color: Color(0xFFEC407A),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search products, brands and more',
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFFEC407A),
+              color: const Color(0xFFEC407A),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: GestureDetector(
+                onTap: () {
+                  final all = _getAllProducts();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SearchView(products: all),
                     ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  );
+                },
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.search, color: Color(0xFFEC407A)),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Search products, brands and more',
+                            style: TextStyle(color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -851,7 +867,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         id: '1',
         name: 'PHKA CHHOUK STERILISE MILK',
         price: 0.60,
-        imageUrl: 'https://www.waangoo.com/cdn/shop/files/WhatsAppImage2025-02-17at4.14.38PM_15930882-ceb7-436e-9131-6bd97d63499f.jpg?v=1755173771',
+        imageUrl:
+            'https://www.waangoo.com/cdn/shop/files/WhatsAppImage2025-02-17at4.14.38PM_15930882-ceb7-436e-9131-6bd97d63499f.jpg?v=1755173771',
         isFavorite: false,
       ),
       ProductModel(
