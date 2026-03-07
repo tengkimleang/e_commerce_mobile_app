@@ -52,7 +52,7 @@ class _LanguageBottomSheet extends StatelessWidget {
                     child: Text(
                       'Language',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF2E2E2E),
                       ),
@@ -63,7 +63,7 @@ class _LanguageBottomSheet extends StatelessWidget {
                     icon: const Icon(
                       Icons.highlight_off,
                       color: Color(0xFF8A8A8A),
-                      size: 28,
+                      size: 20,
                     ),
                   ),
                 ],
@@ -108,7 +108,7 @@ class _LanguageTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
-          height: 90,
+          height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
@@ -128,7 +128,7 @@ class _LanguageTile extends StatelessWidget {
                 child: Text(
                   option.label,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight:FontWeight.w500,
                     color: Color(0xFF2E2E2E),
                   ),
@@ -136,9 +136,9 @@ class _LanguageTile extends StatelessWidget {
               ),
               if (isSelected)
                 const CircleAvatar(
-                  radius: 16,
+                  radius: 12,
                   backgroundColor: accent,
-                  child: Icon(Icons.check, color: Colors.white, size: 22),
+                  child: Icon(Icons.check, color: Colors.white, size: 18),
                 ),
             ],
           ),

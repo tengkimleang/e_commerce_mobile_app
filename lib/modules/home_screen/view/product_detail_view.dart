@@ -52,7 +52,7 @@ class ProductDetailView extends StatelessWidget {
                       icon: const Icon(Icons.arrow_back_ios_new, size: 20),
                     ),
                     SizedBox(
-                      height: 300,
+                      height: 250,
                       width: double.infinity,
                       child: CachedNetworkImage(
                         imageUrl: product.imageUrl,

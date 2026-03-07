@@ -11,7 +11,6 @@ import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_v
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/models/shop_option.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/views/shop_selector_bottom_sheet.dart';
-
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'product_detail_view.dart';
 import 'product_list_view.dart';
@@ -852,7 +851,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         id: '1',
         name: 'PHKA CHHOUK STERILISE MILK',
         price: 0.60,
-        imageUrl: 'https://cccbic.org/businesses-covers/541-cover.jpg',
+        imageUrl: 'https://www.waangoo.com/cdn/shop/files/WhatsAppImage2025-02-17at4.14.38PM_15930882-ceb7-436e-9131-6bd97d63499f.jpg?v=1755173771',
         isFavorite: false,
       ),
       ProductModel(

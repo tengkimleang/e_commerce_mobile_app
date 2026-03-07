@@ -14,9 +14,10 @@ class PriceCheckingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Price Checking'),
+        title: const Text('Price Checking',style: TextStyle(color:Colors.white),),
         backgroundColor: const Color(0xFFEC407A),
         elevation: 0,
+        
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),

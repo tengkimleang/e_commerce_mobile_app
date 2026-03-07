@@ -104,7 +104,7 @@ class ProductListView extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 14,
                   mainAxisSpacing: 14,
-                  childAspectRatio: 0.65,
+                  childAspectRatio: 0.80,
                 ),
               ),
             ),
