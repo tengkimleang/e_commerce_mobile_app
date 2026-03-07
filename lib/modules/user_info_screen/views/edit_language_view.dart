@@ -128,8 +128,8 @@ class _LanguageTile extends StatelessWidget {
                 child: Text(
                   option.label,
                   style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 18,
+                    fontWeight:FontWeight.w500,
                     color: Color(0xFF2E2E2E),
                   ),
                 ),
@@ -215,14 +215,17 @@ class _KhFlag extends StatelessWidget {
             ),
             Align(
               alignment: Alignment.center,
-              child: Container(
-                width: 10,
-                height: 6,
-                decoration: BoxDecoration(
+                child: const Icon(
+                  Icons.temple_buddhist,
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(2),
+                  size: 12,
+                // width: 10,
+                // height: 6,
+                // decoration: BoxDecoration(
+                //   color: Colors.white,
+                //   borderRadius: BorderRadius.circular(2),
                 ),
-              ),
+              
             ),
           ],
         ),

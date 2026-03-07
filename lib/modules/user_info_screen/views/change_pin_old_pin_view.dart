@@ -77,17 +77,17 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Input old PIN',
+                      'Input Old PIN',
                       style: TextStyle(
-                        fontSize: 44,
+                        fontSize: 32,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1D1B22),
                       ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Your current PIN',
-                      style: TextStyle(fontSize: 34, color: Color(0xFF4A4A4A)),
+                      'Your Current PIN',
+                      style: TextStyle(fontSize: 16, color: Color(0xFF4A4A4A)),
                     ),
                     const SizedBox(height: 28),
                     const Align(
@@ -95,7 +95,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       child: Text(
                         'Old PIN',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           color: Color(0xFFEC407A),
                         ),
                       ),
@@ -133,7 +133,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
         child: SizedBox(
-          height: 58,
+          height: 48,
           child: ElevatedButton(
             onPressed: _isPinComplete ? () {} : null,
             style: ButtonStyle(
@@ -151,7 +151,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
             ),
             child: const Text(
               'SUBMIT',
-              style: TextStyle(fontSize: 17, letterSpacing: 1.2),
+              style: TextStyle(fontSize: 15, letterSpacing: 1.2),
             ),
           ),
         ),
@@ -178,9 +178,9 @@ class _PinDigitField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 84,
+      height:64,
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF0F5),
+        color: const Color.fromARGB(255, 225, 224, 224),
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
@@ -196,7 +196,7 @@ class _PinDigitField extends StatelessWidget {
         enableSuggestions: false,
         autocorrect: false,
         style: const TextStyle(
-          fontSize: 34,
+          fontSize: 28,
           fontWeight: FontWeight.w600,
           color: Color(0xFF1D1B22),
         ),

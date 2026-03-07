@@ -31,7 +31,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                       child: Text(
                         'Select shop',
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: 22,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF333333),
                         ),
@@ -42,7 +42,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                       icon: const Icon(
                         Icons.close,
                         color: Color(0xFF7A7A7A),
-                        size: 28,
+                        size: 18,
                       ),
                     ),
                   ],
@@ -113,7 +113,7 @@ class _ShopCard extends StatelessWidget {
               ),
               child: CachedNetworkImage(
                 imageUrl: shop.imageUrl,
-                height: 110,
+                height: 160,
                 fit: BoxFit.cover,
                 placeholder: (c, s) => Container(color: Colors.grey[200]),
                 errorWidget: (c, s, e) => Container(color: Colors.grey[300]),
@@ -147,7 +147,7 @@ class _ShopCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 14,
                               color: accent,
                               fontWeight: FontWeight.w800,
                             ),

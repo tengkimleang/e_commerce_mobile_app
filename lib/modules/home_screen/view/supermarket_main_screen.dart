@@ -215,32 +215,30 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 ),
                 // Location Text
                 Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      _selectedShop.storeName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    GestureDetector(
+                      onTap: _showShopSelectorBottomSheet,
+                      child: Text(
+                        _selectedShop.storeName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  IconButton(
-                    padding: const EdgeInsets.only(right: 150),
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.expand_more,
-                      color: Colors.white,
-                      size: 20,
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: _showShopSelectorBottomSheet,
+                      child: const Icon(
+                        Icons.expand_more,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
-                    onPressed: _showShopSelectorBottomSheet,
-                  ),
-                ],
-              )
+                  ],
+                )
               ],
             ),
           ),

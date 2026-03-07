@@ -131,9 +131,9 @@ class UserInfoView extends StatelessWidget {
                                 const _SectionTitle(title: 'Account Information'),
                                 const SizedBox(height: 18),
                                 const Text(
-                                  'Phone number:',
+                                  'Phone Number:',
                                   style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 15,
                                     color: Color(0xFFB0AAB3),
                                   ),
                                 ),
@@ -141,7 +141,7 @@ class UserInfoView extends StatelessWidget {
                                 const Text(
                                   '(+855) 96 909 098',
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 15,
                                     color: Color(0xFF34313A),
                                   ),
                                 ),
