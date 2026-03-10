@@ -64,7 +64,7 @@ class UserInfoView extends StatelessWidget {
               'Dec',
             ];
             final date = dateOfBirth;
-            final day = date!.day.toString().padLeft(2, '0');
+            final day = date.day.toString().padLeft(2, '0');
             return '$day ${monthNames[date.month - 1]} ${date.year}';
           }
 

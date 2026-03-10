@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:e_commerce_mobile_app/modules/cart/controller/cart_controller.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
@@ -18,7 +21,6 @@ class ProductDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
-    final cart = CartController.instance;
     final suggestions = relatedProducts
         .where((item) => item.id != product.id)
         .take(6)
@@ -114,17 +116,17 @@ class ProductDetailView extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: AnimatedBuilder(
-                  animation: cart,
-                  builder: (context, _) {
-                    final quantity = cart.quantityFor(product.id);
+                child: BlocBuilder<CartBloc, CartState>(
+                  builder: (context, cartState) {
+                    final quantity = cartState.quantityFor(product.id);
 
                     if (quantity == 0) {
                       return SizedBox(
                         width: double.infinity,
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: () => cart.addProduct(product),
+                          onPressed: () =>
+                              context.read<CartBloc>().add(AddToCart(product)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: accent,
                             foregroundColor: Colors.white,
@@ -155,9 +157,13 @@ class ProductDetailView extends StatelessWidget {
                           IconButton(
                             onPressed: () {
                               if (quantity > 1) {
-                                cart.decrease(product.id);
+                                context.read<CartBloc>().add(
+                                  DecreaseQuantity(product.id),
+                                );
                               } else {
-                                cart.remove(product.id);
+                                context.read<CartBloc>().add(
+                                  RemoveFromCart(product.id),
+                                );
                               }
                             },
                             icon: Icon(
@@ -180,7 +186,9 @@ class ProductDetailView extends StatelessWidget {
                           Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: GestureDetector(
-                              onTap: () => cart.increase(product.id),
+                              onTap: () => context.read<CartBloc>().add(
+                                IncreaseQuantity(product.id),
+                              ),
                               child: Container(
                                 width: 36,
                                 height: 36,
@@ -199,10 +207,9 @@ class ProductDetailView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              AnimatedBuilder(
-                animation: cart,
-                builder: (context, _) {
-                  final quantity = cart.quantityFor(product.id);
+              BlocBuilder<CartBloc, CartState>(
+                builder: (context, cartState) {
+                  final quantity = cartState.quantityFor(product.id);
                   if (quantity == 0) return const SizedBox.shrink();
 
                   return Padding(
@@ -298,10 +305,9 @@ class ProductDetailView extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: AnimatedBuilder(
-        animation: cart,
-        builder: (context, _) {
-          if (cart.distinctItemCount == 0) return const SizedBox.shrink();
+      bottomNavigationBar: BlocBuilder<CartBloc, CartState>(
+        builder: (context, cartState) {
+          if (cartState.distinctItemCount == 0) return const SizedBox.shrink();
 
           return SafeArea(
             child: Container(
@@ -318,7 +324,7 @@ class ProductDetailView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${cart.distinctItemCount} Items detail',
+                          '${cartState.distinctItemCount} Items detail',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -327,7 +333,7 @@ class ProductDetailView extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Total: \$ ${cart.totalAmount.toStringAsFixed(2)}',
+                          'Total: \$ ${cartState.totalAmount.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,

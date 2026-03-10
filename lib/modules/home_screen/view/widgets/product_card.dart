@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce_mobile_app/modules/cart/controller/cart_controller.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
 class ProductCard extends StatefulWidget {
@@ -163,10 +167,9 @@ class _ProductCardState extends State<ProductCard> {
                         ),
                       ],
                       const Spacer(),
-                      AnimatedBuilder(
-                        animation: CartController.instance,
-                        builder: (context, _) {
-                          final quantity = CartController.instance.quantityFor(
+                      BlocBuilder<CartBloc, CartState>(
+                        builder: (context, cartState) {
+                          final quantity = cartState.quantityFor(
                             widget.product.id,
                           );
                           return Row(
@@ -178,8 +181,9 @@ class _ProductCardState extends State<ProductCard> {
                                   minHeight: 24,
                                   minWidth: 24,
                                 ),
-                                onPressed: () => CartController.instance
-                                    .addProduct(widget.product),
+                                onPressed: () => context.read<CartBloc>().add(
+                                  AddToCart(widget.product),
+                                ),
                                 icon: Icon(
                                   quantity > 0
                                       ? Icons.shopping_cart

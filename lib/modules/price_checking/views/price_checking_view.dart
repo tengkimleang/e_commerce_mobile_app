@@ -5,54 +5,127 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
 import '../../customer_loyalty_screen/models/customer_loyalty_data.dart';
 
-
-class PriceCheckingView extends StatelessWidget {
+class PriceCheckingView extends StatefulWidget {
   final bool selectionMode;
-
   const PriceCheckingView({super.key, this.selectionMode = false});
+
+  @override
+  State<PriceCheckingView> createState() => _PriceCheckingViewState();
+}
+
+class _PriceCheckingViewState extends State<PriceCheckingView> {
+  final TextEditingController _searchController = TextEditingController();
+  late List<ProductItem> _displayedProducts;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayedProducts = List<ProductItem>.from(PriceCheckingProducts);
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    final q = _searchController.text.trim().toLowerCase();
+    setState(() {
+      if (q.isEmpty) {
+        _displayedProducts = List<ProductItem>.from(PriceCheckingProducts);
+      } else {
+        _displayedProducts = PriceCheckingProducts.where(
+          (p) => p.name.toLowerCase().contains(q),
+        ).toList();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Price Checking',style: TextStyle(color:Colors.white),),
+        title: const Text('Search', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
         backgroundColor: const Color(0xFFEC407A),
         elevation: 0,
-        
+        actions: [
+          IconButton(
+            tooltip: 'Scan barcode',
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Barcode scan tapped')),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
-        child: GridView.builder(
-          itemCount: PriceCheckingProducts.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.85,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemBuilder: (context, index) {
-            final product = PriceCheckingProducts[index];
-            return _ProductCard(
-              product: product,
-              onTap: () {
-                if (selectionMode) {
-                  Navigator.of(context).pop({
-                    'id': product.id,
-                    'title': product.name,
-                    'price': '\$ ${product.price.toStringAsFixed(2)}',
-                    'image': product.imageUrl,
-                  });
-                  return;
-                }
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ProductDetailView(product: product),
+        child: Column(
+          children: [
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search products',
+                    border: InputBorder.none,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => _searchController.clear(),
+                          )
+                        : null,
                   ),
-                );
-              },
-            );
-          },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: GridView.builder(
+                itemCount: _displayedProducts.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.85,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemBuilder: (context, index) {
+                  final product = _displayedProducts[index];
+                  return _ProductCard(
+                    product: product,
+                    onTap: () {
+                      if (widget.selectionMode) {
+                        Navigator.of(context).pop({
+                          'id': product.id,
+                          'title': product.name,
+                          'price': '\$ ${product.price.toStringAsFixed(2)}',
+                          'image': product.imageUrl,
+                        });
+                        return;
+                      }
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ProductDetailView(product: product),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
