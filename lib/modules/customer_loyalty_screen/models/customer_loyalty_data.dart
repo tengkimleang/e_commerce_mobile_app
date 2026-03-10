@@ -56,7 +56,7 @@ const List<ProductItem> PriceCheckingProducts = <ProductItem>[
     name: 'NR-OSTRA FZ-SALMON FIN 500G',
     price: 3.75,
     imageUrl:
-        'https://www.ift.org/-/media/food-technology/feature-images/2022/04/0422_f1_mt_top10functional/0422_mt_top10functional_2hostessboost_s.jpg?la=en&h=467&mw=1290&w=700&hash=34B16E2A5ADFEE8817345848B437FBF9',
+        'https://camboticket.com/blog/wp-content/uploads/2024/07/Nom-Banh-Chok-edited.jpg',
   ),
   ProductItem(
     id: 'p4',

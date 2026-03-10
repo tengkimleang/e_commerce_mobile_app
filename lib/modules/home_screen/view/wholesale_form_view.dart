@@ -34,7 +34,7 @@ void dispose() {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _submit() async {
+    Future<void> submit() async {
       final customerName = _nameController.text.trim();
       final phoneNumber = _phoneController.text.trim();
       final remark = _remarkController.text.trim();
@@ -183,7 +183,7 @@ void dispose() {
                   ),
                 ),
                 child: TextButton(
-                  onPressed: _isSubmitting ? null : _submit,
+                  onPressed: _isSubmitting ? null : submit,
                   child: _isSubmitting
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                       : const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 18)),
