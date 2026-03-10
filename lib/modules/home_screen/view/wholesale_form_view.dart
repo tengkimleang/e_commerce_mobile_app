@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 
@@ -9,10 +10,62 @@ class WholesaleFormView extends StatefulWidget {
 }
 
 class _WholesaleFormViewState extends State<WholesaleFormView> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _remarkController;
+bool _isSubmitting = false;
+
+@override
+void initState() {
+  super.initState();
+  _nameController = TextEditingController();
+  _phoneController = TextEditingController();
+  _remarkController = TextEditingController();
+}
+
+@override
+void dispose() {
+  _nameController.dispose();
+  _phoneController.dispose();
+  _remarkController.dispose();
+  super.dispose();
+}
   final List<Map<String, String>> _selected = [];
 
   @override
   Widget build(BuildContext context) {
+    Future<void> _submit() async {
+      final customerName = _nameController.text.trim();
+      final phoneNumber = _phoneController.text.trim();
+      final remark = _remarkController.text.trim();
+
+      if (customerName.isEmpty || phoneNumber.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter name and phone')));
+        return;
+      }
+
+      setState(() => _isSubmitting = true);
+      try {
+        final dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:5058')); // <- server root
+        final payload = {
+          'customerName': customerName,
+          'phoneNumber': phoneNumber, // <- use this key
+          'remark': remark,
+        };
+
+        final resp = await dio.post('/partnership/create', data: payload); // <- endpoint path
+        if (resp.statusCode == 200 || resp.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Submitted successfully')));
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resp.data?.toString() ?? 'Submission failed')));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submit failed: ${e.toString()}')));
+      } finally {
+        if (mounted) setState(() => _isSubmitting = false);
+      }
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wholesale Form'),
@@ -35,7 +88,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                         style: TextStyle(fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      _buildField(initial: ''),
+                      _buildField(controller: _nameController),
                       const SizedBox(height: 16),
 
                       const Text(
@@ -43,12 +96,12 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                         style: TextStyle(fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      _buildField(initial: ''),
+                      _buildField(controller: _phoneController),
                       const SizedBox(height: 16),
 
                       const Text('Remark', style: TextStyle(fontSize: 14)),
                       const SizedBox(height: 8),
-                      _buildField(initial: '', maxLines: 4),
+                      _buildField(controller: _remarkController, maxLines: 4),
                       const SizedBox(height: 16),
 
                       // Search product (navigates to product list)
@@ -130,11 +183,10 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                   ),
                 ),
                 child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
+                  onPressed: _isSubmitting ? null : _submit,
+                  child: _isSubmitting
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 18)),
                 ),
               ),
             ],
@@ -188,27 +240,28 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     );
   }
 
-  Widget _buildField({String initial = '', int maxLines = 1}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        initialValue: initial,
-        maxLines: maxLines,
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          border: InputBorder.none,
+  Widget _buildField({TextEditingController? controller, String initial = '', int maxLines = 1}) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
         ),
+      ],
+    ),
+    child: TextFormField(
+      controller: controller,
+      initialValue: controller == null ? initial : null,
+      maxLines: maxLines,
+      decoration: const InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: InputBorder.none,
       ),
-    );
-  }
+    ),
+  );
+}
 }
