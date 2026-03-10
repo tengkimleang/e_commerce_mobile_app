@@ -155,7 +155,8 @@ class _ShopCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Spacer(),
+                    // const Spacer(),
+                    const SizedBox(height: 12),
                     Center(
                       child: Text(
                         shop.branchLabel,
@@ -163,7 +164,7 @@ class _ShopCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: accent,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.4,
