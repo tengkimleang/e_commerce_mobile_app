@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
+import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 
 class WholesaleFormView extends StatefulWidget {
   const WholesaleFormView({super.key});
@@ -13,23 +14,24 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _remarkController;
-bool _isSubmitting = false;
+  bool _isSubmitting = false;
 
-@override
-void initState() {
-  super.initState();
-  _nameController = TextEditingController();
-  _phoneController = TextEditingController();
-  _remarkController = TextEditingController();
-}
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _remarkController = TextEditingController();
+  }
 
-@override
-void dispose() {
-  _nameController.dispose();
-  _phoneController.dispose();
-  _remarkController.dispose();
-  super.dispose();
-}
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _remarkController.dispose();
+    super.dispose();
+  }
+
   final List<Map<String, String>> _selected = [];
 
   @override
@@ -40,32 +42,48 @@ void dispose() {
       final remark = _remarkController.text.trim();
 
       if (customerName.isEmpty || phoneNumber.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter name and phone')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter name and phone')),
+        );
         return;
       }
 
       setState(() => _isSubmitting = true);
       try {
-        final dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:5058')); // <- server root
+        final dio = Dio(
+          BaseOptions(baseUrl: 'http://10.0.2.2:5058'),
+        ); // <- server root
         final payload = {
           'customerName': customerName,
           'phoneNumber': phoneNumber, // <- use this key
           'remark': remark,
         };
 
-        final resp = await dio.post('/partnership/create', data: payload); // <- endpoint path
+        final resp = await dio.post(
+          '/partnership/create',
+          data: payload,
+        ); // <- endpoint path
         if (resp.statusCode == 200 || resp.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Submitted successfully')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Submitted successfully')),
+          );
           Navigator.of(context).pop();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resp.data?.toString() ?? 'Submission failed')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(resp.data?.toString() ?? 'Submission failed'),
+            ),
+          );
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Submit failed: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Submit failed: ${e.toString()}')),
+        );
       } finally {
         if (mounted) setState(() => _isSubmitting = false);
       }
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wholesale Form'),
@@ -107,24 +125,41 @@ void dispose() {
                       // Search product (navigates to product list)
                       GestureDetector(
                         onTap: () async {
-                          final result = await Navigator.of(context)
-                              .push<Map<String, String>>(
-                                MaterialPageRoute(
-                                  builder: (_) => const PriceCheckingView(
-                                    selectionMode: true,
-                                  ),
-                                ),
-                              );
-                          if (result != null) {
-                            setState(() {
-                              // avoid duplicates by id
+                          final result = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => PriceCheckingView(
+                                selectionMode: true,
+                                products: ProductData.allProducts,
+                              ),
+                            ),
+                          );
+
+                          if (result == null) return;
+
+                          setState(() {
+                            if (result is Map<String, dynamic> ||
+                                result is Map<String, String>) {
+                              final Map<String, String> item =
+                                  Map<String, String>.from(result as Map);
                               if (!_selected.any(
-                                (e) => e['id'] == result['id'],
+                                (e) => e['id'] == item['id'],
                               )) {
-                                _selected.add(result);
+                                _selected.add(item);
                               }
-                            });
-                          }
+                            } else if (result is List) {
+                              for (final r in result) {
+                                if (r is Map) {
+                                  final Map<String, String> item =
+                                      Map<String, String>.from(r);
+                                  if (!_selected.any(
+                                    (e) => e['id'] == item['id'],
+                                  )) {
+                                    _selected.add(item);
+                                  }
+                                }
+                              }
+                            }
+                          });
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -185,8 +220,18 @@ void dispose() {
                 child: TextButton(
                   onPressed: _isSubmitting ? null : submit,
                   child: _isSubmitting
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Submit', style: TextStyle(color: Colors.white, fontSize: 18)),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Submit',
+                          style: TextStyle(color: Colors.white, fontSize: 18),
+                        ),
                 ),
               ),
             ],
@@ -240,28 +285,32 @@ void dispose() {
     );
   }
 
-  Widget _buildField({TextEditingController? controller, String initial = '', int maxLines = 1}) {
-  return Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 8,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: TextFormField(
-      controller: controller,
-      initialValue: controller == null ? initial : null,
-      maxLines: maxLines,
-      decoration: const InputDecoration(
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: InputBorder.none,
+  Widget _buildField({
+    TextEditingController? controller,
+    String initial = '',
+    int maxLines = 1,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    ),
-  );
-}
+      child: TextFormField(
+        controller: controller,
+        initialValue: controller == null ? initial : null,
+        maxLines: maxLines,
+        decoration: const InputDecoration(
+          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
 }

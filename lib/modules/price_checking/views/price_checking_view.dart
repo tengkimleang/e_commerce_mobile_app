@@ -2,6 +2,7 @@ import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_vi
 import 'package:flutter/material.dart';
 
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 
 class PriceCheckingView extends StatefulWidget {
   final bool selectionMode;
@@ -20,6 +21,7 @@ class PriceCheckingView extends StatefulWidget {
 class _PriceCheckingViewState extends State<PriceCheckingView> {
   final TextEditingController _searchController = TextEditingController();
   late List<ProductItem> _displayedProducts;
+  final Set<String> _selectedIds = {};
 
   @override
   void initState() {
@@ -106,15 +108,19 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
                 ),
                 itemBuilder: (context, index) {
                   final product = _displayedProducts[index];
+                  final isSelected = _selectedIds.contains(product.id);
+
                   return _ProductCard(
                     product: product,
+                    isSelected: isSelected,
                     onTap: () {
                       if (widget.selectionMode) {
-                        Navigator.of(context).pop({
-                          'id': product.id,
-                          'title': product.name,
-                          'price': '\$ ${product.price.toStringAsFixed(2)}',
-                          'image': product.imageUrl,
+                        setState(() {
+                          if (isSelected) {
+                            _selectedIds.remove(product.id);
+                          } else {
+                            _selectedIds.add(product.id);
+                          }
                         });
                         return;
                       }
@@ -135,75 +141,173 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
           ],
         ),
       ),
+      // Selection bottom bar (only when in selection mode)
+      bottomNavigationBar: widget.selectionMode
+          ? SafeArea(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: _selectedIds.isEmpty ? 0 : 72,
+                child: _selectedIds.isEmpty
+                    ? const SizedBox.shrink()
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEC407A),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${_selectedIds.length} Items',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: 110,
+                              height: 44,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  final base = widget.products.isEmpty
+                                      ? ProductData.allProducts
+                                      : widget.products;
+                                  final selected = base
+                                      .where((p) => _selectedIds.contains(p.id))
+                                      .map((product) {
+                                        return {
+                                          'id': product.id,
+                                          'title': product.name,
+                                          'price':
+                                              '\$ ${product.price.toStringAsFixed(2)}',
+                                          'image': product.imageUrl,
+                                        };
+                                      })
+                                      .toList();
+
+                                  Navigator.of(context).pop(selected);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFFEC407A),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Add'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            )
+          : null,
     );
   }
 }
 
 class _ProductCard extends StatelessWidget {
   final ProductItem product;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  const _ProductCard({required this.product, required this.onTap});
+  const _ProductCard({
+    required this.product,
+    required this.onTap,
+    this.isSelected = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(12),
-              ),
-              child: Image.network(
-                product.imageUrl,
-                height: 110,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+    return Stack(
+      children: [
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Image.network(
+                    product.imageUrl,
+                    height: 110,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '\$ ${product.price.toStringAsFixed(2)}',
+                        product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          color: Color(0xFFE91E63),
-                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const Icon(
-                        Icons.favorite_border,
-                        color: Colors.pink,
-                        size: 20,
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '\$ ${product.price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Color(0xFFE91E63),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Icon(
+                            Icons.favorite_border,
+                            color: Colors.pink,
+                            size: 20,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isSelected)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              elevation: 2,
+              child: const Padding(
+                padding: EdgeInsets.all(6),
+                child: Icon(
+                  Icons.check_circle,
+                  color: Color(0xFFEC407A),
+                  size: 20,
+                ),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 }
