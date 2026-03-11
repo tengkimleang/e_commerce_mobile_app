@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
@@ -37,6 +38,12 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   late ShopOption _selectedShop;
   int _partnerCurrent = 0;
   int _selectedIndex = 0;
+  bool _showLaunchPopup = false;
+  late String _launchImage;
+  Timer? _launchTimer;
+  // popup sizing (customize these values)
+  double _popupMaxWidth = 320; // max popup width in px
+  double _popupAspectRatio = 16 / 16; // width / height
 
   final List<String> _images = [
     'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
@@ -102,11 +109,44 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         curve: Curves.easeInOut,
       );
     });
+
+    // Show launch popup once when the main view first appears — preload image first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ProductData.sectionImages.isNotEmpty) {
+        final rnd = Random();
+        final selected = ProductData
+            .sectionImages[rnd.nextInt(ProductData.sectionImages.length)];
+        final image = NetworkImage(selected);
+        precacheImage(image, context)
+            .then((_) {
+              if (!mounted) return;
+              setState(() {
+                _launchImage = selected;
+                _showLaunchPopup = true;
+              });
+              _launchTimer = Timer(const Duration(seconds: 10), () {
+                if (mounted) setState(() => _showLaunchPopup = false);
+              });
+            })
+            .catchError((_) {
+              // If precache fails, still show the popup to avoid blocking UX
+              if (!mounted) return;
+              setState(() {
+                _launchImage = selected;
+                _showLaunchPopup = true;
+              });
+              _launchTimer = Timer(const Duration(seconds: 10), () {
+                if (mounted) setState(() => _showLaunchPopup = false);
+              });
+            });
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _launchTimer?.cancel();
     _controller.dispose();
     _partnerController.dispose();
     super.dispose();
@@ -124,7 +164,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       );
     }
 
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120),
         child: Container(
@@ -484,6 +524,79 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         selectedIndex: _selectedIndex,
         onTap: _onBottomNavTap,
       ),
+    );
+
+    // Overlay launch popup if active
+    if (!_showLaunchPopup) return scaffold;
+
+    return Stack(
+      children: [
+        scaffold,
+        Positioned.fill(
+          child: Container(
+            color: Colors.black45,
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Stack(
+                children: [
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: LayoutBuilder(
+                        builder: (c, constraints) {
+                          final screenW = MediaQuery.of(context).size.width;
+                          final w = screenW - 40 > _popupMaxWidth
+                              ? _popupMaxWidth
+                              : screenW - 40;
+                          final h = w / _popupAspectRatio;
+                          return Image.network(
+                            _launchImage,
+                            width: w,
+                            height: h,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          247,
+                          136,
+                          175,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      onPressed: () {
+                        _launchTimer?.cancel();
+                        setState(() => _showLaunchPopup = false);
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          'Skip',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
