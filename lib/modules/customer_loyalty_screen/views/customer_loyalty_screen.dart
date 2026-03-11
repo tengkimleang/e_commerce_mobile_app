@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/customer_loyalty_bloc.dart';
@@ -8,7 +9,9 @@ import 'widgets/loyalty_action_cards.dart';
 import 'widgets/partner_qr_sheet.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
-  const CustomerLoyaltySection({super.key});
+  final List<ProductItem> products;
+
+  const CustomerLoyaltySection({super.key, this.products = const []});
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +66,7 @@ class CustomerLoyaltySection extends StatelessWidget {
                   );
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const PriceCheckingView(),
+                      builder: (_) => PriceCheckingView(products: products),
                     ),
                   );
                 },

@@ -342,7 +342,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
             //Customer Loyalty Section
             SizedBox(height: 20),
-            CustomerLoyaltySection(),
+            CustomerLoyaltySection(products: _getAllProducts()),
 
             const SizedBox(height: 24),
             Padding(

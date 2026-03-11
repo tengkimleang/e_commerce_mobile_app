@@ -1,13 +1,17 @@
-import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/product_detail_view.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
-import '../../customer_loyalty_screen/models/customer_loyalty_data.dart';
-
 class PriceCheckingView extends StatefulWidget {
   final bool selectionMode;
-  const PriceCheckingView({super.key, this.selectionMode = false});
+  final List<ProductItem> products;
+
+  const PriceCheckingView({
+    super.key,
+    this.selectionMode = false,
+    this.products = const [],
+  });
 
   @override
   State<PriceCheckingView> createState() => _PriceCheckingViewState();
@@ -20,7 +24,7 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
   @override
   void initState() {
     super.initState();
-    _displayedProducts = List<ProductItem>.from(PriceCheckingProducts);
+    _displayedProducts = List<ProductItem>.from(widget.products);
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -28,11 +32,11 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
     final q = _searchController.text.trim().toLowerCase();
     setState(() {
       if (q.isEmpty) {
-        _displayedProducts = List<ProductItem>.from(PriceCheckingProducts);
+        _displayedProducts = List<ProductItem>.from(widget.products);
       } else {
-        _displayedProducts = PriceCheckingProducts.where(
-          (p) => p.name.toLowerCase().contains(q),
-        ).toList();
+        _displayedProducts = widget.products
+            .where((p) => p.name.toLowerCase().contains(q))
+            .toList();
       }
     });
   }
@@ -117,7 +121,10 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
 
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => ProductDetailView(product: product),
+                          builder: (_) => ProductDetailView(
+                            product: product,
+                            relatedProducts: widget.products,
+                          ),
                         ),
                       );
                     },
