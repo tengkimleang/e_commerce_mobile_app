@@ -33,6 +33,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
   }
 
   final List<Map<String, String>> _selected = [];
+  bool _isPhoneValid = true;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +49,15 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
         return;
       }
 
+      // basic phone validation: allow optional leading + and 8-15 digits
+      final normalizedPhone = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+      if (!RegExp(r'^\+?\d{8,15}$').hasMatch(normalizedPhone)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid phone number')),
+        );
+        return;
+      }
+
       setState(() => _isSubmitting = true);
       try {
         final dio = Dio(
@@ -57,6 +67,11 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
           'customerName': customerName,
           'phoneNumber': phoneNumber, // <- use this key
           'remark': remark,
+          if (_selected.isNotEmpty)
+            'productImageUrl': _selected
+                .map((p) => p['image'] ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList(),
         };
 
         final resp = await dio.post(
@@ -114,7 +129,49 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                         style: TextStyle(fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      _buildField(controller: _phoneController),
+                      // replicate login form phone field style and inline validation
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        textAlignVertical: TextAlignVertical.center,
+                        decoration: InputDecoration(
+                          hintText: "Enter phone number",
+                          hintStyle: TextStyle(color: Colors.grey[500]),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFEC407A),
+                              width: 1.8,
+                            ),
+                          ),
+                          errorText:
+                              !_isPhoneValid && _phoneController.text.isNotEmpty
+                              ? "Please enter a valid phone number"
+                              : null,
+                          errorStyle: const TextStyle(fontSize: 12),
+                        ),
+                        onChanged: (v) {
+                          final isValid = RegExp(
+                            r'^0\d{8,9}$',
+                          ).hasMatch(v.trim());
+                          if (isValid != _isPhoneValid)
+                            setState(() => _isPhoneValid = isValid);
+                        },
+                      ),
                       const SizedBox(height: 16),
 
                       const Text('Remark', style: TextStyle(fontSize: 14)),
