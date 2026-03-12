@@ -42,8 +42,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   late String _launchImage;
   Timer? _launchTimer;
   // popup sizing (customize these values)
-  double _popupMaxWidth = 320; // max popup width in px
-  double _popupAspectRatio = 16 / 16; // width / height
+  final double _popupMaxWidth = 320; // max popup width in px
+  final double _popupAspectRatio = 16 / 16; // width / height
 
   final List<String> _images = [
     'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',

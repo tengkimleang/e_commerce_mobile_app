@@ -10,6 +10,7 @@ import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dar
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
+import 'package:flutter/services.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -19,18 +20,22 @@ class LoginView extends StatelessWidget {
     return BlocProvider(
       create: (context) => LoginBloc(),
       child: BlocListener<LoginBloc, LoginState>(
-        listener: (context, state) {
-          if (state is LoginOtpSent) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => OtpView(phoneNumber: state.phoneNumber),
-              ),
-            );
-          }
-        },
-        child: const _LoginContent(),
-      ),
+          listener: (context, state) {
+            if (state is LoginOtpSent) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OtpView(phoneNumber: state.phoneNumber),
+                ),
+              );
+            } else if (state is LoginError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            }
+          },
+          child: const _LoginContent(),
+        ),
     );
   }
 }
@@ -157,7 +162,10 @@ class _LoginContentState extends State<_LoginContent> {
               BlocBuilder<LoginBloc, LoginState>(
                 builder: (context, state) {
                   return TextField(
-                    controller: _phoneController,
+                    inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                              controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
@@ -186,10 +194,10 @@ class _LoginContentState extends State<_LoginContent> {
                       ),
                       errorText:
                           (state is LoginUpdated &&
-                                  state.isPhoneValid == false &&
-                                  _phoneController.text.isNotEmpty)
-                              ? "Please enter a valid phone number"
-                              : null,
+                              state.isPhoneValid == false &&
+                              _phoneController.text.isNotEmpty)
+                          ? "Please enter a valid phone number"
+                          : null,
                       errorStyle: const TextStyle(fontSize: 12),
                     ),
                     onChanged: (value) {
@@ -262,8 +270,8 @@ class _LoginContentState extends State<_LoginContent> {
                           ? null
                           : () {
                               context.read<LoginBloc>().add(
-                                    const LoginPressed(),
-                                  );
+                                const LoginPressed(),
+                              );
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEC407A),

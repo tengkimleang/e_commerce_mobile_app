@@ -168,8 +168,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                           final isValid = RegExp(
                             r'^0\d{8,9}$',
                           ).hasMatch(v.trim());
-                          if (isValid != _isPhoneValid)
+                          if (isValid != _isPhoneValid) {
                             setState(() => _isPhoneValid = isValid);
+                          }
                         },
                       ),
                       const SizedBox(height: 16),

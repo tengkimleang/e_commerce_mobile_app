@@ -1,6 +1,8 @@
+import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
+
 
 class OtpView extends StatefulWidget {
   final String phoneNumber;
@@ -13,6 +15,9 @@ class OtpView extends StatefulWidget {
 class _OtpViewState extends State<OtpView> {
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
+
+  final AuthService _authService = AuthService();
+
   bool _showPin = false;
   bool _isSubmitting = false;
 
@@ -37,6 +42,8 @@ class _OtpViewState extends State<OtpView> {
   bool get _isComplete =>
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
 
+  String get _otpCode => _controllers.map((c) => c.text).join();
+
   void _onChanged(int index, String value) {
     if (value.isNotEmpty) {
       if (index < _focusNodes.length - 1) {
@@ -52,57 +59,67 @@ class _OtpViewState extends State<OtpView> {
 
   Future<void> _submit() async {
     if (!_isComplete) return;
+
     setState(() => _isSubmitting = true);
-    // simulate verify
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _isSubmitting = false);
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const IndexView()),
-      (route) => false,
-    );
+
+    try {
+      await _authService.verifyOtp(
+        phoneNumber: widget.phoneNumber,
+        otpCode: _otpCode,
+      );
+
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const IndexView()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.chevron_left, size: 28),
-              ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.chevron_left, size: 28),
+                  ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Center(
-                child: SizedBox(
-                  width: 140,
-                  height: 140,
-                  child: Image.asset('assets/images/woman.png', fit: BoxFit.contain),
-                ),
-              ),
-              const SizedBox(height: 8),
               const SizedBox(height: 16),
               const Center(
                 child: Text(
-                  'Enter your PIN Code',
+                  'Enter OTP Code',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                 ),
               ),
               const SizedBox(height: 8),
-              const Center(
+              Center(
                 child: Text(
-                  'Please enter the PIN Code to Login.',
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                  'Please enter the 4-digit code sent to ${widget.phoneNumber}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),
               ),
               const SizedBox(height: 24),
@@ -124,8 +141,13 @@ class _OtpViewState extends State<OtpView> {
                         focusNode: _focusNodes[index],
                         keyboardType: TextInputType.number,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         obscureText: !_showPin,
                         maxLength: 1,
                         decoration: const InputDecoration(
@@ -143,18 +165,9 @@ class _OtpViewState extends State<OtpView> {
                 child: GestureDetector(
                   onTap: () => setState(() => _showPin = !_showPin),
                   child: Text(
-                    _showPin ? 'Hide PIN' : 'Show PIN',
+                    _showPin ? 'Hide OTP' : 'Show OTP',
                     style: const TextStyle(color: Color(0xFFEC407A)),
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    // Implement forgot PIN flow if needed
-                  },
-                  child: const Text('Forgot the PIN code?', style: TextStyle(color: Color(0xFFEC407A))),
                 ),
               ),
               const Spacer(),
@@ -167,12 +180,27 @@ class _OtpViewState extends State<OtpView> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEC407A),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       elevation: 0,
                     ),
                     child: _isSubmitting
-                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                        : const Text('SUBMIT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Text(
+                            'VERIFY OTP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
               ),
