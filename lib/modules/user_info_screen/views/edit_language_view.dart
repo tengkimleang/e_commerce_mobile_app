@@ -165,31 +165,13 @@ class _UkFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        width: 44,
-        height: 28,
-        child: Stack(
-          children: [
-            Positioned.fill(child: Container(color: const Color(0xFF1B4AA5))),
-            Align(
-              alignment: Alignment.center,
-              child: Container(width: 10, color: Colors.white),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Container(height: 10, color: Colors.white),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Container(width: 6, color: const Color(0xFFD4152A)),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Container(height: 6, color: const Color(0xFFD4152A)),
-            ),
-          ],
+    return const SizedBox(
+      width: 44,
+      height: 28,
+      child: Center(
+        child: Text(
+          "🇬🇧",
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
@@ -201,33 +183,13 @@ class _KhFlag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: SizedBox(
-        width: 44,
-        height: 28,
-        child: Stack(
-          children: [
-            Positioned.fill(child: Container(color: const Color(0xFF0D3DAA))),
-            Align(
-              alignment: Alignment.center,
-              child: Container(height: 14, color: const Color(0xFFC8192B)),
-            ),
-            Align(
-              alignment: Alignment.center,
-                child: const Icon(
-                  Icons.temple_buddhist,
-                  color: Colors.white,
-                  size: 12,
-                // width: 10,
-                // height: 6,
-                // decoration: BoxDecoration(
-                //   color: Colors.white,
-                //   borderRadius: BorderRadius.circular(2),
-                ),
-              
-            ),
-          ],
+    return const SizedBox(
+      width: 44,
+      height: 28,
+      child: Center(
+        child: Text(
+          "🇰🇭",
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );
