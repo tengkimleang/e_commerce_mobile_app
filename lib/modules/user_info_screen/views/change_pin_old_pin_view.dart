@@ -79,7 +79,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     const Text(
                       'Input Old PIN',
                       style: TextStyle(
-                        fontSize: 32,
+                        fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1D1B22),
                       ),
@@ -91,7 +91,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     ),
                     const SizedBox(height: 28),
                     const Align(
-                      alignment: Alignment.centerLeft,
+                      alignment: Alignment.center,
                       child: Text(
                         'Old PIN',
                         style: TextStyle(
@@ -102,13 +102,15 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     ),
                     const SizedBox(height: 16),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         _controllers.length,
-                        (index) => Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              right: index == _controllers.length - 1 ? 0 : 12,
-                            ),
+                        (index) => Padding(
+                          padding: EdgeInsets.only(
+                            right: index == _controllers.length - 1 ? 0 : 12,
+                          ),
+                          child: SizedBox(
+                            width: 54,
                             child: _PinDigitField(
                               controller: _controllers[index],
                               focusNode: _focusNodes[index],
@@ -178,7 +180,7 @@ class _PinDigitField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height:64,
+      height: 54,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 225, 224, 224),
         borderRadius: BorderRadius.circular(14),

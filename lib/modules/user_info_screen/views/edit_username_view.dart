@@ -81,7 +81,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                   'Username',
                   style: TextStyle(
                     color: accent,
-                    fontSize: 44,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -124,7 +124,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 46,
                   child: ElevatedButton(
                     onPressed: _submit,
                     style: ElevatedButton.styleFrom(
@@ -138,7 +138,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                     child: const Text(
                       'SUBMIT',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
