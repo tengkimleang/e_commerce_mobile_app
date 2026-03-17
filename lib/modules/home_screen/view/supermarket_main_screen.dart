@@ -152,6 +152,141 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     super.dispose();
   }
 
+  void _showBannerImagePopup(BuildContext context, int initialIndex) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) {
+        final pageCtrl = PageController(initialPage: initialIndex);
+        int currentPage = initialIndex;
+        return Dialog(
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          child: StatefulBuilder(
+            builder: (ctx2, setPopupState) => Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                height: MediaQuery.of(ctx2).size.height * 0.60,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Stack(
+                  children: [
+                    // Title top-left
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      child: const Text(
+                        'រូបភាព',
+                        style: TextStyle(
+                          color: Color(0xFFEC407A),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    // X close button top-right
+                    Positioned(
+                      top: 12,
+                      right: 16,
+                      child: GestureDetector(
+                        onTap: () {
+                          pageCtrl.dispose();
+                          Navigator.of(ctx2).pop();
+                        },
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.12),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Color(0xFFEC407A),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Slidable images
+                    Positioned.fill(
+                      top: 56,
+                      bottom: 32,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ClipRRect(
+                          // borderRadius: BorderRadius.circular(16),
+                          child: PageView.builder(
+                            controller: pageCtrl,
+                            itemCount: _images.length,
+                            onPageChanged: (i) =>
+                                setPopupState(() => currentPage = i),
+                            itemBuilder: (_, i) => CachedNetworkImage(
+                              imageUrl: _images[i],
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                              errorWidget: (_, __, ___) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Dot indicators at the bottom
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 10,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_images.length, (i) {
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            width: currentPage == i ? 12 : 8,
+                            height: currentPage == i ? 12 : 8,
+                            decoration: BoxDecoration(
+                              color: currentPage == i
+                                  ? const Color(0xFFEC407A)
+                                  : Colors.grey[400],
+                              shape: BoxShape.circle,
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showPartnerPopup(BuildContext context, String imageUrl) {
     showDialog<void>(
       context: context,
@@ -423,14 +558,18 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       itemCount: _images.length,
                       onPageChanged: (i) => setState(() => _current = i),
                       itemBuilder: (context, index) {
-                        return ClipRRect(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(16),
-                          ),
-                          child: Image.network(
-                            _images[index],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
+                        return GestureDetector(
+                          onTap: () =>
+                              _showBannerImagePopup(context, index),
+                          child: ClipRRect(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(16),
+                            ),
+                            child: Image.network(
+                              _images[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
                           ),
                         );
                       },
