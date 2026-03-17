@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/wholesale_form_bloc.dart';
 
 class WholesaleFormView extends StatefulWidget {
   const WholesaleFormView({super.key});
@@ -14,7 +16,6 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _remarkController;
-  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -32,74 +33,73 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     super.dispose();
   }
 
-  final List<Map<String, String>> _selected = [];
-  bool _isPhoneValid = true;
+  Future<void> _submit(BuildContext context) async {
+    final bloc = context.read<WholesaleFormBloc>();
+    final customerName = _nameController.text.trim();
+    final phoneNumber = _phoneController.text.trim();
+    final remark = _remarkController.text.trim();
+
+    if (customerName.isEmpty || phoneNumber.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter name and phone')),
+      );
+      return;
+    }
+
+    final normalizedPhone = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (!RegExp(r'^\+?\d{8,15}$').hasMatch(normalizedPhone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid phone number')),
+      );
+      return;
+    }
+
+    bloc.add(const SetSubmitting(true));
+    try {
+      final selected = bloc.state.selectedProducts;
+      final dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:5058'));
+      final payload = {
+        'customerName': customerName,
+        'phoneNumber': phoneNumber,
+        'remark': remark,
+        if (selected.isNotEmpty)
+          'productImageUrl': selected
+              .map((p) => p['image'] ?? '')
+              .where((s) => s.isNotEmpty)
+              .toList(),
+      };
+
+      final resp = await dio.post('/partnership/create', data: payload);
+      if (!mounted) return;
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Submitted successfully')),
+        );
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resp.data?.toString() ?? 'Submission failed'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Submit failed: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) bloc.add(const SetSubmitting(false));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    Future<void> submit() async {
-      final customerName = _nameController.text.trim();
-      final phoneNumber = _phoneController.text.trim();
-      final remark = _remarkController.text.trim();
-
-      if (customerName.isEmpty || phoneNumber.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter name and phone')),
-        );
-        return;
-      }
-
-      // basic phone validation: allow optional leading + and 8-15 digits
-      final normalizedPhone = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
-      if (!RegExp(r'^\+?\d{8,15}$').hasMatch(normalizedPhone)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid phone number')),
-        );
-        return;
-      }
-
-      setState(() => _isSubmitting = true);
-      try {
-        final dio = Dio(
-          BaseOptions(baseUrl: 'http://10.0.2.2:5058'),
-        ); // <- server root
-        final payload = {
-          'customerName': customerName,
-          'phoneNumber': phoneNumber, // <- use this key
-          'remark': remark,
-          if (_selected.isNotEmpty)
-            'productImageUrl': _selected
-                .map((p) => p['image'] ?? '')
-                .where((s) => s.isNotEmpty)
-                .toList(),
-        };
-
-        final resp = await dio.post(
-          '/partnership/create',
-          data: payload,
-        ); // <- endpoint path
-        if (resp.statusCode == 200 || resp.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Submitted successfully')),
-          );
-          Navigator.of(context).pop();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(resp.data?.toString() ?? 'Submission failed'),
-            ),
-          );
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Submit failed: ${e.toString()}')),
-        );
-      } finally {
-        if (mounted) setState(() => _isSubmitting = false);
-      }
-    }
-
-    return Scaffold(
+    return BlocProvider(
+      create: (_) => WholesaleFormBloc(),
+      child: Builder(
+        builder: (context) => Scaffold(
       appBar: AppBar(
         title: const Text('Wholesale Form'),
         backgroundColor: const Color(0xFFEC407A),
@@ -129,49 +129,53 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                         style: TextStyle(fontSize: 14),
                       ),
                       const SizedBox(height: 8),
-                      // replicate login form phone field style and inline validation
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        textAlignVertical: TextAlignVertical.center,
-                        decoration: InputDecoration(
-                          hintText: "Enter phone number",
-                          hintStyle: TextStyle(color: Colors.grey[500]),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFEC407A),
-                              width: 1.8,
+                      // Phone field: only rebuilds when isPhoneValid changes
+                      BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                        buildWhen: (prev, curr) =>
+                            prev.isPhoneValid != curr.isPhoneValid,
+                        builder: (context, state) => TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          textAlignVertical: TextAlignVertical.center,
+                          decoration: InputDecoration(
+                            hintText: 'Enter phone number',
+                            hintStyle: TextStyle(color: Colors.grey[500]),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
                             ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFEC407A),
+                                width: 1.8,
+                              ),
+                            ),
+                            errorText: !state.isPhoneValid &&
+                                    _phoneController.text.isNotEmpty
+                                ? 'Please enter a valid phone number'
+                                : null,
+                            errorStyle: const TextStyle(fontSize: 12),
                           ),
-                          errorText:
-                              !_isPhoneValid && _phoneController.text.isNotEmpty
-                              ? "Please enter a valid phone number"
-                              : null,
-                          errorStyle: const TextStyle(fontSize: 12),
+                          onChanged: (v) {
+                            final isValid =
+                                RegExp(r'^0\d{8,9}$').hasMatch(v.trim());
+                            final bloc = context.read<WholesaleFormBloc>();
+                            if (isValid != bloc.state.isPhoneValid) {
+                              bloc.add(SetPhoneValid(isValid));
+                            }
+                          },
                         ),
-                        onChanged: (v) {
-                          final isValid = RegExp(
-                            r'^0\d{8,9}$',
-                          ).hasMatch(v.trim());
-                          if (isValid != _isPhoneValid) {
-                            setState(() => _isPhoneValid = isValid);
-                          }
-                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -194,30 +198,22 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
 
                           if (result == null) return;
 
-                          setState(() {
-                            if (result is Map<String, dynamic> ||
-                                result is Map<String, String>) {
-                              final Map<String, String> item =
-                                  Map<String, String>.from(result as Map);
-                              if (!_selected.any(
-                                (e) => e['id'] == item['id'],
-                              )) {
-                                _selected.add(item);
-                              }
-                            } else if (result is List) {
-                              for (final r in result) {
-                                if (r is Map) {
-                                  final Map<String, String> item =
-                                      Map<String, String>.from(r);
-                                  if (!_selected.any(
-                                    (e) => e['id'] == item['id'],
-                                  )) {
-                                    _selected.add(item);
-                                  }
-                                }
+                          final List<Map<String, String>> items = [];
+                          if (result is List) {
+                            for (final r in result) {
+                              if (r is Map) {
+                                items.add(Map<String, String>.from(r));
                               }
                             }
-                          });
+                          } else if (result is Map) {
+                            items.add(Map<String, String>.from(result));
+                          }
+
+                          if (context.mounted && items.isNotEmpty) {
+                            context
+                                .read<WholesaleFormBloc>()
+                                .add(AddSelectedProducts(items));
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -250,11 +246,19 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Selected products list
-                      ..._selected.map(
-                        (p) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: _buildSelectedCard(p),
+                      // Selected products — only rebuilds when the list changes
+                      BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                        buildWhen: (prev, curr) =>
+                            prev.selectedProducts != curr.selectedProducts,
+                        builder: (context, state) => Column(
+                          children: state.selectedProducts
+                              .map(
+                                (p) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: _buildSelectedCard(context, p),
+                                ),
+                              )
+                              .toList(),
                         ),
                       ),
 
@@ -264,42 +268,53 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                 ),
               ),
 
-              // Submit bar
-              Container(
-                width: double.infinity,
-                height: 64,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEC407A),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(8),
-                    topRight: Radius.circular(8),
+              // Submit bar — only rebuilds when isSubmitting changes
+              BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                buildWhen: (prev, curr) =>
+                    prev.isSubmitting != curr.isSubmitting,
+                builder: (context, state) => Container(
+                  width: double.infinity,
+                  height: 64,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEC407A),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8),
+                    ),
                   ),
-                ),
-                child: TextButton(
-                  onPressed: _isSubmitting ? null : submit,
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                  child: TextButton(
+                    onPressed: state.isSubmitting
+                        ? null
+                        : () => _submit(context),
+                    child: state.isSubmitting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Submit',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Submit',
-                          style: TextStyle(color: Colors.white, fontSize: 18),
-                        ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
+        ),
+      ),
     );
   }
 
-  Widget _buildSelectedCard(Map<String, String> p) {
+  Widget _buildSelectedCard(BuildContext context, Map<String, String> p) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -333,9 +348,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
             child: Text(p['title'] ?? '', style: const TextStyle(fontSize: 14)),
           ),
           IconButton(
-            onPressed: () {
-              setState(() => _selected.removeWhere((e) => e['id'] == p['id']));
-            },
+            onPressed: () => context
+                .read<WholesaleFormBloc>()
+                .add(RemoveSelectedProduct(p['id'] ?? '')),
             icon: const Icon(Icons.delete_outline, color: Colors.grey),
           ),
         ],
