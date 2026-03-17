@@ -152,6 +152,91 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     super.dispose();
   }
 
+  void _showPartnerPopup(BuildContext context, String imageUrl) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        insetPadding: EdgeInsets.zero,
+        backgroundColor: Colors.transparent,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            width: double.infinity,
+            // ~60 % of screen height, always covers bottom
+            height: MediaQuery.of(ctx).size.height * 0.60,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Stack(
+              children: [
+                // X close button — top right of the white card
+                Positioned(
+                  top: 12,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(ctx).pop(),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: Color(0xFFEC407A),
+                      ),
+                    ),
+                  ),
+                ),
+                // Image — centred inside the white card
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 56, 16, 16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (_, __) => Container(
+                          height: 220,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        errorWidget: (_, __, ___) => Container(
+                          height: 220,
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.broken_image,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_selectedIndex != 0) {
@@ -404,17 +489,19 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.only(left: 16, right: 16),
-
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: CachedNetworkImage(
-                        imageUrl: _partnerImages[index],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        placeholder: (c, s) =>
-                            Container(color: Colors.grey[200]),
-                        errorWidget: (c, s, e) =>
-                            Container(color: Colors.grey[300]),
+                    child: GestureDetector(
+                      onTap: () => _showPartnerPopup(context, _partnerImages[index]),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: CachedNetworkImage(
+                          imageUrl: _partnerImages[index],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          placeholder: (c, s) =>
+                              Container(color: Colors.grey[200]),
+                          errorWidget: (c, s, e) =>
+                              Container(color: Colors.grey[300]),
+                        ),
                       ),
                     ),
                   );
