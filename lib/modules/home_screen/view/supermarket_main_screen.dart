@@ -557,14 +557,17 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         return GestureDetector(
                           onTap: () =>
                               _showBannerImagePopup(context, index),
-                          child: ClipRRect(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(16),
-                            ),
-                            child: Image.network(
-                              _images[index],
-                              fit: BoxFit.cover,
-                              width: double.infinity,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(5),
+                              ),
+                              child: Image.network(
+                                _images[index],
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
                             ),
                           ),
                         );
