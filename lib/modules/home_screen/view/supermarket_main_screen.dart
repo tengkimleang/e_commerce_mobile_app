@@ -408,11 +408,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         size: 28,
                       ),
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const UserInfoView(),
-                          ),
-                        );
+                        setState(() => _selectedIndex = 4);
                       },
                     ),
                     Padding(
