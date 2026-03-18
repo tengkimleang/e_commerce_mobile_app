@@ -274,7 +274,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                     prev.isSubmitting != curr.isSubmitting,
                 builder: (context, state) => Container(
                   width: double.infinity,
-                  height: 64,
+                  height: 54,
                   decoration: const BoxDecoration(
                     color: Color(0xFFEC407A),
                     borderRadius: BorderRadius.only(
