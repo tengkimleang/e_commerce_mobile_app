@@ -86,7 +86,7 @@ class _SignupViewState extends State<SignupView> {
                 ),
               ),
               const SizedBox(height: 18),
-              const Text('Phone number*', style: TextStyle(fontSize: 15)),
+              const Text('Phone number', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
               TextField(
               controller: _phoneController,
@@ -107,13 +107,13 @@ class _SignupViewState extends State<SignupView> {
               ),
             ),
               const SizedBox(height: 16),
-              const Text('Full name*', style: TextStyle(fontSize: 15)),
+              const Text('Full name', style: TextStyle(fontSize: 15)),
               const SizedBox(height: 8),
              TextField(
               controller: _fullNameController,
               onChanged: (_) => setState((){}),
               decoration: InputDecoration(
-                hintText: 'Full name',
+                hintText: 'Enter full name',
                 filled: true,
                 fillColor: Colors.grey.shade50,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

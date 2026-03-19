@@ -24,35 +24,16 @@ class ProductListView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
-      body: CustomScrollView(
+      body: Stack(
+        children: [
+          CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Stack(
-              children: [
-                SizedBox(
+            child: SizedBox(
                   height: 360,
                   width: double.infinity,
                   child: CategoryImageCard(imageUrl: categoryImageUrl),
                 ),
-                Positioned(
-                  top: topPadding + 12,
-                  left: 16,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.arrow_back_ios_new, size: 18),
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -108,6 +89,26 @@ class ProductListView extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+          // Fixed back arrow that stays in place while scrolling
+          Positioned(
+            top: topPadding + 12,
+            left: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Icons.arrow_back_ios_new, size: 18),
+              ),
+            ),
+          ),
         ],
       ),
     );

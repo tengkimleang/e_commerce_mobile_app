@@ -224,33 +224,36 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       bottom: 32,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: ClipRRect(
-                          // borderRadius: BorderRadius.circular(16),
-                          child: PageView.builder(
+                        child: PageView.builder(
                             controller: pageCtrl,
                             itemCount: _images.length,
                             onPageChanged: (i) =>
                                 setPopupState(() => currentPage = i),
-                            itemBuilder: (_, i) => CachedNetworkImage(
-                              imageUrl: _images[i],
-                              fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              errorWidget: (_, __, ___) => Container(
-                                color: Colors.grey[300],
-                                child: const Icon(
-                                  Icons.broken_image,
-                                  size: 48,
-                                  color: Colors.grey,
+                            itemBuilder: (_, i) => Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(5),
+                                child: CachedNetworkImage(
+                                  imageUrl: _images[i],
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      size: 48,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                       ),
                     ),
                     // Dot indicators at the bottom
