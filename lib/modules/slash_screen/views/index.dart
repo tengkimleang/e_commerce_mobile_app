@@ -42,9 +42,9 @@ class _IndexViewState extends State<IndexView> {
             left: 16,
             bottom: 30,
             right: 70,
-          ), // ← adjust these numbers
+          ),
           child: Align(
-            alignment: Alignment.bottomLeft, // title sticks to bottom
+            alignment: Alignment.bottomLeft,
             child: InkWell(
               onTap: () {
                 Navigator.of(context).push(
@@ -64,98 +64,54 @@ class _IndexViewState extends State<IndexView> {
             onPressed: _openLanguageSelector,
           ),
         ],
-        toolbarHeight: 220,
+        toolbarHeight: 280,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(bottomRight: Radius.circular(32)),
         ),
-        automaticallyImplyLeading: false, // No back arrow
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 20),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    child: Image.network(
-                      'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
-                      fit: BoxFit.cover,
-                      height: 180,
-                      width: double.infinity,
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Chip Mong Mall",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "Shopping global brand",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SupermarketMainView(),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 60),
+
+            // Card 1 — stuck to the RIGHT
+            Align(
+              alignment: Alignment.centerRight,
               child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                margin: EdgeInsets.zero,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(18), topLeft: Radius.circular(18)),
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                      ),
+                      borderRadius: const BorderRadius.only(topLeft: Radius.circular(18)),
+                  
                       child: Image.network(
-                        'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+                        'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
                         fit: BoxFit.cover,
-                        height: 180,
-                        width: double.infinity,
+                        height: 100,
+                        width: 350,
                       ),
                     ),
                     const Padding(
                       padding: EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        // crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            "Chip Mong Supermarket",
+                            "Chip Mong Mall",
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            "Explore our marketplace.",
+                            "Shopping global brand",
                             style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ],
@@ -165,6 +121,64 @@ class _IndexViewState extends State<IndexView> {
                 ),
               ),
             ),
+
+            const SizedBox(height: 60),
+
+            // Card 2 — stuck to the LEFT
+            Align(
+              alignment: Alignment.centerLeft,
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SupermarketMainView(),
+                    ),
+                  );
+                },
+                borderRadius: const BorderRadius.only(bottomRight: Radius.circular(18), topRight: Radius.circular(18)),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(bottomRight: Radius.circular(18), topRight: Radius.circular(18)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(topRight: Radius.circular(18)),
+                        child: Image.network(
+                          'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+                          fit: BoxFit.cover,
+                          height: 100,
+                          width: 350,
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Chip Mong Supermarket",
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Explore our marketplace.",
+                              style: TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 60),
           ],
         ),
       ),
