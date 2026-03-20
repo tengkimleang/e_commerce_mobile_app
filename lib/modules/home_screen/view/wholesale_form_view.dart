@@ -40,16 +40,22 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     final remark = _remarkController.text.trim();
 
     if (customerName.isEmpty || phoneNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter name and phone')),
+      _showErrorDialog(
+        title: 'Invalid Input',
+        message: 'Please enter name and phone.',
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
       );
       return;
     }
 
     final normalizedPhone = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
     if (!RegExp(r'^\+?\d{8,15}$').hasMatch(normalizedPhone)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid phone number')),
+      _showErrorDialog(
+        title: 'Invalid Phone',
+        message: 'Please enter a valid phone number.',
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
       );
       return;
     }
@@ -73,25 +79,209 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       if (!mounted) return;
 
       if (resp.statusCode == 200 || resp.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Submitted successfully')),
-        );
-        Navigator.of(context).pop();
+        _showSuccessDialog(onDismiss: () => Navigator.of(context).pop());
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resp.data?.toString() ?? 'Submission failed'),
-          ),
+        _showErrorDialog(
+          title: 'Submission Failed',
+          message: resp.data?.toString() ?? 'Something went wrong. Please try again.',
+          icon: Icons.cloud_off_rounded,
+          iconColor: Colors.redAccent,
+        );
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        _showErrorDialog(
+          title: 'No Connection',
+          message: 'No internet connection. Please check your network and try again.',
+          icon: Icons.wifi_off_rounded,
+          iconColor: Colors.orangeAccent,
+        );
+      } else if (e.response != null) {
+        _showErrorDialog(
+          title: 'Server Error',
+          message: e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.',
+          icon: Icons.cloud_off_rounded,
+          iconColor: Colors.redAccent,
+        );
+      } else {
+        _showErrorDialog(
+          title: 'Something Went Wrong',
+          message: 'Unable to reach the server. Please try again.',
+          icon: Icons.warning_amber_rounded,
+          iconColor: Colors.red,
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Submit failed: ${e.toString()}')),
+      _showErrorDialog(
+        title: 'Submission Failed',
+        message: e.toString().replaceFirst('Exception: ', ''),
+        icon: Icons.warning_amber_rounded,
+        iconColor: Colors.red,
       );
     } finally {
       if (mounted) bloc.add(const SetSubmitting(false));
     }
+  }
+
+  void _showSuccessDialog({VoidCallback? onDismiss}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.green,
+                    ),
+                    child: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Request Submitted!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Your wholesale request has been submitted successfully. Our team will contact you shortly.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 28),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    onDismiss?.call();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+    VoidCallback? onDismiss,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 36),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                onDismiss?.call();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFEC407A),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              child: const Text('OK'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

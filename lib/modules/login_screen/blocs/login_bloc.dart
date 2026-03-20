@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
@@ -51,14 +52,31 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(const LoginLoading());
 
     try {
-      final response = await _authService.requestOtp(_currentPhoneNumber);
-
-// Debug OTP
-      print("OTP response: $response");
-
-emit(LoginOtpSent(_currentPhoneNumber));
+      await _authService.requestOtp(_currentPhoneNumber);
+      emit(LoginOtpSent(_currentPhoneNumber));
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        emit(const LoginError(
+          'No internet connection. Please check your network and try again.',
+          errorType: LoginErrorType.network,
+        ));
+      } else if (e.response != null) {
+        final msg = e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.';
+        emit(LoginError(msg, errorType: LoginErrorType.server));
+      } else {
+        emit(const LoginError(
+          'Unable to reach the server. Please try again.',
+          errorType: LoginErrorType.unknown,
+        ));
+      }
     } catch (e) {
-      emit(LoginError(e.toString().replaceFirst('Exception: ', '')));
+      emit(LoginError(
+        e.toString().replaceFirst('Exception: ', ''),
+        errorType: LoginErrorType.unknown,
+      ));
     }
   }
 }

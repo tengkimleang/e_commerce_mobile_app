@@ -15,6 +15,88 @@ import 'package:flutter/services.dart';
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
 
+  static void _showErrorDialog(BuildContext context, LoginError state) {
+    IconData icon;
+    Color iconColor;
+    String title;
+
+    switch (state.errorType) {
+      case LoginErrorType.network:
+        icon = Icons.wifi_off_rounded;
+        iconColor = Colors.orangeAccent;
+        title = 'No Connection';
+      case LoginErrorType.server:
+        icon = Icons.cloud_off_rounded;
+        iconColor = Colors.redAccent;
+        title = 'Server Error';
+      case LoginErrorType.validation:
+        icon = Icons.error_outline_rounded;
+        iconColor = const Color(0xFFEC407A);
+        title = 'Invalid Input';
+      case LoginErrorType.unknown:
+        icon = Icons.warning_amber_rounded;
+        iconColor = Colors.red;
+        title = 'Something Went Wrong';
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 36),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state.message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFEC407A),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Text('OK'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -29,9 +111,7 @@ class LoginView extends StatelessWidget {
                 ),
               );
             } else if (state is LoginError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              _showErrorDialog(context, state);
             }
           },
           child: const _LoginContent(),

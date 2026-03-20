@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -76,17 +77,102 @@ class _OtpViewState extends State<OtpView> {
         MaterialPageRoute(builder: (_) => const IndexView()),
         (route) => false,
       );
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+
+      String message;
+      IconData icon;
+      Color iconColor;
+      String title;
+
+      if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        title = 'No Connection';
+        message = 'No internet connection. Please check your network and try again.';
+        icon = Icons.wifi_off_rounded;
+        iconColor = Colors.orangeAccent;
+      } else if (e.response != null) {
+        title = 'Verification Failed';
+        message = e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.';
+        icon = Icons.cloud_off_rounded;
+        iconColor = Colors.redAccent;
+      } else {
+        title = 'Something Went Wrong';
+        message = 'Unable to reach the server. Please try again.';
+        icon = Icons.warning_amber_rounded;
+        iconColor = Colors.red;
+      }
+
+      _showErrorDialog(title: title, message: message, icon: icon, iconColor: iconColor);
     } catch (e) {
       if (!mounted) return;
 
       setState(() => _isSubmitting = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-        ),
+      _showErrorDialog(
+        title: 'Verification Failed',
+        message: e.toString().replaceFirst('Exception: ', ''),
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
       );
     }
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 36),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFEC407A),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              child: const Text('OK'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

@@ -28,10 +28,13 @@ class LoginOtpSent extends LoginState {
   const LoginOtpSent(this.phoneNumber);
 }
 
+enum LoginErrorType { network, server, validation, unknown }
+
 // When login fails with error
 class LoginError extends LoginState {
   final String message;
-  const LoginError(this.message);
+  final LoginErrorType errorType;
+  const LoginError(this.message, {this.errorType = LoginErrorType.unknown});
 }
 
 // Updated state when user types in form fields
