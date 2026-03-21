@@ -1,5 +1,7 @@
+import 'dart:async' show TimeoutException;
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
@@ -38,10 +40,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     LoginPressed event,
     Emitter<LoginState> emit,
   ) async {
-    if (!_isValidPhone(_currentPhoneNumber)) {
+    final phoneToSubmit = _currentPhoneNumber;
+
+    if (!_isValidPhone(phoneToSubmit)) {
       emit(
         LoginUpdated(
-          loginModel: LoginModel(phoneNumber: _currentPhoneNumber),
+          loginModel: LoginModel(phoneNumber: phoneToSubmit),
           isPhoneValid: false,
         ),
       );
@@ -50,11 +54,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
 
     emit(const LoginLoading());
+    debugPrint('[LoginBloc] LoginLoading emitted, calling requestOtp($phoneToSubmit)');
 
     try {
-      await _authService.requestOtp(_currentPhoneNumber);
-      emit(LoginOtpSent(_currentPhoneNumber));
+      await _authService.requestOtp(phoneToSubmit);
+      debugPrint('[LoginBloc] requestOtp succeeded, emitting LoginOtpSent');
+      emit(LoginOtpSent(phoneToSubmit));
     } on DioException catch (e) {
+      debugPrint('[LoginBloc] DioException: ${e.type} → ${e.message}');
       if (e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
@@ -72,7 +79,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           errorType: LoginErrorType.unknown,
         ));
       }
+    } on TimeoutException catch (_) {
+      debugPrint('[LoginBloc] TimeoutException');
+      emit(const LoginError(
+        'Request timed out. Please check your connection and try again.',
+        errorType: LoginErrorType.network,
+      ));
     } catch (e) {
+      debugPrint('[LoginBloc] Unexpected error: $e');
       emit(LoginError(
         e.toString().replaceFirst('Exception: ', ''),
         errorType: LoginErrorType.unknown,

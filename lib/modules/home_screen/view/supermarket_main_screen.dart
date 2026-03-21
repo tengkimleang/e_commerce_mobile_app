@@ -389,117 +389,117 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
     final scaffold = Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(120),
+        preferredSize: const Size.fromHeight(64),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: const BoxDecoration(
-            // borderRadius:BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5)),
-            color: Color(0xFFEC407A),
-          ),
+          color: const Color(0xFFEC407A),
           child: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Top Row: Profile Icon and Cart
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      onPressed: () {
-                        setState(() => _selectedIndex = 4);
-                      },
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Walking person icon
+                  GestureDetector(
+                    onTap: _showShopSelectorBottomSheet,
+                    child: const Icon(
+                      Icons.directions_walk,
+                      color: Colors.white,
+                      size: 30,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Text(
-                        'Welcome',
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(width: 8),
+                  // "Shop at" label + store name + chevron
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _showShopSelectorBottomSheet,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Shop at',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w400,
                             ),
-                      ),
-                    ),
-                    BlocBuilder<CartBloc, CartState>(
-                      builder: (context, cartState) {
-                        final itemTypes = cartState.distinctItemCount;
-                        return Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.shopping_cart,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const CartView(),
-                                  ),
-                                );
-                              },
-                            ),
-                            if (itemTypes > 0)
-                              Positioned(
-                                right: 8,
-                                top: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 2,
-                                  ),
-                                  decoration: const BoxDecoration(
+                          ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  _selectedShop.storeName,
+                                  style: const TextStyle(
                                     color: Colors.white,
-                                    shape: BoxShape.circle,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  child: Text(
-                                    '$itemTypes',
-                                    style: const TextStyle(
-                                      color: Color(0xFFEC407A),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Cart icon with badge
+                  BlocBuilder<CartBloc, CartState>(
+                    builder: (context, cartState) {
+                      final itemTypes = cartState.distinctItemCount;
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const CartView(),
+                                ),
+                              );
+                            },
+                          ),
+                          if (itemTypes > 0)
+                            Positioned(
+                              right: 6,
+                              top: 6,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  '$itemTypes',
+                                  style: const TextStyle(
+                                    color: Color(0xFFEC407A),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
                                   ),
                                 ),
                               ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                // Location Text
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    GestureDetector(
-                      onTap: _showShopSelectorBottomSheet,
-                      child: Text(
-                        _selectedShop.storeName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: _showShopSelectorBottomSheet,
-                      child: const Icon(
-                        Icons.expand_more,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -508,42 +508,51 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar (opens dedicated search view) - slightly shorter
+            // Search Bar (opens dedicated search view)
             Container(
               color: const Color(0xFFEC407A),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: GestureDetector(
-                onTap: () {
-                  final all = _getAllProducts();
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => SearchProducts(products: all),
-                    ),
-                  );
-                },
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.search, color: Color(0xFFEC407A)),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Search products, brands and more',
-                            style: TextStyle(color: Colors.grey),
-                            overflow: TextOverflow.ellipsis,
+              child: Row(
+                children: [
+                  // Tappable search pill
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        final all = _getAllProducts();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => SearchProducts(products: all),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search, color: Color(0xFFEC407A)),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Search products, brands and more',
+                                  style: TextStyle(color: Colors.grey),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+            
+                ],
               ),
             ),
             Padding(

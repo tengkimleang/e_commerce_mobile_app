@@ -81,7 +81,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                   'Username',
                   style: TextStyle(
                     color: accent,
-                    fontSize: 24,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

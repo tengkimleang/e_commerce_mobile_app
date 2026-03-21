@@ -64,7 +64,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
               decoration: const BoxDecoration(
                 color: accent,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -73,7 +73,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
                 'Please select date',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -85,7 +85,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
                   textTheme: CupertinoTextThemeData(
                     dateTimePickerTextStyle: TextStyle(
                       color: accent,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -109,7 +109,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
             ),
             SizedBox(
               width: double.infinity,
-              height: 68,
+              height: 50,
               child: TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: accent,

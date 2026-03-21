@@ -26,7 +26,7 @@ Future<ImageSource?> showProfileImageSourceBottomSheet(BuildContext context) {
                   'Select from Gallery | Camera',
                   style: TextStyle(
                     color: accent,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -61,14 +61,14 @@ class _SourceButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 48,
+      height: 40,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFEC0C6E),
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
         onPressed: onTap,

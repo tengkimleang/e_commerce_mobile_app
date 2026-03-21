@@ -4,6 +4,6 @@ class ApiUrl {
   static const promotionGetById = "/promotion/";
   static const newsGetAll = "/news";
   static const newsGetById = "/news/";
-  static const requestOtp = "/auth/request-otp";
-  static const verifyOtp = "/auth/verify-otp";
+  static const requestOtp = "/auth/login/request-otp";
+  static const verifyOtp = "/auth/login/verify-otp";
 }

@@ -3,6 +3,7 @@ import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_c
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
@@ -103,7 +104,9 @@ class LoginView extends StatelessWidget {
       create: (context) => LoginBloc(),
       child: BlocListener<LoginBloc, LoginState>(
           listener: (context, state) {
+            debugPrint('[LoginView] BlocListener received state: ${state.runtimeType}');
             if (state is LoginOtpSent) {
+              debugPrint('[LoginView] Navigating to OtpView with phone: ${state.phoneNumber}');
               Navigator.push(
                 context,
                 MaterialPageRoute(
