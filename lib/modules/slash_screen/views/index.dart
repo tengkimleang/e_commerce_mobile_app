@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../chipmong_screen/views/chipmong_mall_screen.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
 import '../../user_info_screen/views/edit_language_view.dart';
 import '../../login_screen/views/login_view.dart';
@@ -80,11 +81,23 @@ class _IndexViewState extends State<IndexView> {
             // Card 1 — stuck to the RIGHT
             Align(
               alignment: Alignment.centerRight,
-              child: Card(
-                margin: EdgeInsets.zero,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(bottomLeft: Radius.circular(18), topLeft: Radius.circular(18)),
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ChipmongMallScreen(),
+                    ),
+                  );
+                },
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(18),
+                  topLeft: Radius.circular(18),
                 ),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(18), topLeft: Radius.circular(18)),
+                  ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -121,6 +134,7 @@ class _IndexViewState extends State<IndexView> {
                 ),
               ),
             ),
+          ),
 
             const SizedBox(height: 60),
 

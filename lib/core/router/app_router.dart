@@ -7,6 +7,7 @@ import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
+import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mall_screen.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
 
@@ -21,6 +22,7 @@ abstract final class AppRoutes {
   static const String favorites = '/favorites';
   static const String notifications = '/notifications';
   static const String priceChecking = '/price-checking';
+  static const String chipmongMall = '/chipmong-mall';
 }
 
 /// Generates a [Route] for the given [RouteSettings].
@@ -46,6 +48,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case AppRoutes.priceChecking:
       final selectionMode = settings.arguments as bool? ?? false;
       return _page(PriceCheckingView(selectionMode: selectionMode));
+    case AppRoutes.chipmongMall:
+      return _page(const ChipmongMallScreen());
     default:
       return _page(const LoginView());
   }
