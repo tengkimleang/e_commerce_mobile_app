@@ -10,6 +10,7 @@ import '../bloc/chipmong_mall_bloc.dart';
 import '../bloc/chipmong_mall_event.dart';
 import '../bloc/chipmong_mall_state.dart';
 import '../models/chipmong_mall_model.dart';
+import 'loyalty_card_detail_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Entry-point widget — provides the BLoC to the subtree
@@ -118,7 +119,16 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                   _TopBar(state: state),
                   _buildBannerCarousel(),
                   _buildCategoryRow(),
-                  _LoyaltyCard(info: state.loyaltyInfo),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LoyaltyCardDetailScreen(
+                          info: state.loyaltyInfo,
+                        ),
+                      ),
+                    ),
+                    child: _LoyaltyCard(info: state.loyaltyInfo),
+                  ),
                   _TabBarHeader(controller: _tabController),
                   SizedBox(
                     height: 220,
