@@ -3,7 +3,6 @@ import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_c
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';

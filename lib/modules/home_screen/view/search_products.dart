@@ -98,7 +98,7 @@ class _SearchProductsState extends State<SearchProducts>
         preferredSize: const Size.fromHeight(56),
         child: SafeArea(
           bottom: false,
-          child: Container(
+          child: SizedBox(
             height: 56,
             // color: Colors.white,
             child: Row(

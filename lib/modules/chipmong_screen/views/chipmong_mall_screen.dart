@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../bloc/chipmong_mall_bloc.dart';
@@ -111,34 +112,35 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
           backgroundColor: const Color(0xFFF5F5F5),
           body: SafeArea(
             bottom: false,
-            child: NestedScrollView(
-              headerSliverBuilder: (_, __) => [
-                SliverToBoxAdapter(child: _TopBar(state: state)),
-                SliverToBoxAdapter(child: _buildBannerCarousel()),
-                SliverToBoxAdapter(child: _buildCategoryRow()),
-                SliverToBoxAdapter(
-                  child: _LoyaltyCard(info: state.loyaltyInfo),
-                ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _TabBarDelegate(_tabController),
-                ),
-              ],
-              body: TabBarView(
-                controller: _tabController,
+            child: SingleChildScrollView(
+              child: Column(
                 children: [
-                  _PromotionGrid(
-                    key: const PageStorageKey('tab0'),
-                    items: state.promotions,
+                  _TopBar(state: state),
+                  _buildBannerCarousel(),
+                  _buildCategoryRow(),
+                  _LoyaltyCard(info: state.loyaltyInfo),
+                  _TabBarHeader(controller: _tabController),
+                  SizedBox(
+                    height: 220,
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _PromotionGrid(
+                          key: const PageStorageKey('tab0'),
+                          items: state.promotions,
+                        ),
+                        _PromotionGrid(
+                          key: const PageStorageKey('tab1'),
+                          items: state.programs,
+                        ),
+                        _PromotionGrid(
+                          key: const PageStorageKey('tab2'),
+                          items: state.news,
+                        ),
+                      ],
+                    ),
                   ),
-                  _PromotionGrid(
-                    key: const PageStorageKey('tab1'),
-                    items: state.programs,
-                  ),
-                  _PromotionGrid(
-                    key: const PageStorageKey('tab2'),
-                    items: state.news,
-                  ),
+                  _buildBottomCTA(context),
                 ],
               ),
             ),
@@ -147,13 +149,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
             child: Material(
               color: Colors.white,
               elevation: 10,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildBottomCTA(context),
-                  _buildBottomNav(context, state.bottomNavIndex),
-                ],
-              ),
+              child: _buildBottomNav(context, state.bottomNavIndex),
             ),
           ),
         );
@@ -166,7 +162,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
   Widget _buildBannerCarousel() {
     if (_bannerImages.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      height: 180,
+      height: 130,
       child: Stack(
         children: [
           PageView.builder(
@@ -218,7 +214,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
   Widget _buildCategoryRow() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: chipmongMallCategories
             .map(
@@ -235,6 +231,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
 
   Widget _buildBottomCTA(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
       child: ElevatedButton.icon(
@@ -260,7 +257,6 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
       ),
     );
   }
-
   // ── Bottom navigation bar ─────────────────────────────────────────────────
 
   Widget _buildBottomNav(BuildContext context, int selectedIndex) {
@@ -380,21 +376,21 @@ class _LoyaltyCard extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
       child: Container(
         // White card
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(25),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: Colors.black.withAlpha(20),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -409,17 +405,17 @@ class _LoyaltyCard extends StatelessWidget {
                       Text(
                         info.username,
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'Battambang',
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         'ID: ${info.memberId}',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -459,33 +455,33 @@ class _LoyaltyCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
             // Points section
             Text(
               'ចំនួនពិន្ទុ',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 color: Colors.grey[500],
                 fontFamily: 'Battambang',
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   '${info.points}',
                   style: const TextStyle(
-                    fontSize: 30,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(width: 6),
-                const Icon(Icons.stars_rounded, color: AppColors.primary, size: 26),
+                const SizedBox(width: 5),
+                const Icon(Icons.stars_rounded, color: AppColors.primary, size: 20),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             // Expiry date
             GestureDetector(
               onTap: () {},
@@ -597,7 +593,7 @@ class _CategoryItem extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Promotion grid — used inside each TabBarView tab
+// Promotion list — single horizontal scroll row per tab
 // ---------------------------------------------------------------------------
 class _PromotionGrid extends StatelessWidget {
   const _PromotionGrid({super.key, required this.items});
@@ -618,17 +614,15 @@ class _PromotionGrid extends StatelessWidget {
         ),
       );
     }
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.72,
-      ),
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       itemCount: items.length,
-      itemBuilder: (_, i) => _PromotionCard(promo: items[i]),
+      separatorBuilder: (_, __) => const SizedBox(width: 10),
+      itemBuilder: (_, i) => SizedBox(
+        width: 185,
+        child: _PromotionCard(promo: items[i]),
+      ),
     );
   }
 }
@@ -662,15 +656,15 @@ class _PromotionCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: CachedNetworkImage(
                     imageUrl: promo.imageUrl,
-                    height: 120,
+                    height: 105,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     placeholder: (_, __) => Container(
-                      height: 120,
+                      height: 95,
                       color: Colors.grey[200],
                     ),
                     errorWidget: (_, __, ___) => Container(
-                      height: 120,
+                      height: 105,
                       color: AppColors.primary.withAlpha(20),
                       child: Icon(
                         Icons.image_outlined,
@@ -752,51 +746,89 @@ class _PromotionCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Tab bar sticky header delegate
 // ---------------------------------------------------------------------------
-class _TabBarDelegate extends SliverPersistentHeaderDelegate {
-  const _TabBarDelegate(this.controller);
+class _TabBarHeader extends StatefulWidget {
+  const _TabBarHeader({required this.controller});
 
   final TabController controller;
 
   @override
-  double get minExtent => 48;
+  State<_TabBarHeader> createState() => _TabBarHeaderState();
+}
+
+class _TabBarHeaderState extends State<_TabBarHeader> {
+  static const _tabs = [
+    (icon: Icons.local_offer_outlined, label: 'ប្រូម៉ូសិន'),
+    (icon: Icons.calendar_today_outlined, label: 'កម្មវិធី'),
+    (icon: Icons.campaign_outlined, label: 'ព័ត៌មាន'),
+  ];
 
   @override
-  double get maxExtent => 48;
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onTabChanged);
+  }
 
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return ColoredBox(
-      color: Colors.white,
-      child: TabBar(
-        controller: controller,
-        labelColor: AppColors.primary,
-        unselectedLabelColor: Colors.grey,
-        indicatorColor: AppColors.primary,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(
-          fontFamily: 'Battambang',
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontFamily: 'Battambang',
-          fontSize: 14,
-        ),
-        tabs: const [
-          Tab(text: 'ប្រូម៉ូសិន'),
-          Tab(text: 'កម្មវិធី'),
-          Tab(text: 'ព័ត៌មាន'),
-        ],
-      ),
-    );
+  void _onTabChanged() {
+    if (!widget.controller.indexIsChanging) setState(() {});
   }
 
   @override
-  bool shouldRebuild(_TabBarDelegate old) => old.controller != controller;
+  void dispose() {
+    widget.controller.removeListener(_onTabChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.controller.index;
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: List.generate(_tabs.length, (i) {
+          final isSelected = i == selected;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => widget.controller.animateTo(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _tabs[i].icon,
+                      size: 15,
+                      color: isSelected ? Colors.white : Colors.grey[600],
+                    ),
+                    const SizedBox(width: 5),
+                    Flexible(
+                      child: Text(
+                        _tabs[i].label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'Battambang',
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Colors.white : Colors.grey[600],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
