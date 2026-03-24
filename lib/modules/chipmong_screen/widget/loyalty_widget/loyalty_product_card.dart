@@ -5,9 +5,10 @@ import '../../../../core/theme/app_theme.dart';
 import 'loyalty_models.dart';
 
 class LoyaltyProductCard extends StatelessWidget {
-  const LoyaltyProductCard({super.key, required this.product});
+  const LoyaltyProductCard({super.key, required this.product, this.onTap});
 
   final LoyaltyProduct product;
+  final ValueChanged<LoyaltyProduct>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class LoyaltyProductCard extends StatelessWidget {
       elevation: 2,
       shadowColor: Colors.black12,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap == null ? null : () => onTap!(product),
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,16 +27,17 @@ class LoyaltyProductCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                   child: CachedNetworkImage(
                     imageUrl: product.imageUrl,
                     height: 130,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) =>
+                    placeholder: (context, url) =>
                         Container(height: 130, color: Colors.grey[200]),
-                    errorWidget: (_, __, ___) => Container(
+                    errorWidget: (context, url, error) => Container(
                       height: 130,
                       color: AppColors.primary.withAlpha(15),
                       child: Icon(
@@ -51,8 +53,10 @@ class LoyaltyProductCard extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(220),
                       borderRadius: BorderRadius.circular(6),
@@ -77,7 +81,7 @@ class LoyaltyProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ប័ណ្ណទិញទំនិញ',
+                      product.category,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey[500],

@@ -24,7 +24,10 @@ class LoyaltyTier {
 const loyaltyTiers = <LoyaltyTier>[
   LoyaltyTier(
     name: 'Lifestyle',
-    gradient: [Color.fromARGB(255, 244, 143, 177), Color.fromARGB(255, 178, 147, 157)],
+    gradient: [
+      Color.fromARGB(255, 244, 143, 177),
+      Color.fromARGB(255, 178, 147, 157),
+    ],
     badgeColor: AppColors.primary,
     locked: false,
   ),
@@ -49,27 +52,57 @@ const loyaltyTiers = <LoyaltyTier>[
 class LoyaltyProduct {
   final String imageUrl;
   final String brandName;
+  final String category;
   final String title;
   final String store;
   final int points;
+  final String expiryDate;
+  final int redeemLimit;
+  final String pointCondition;
+  final String termsAndConditions;
 
   const LoyaltyProduct({
     required this.imageUrl,
     required this.brandName,
+    this.category = 'ប័ណ្ណទិញទំនិញ',
     required this.title,
     required this.store,
     required this.points,
+    this.expiryDate = 'Dec 31, 2026',
+    this.redeemLimit = 1,
+    this.pointCondition = '',
+    this.termsAndConditions = '',
   });
 }
+
+const loyaltyDefaultTermsAndConditions = '''
+លក្ខខណ្ឌ និង បទបញ្ជា៖
+១. អតិថិជនត្រូវបញ្ចប់ការប្តូររង្វាន់ក្នុងរយៈពេល ៧ ថ្ងៃបន្ទាប់ពីការកក់ បើមិនដូច្នេះទេ រង្វាន់នឹងត្រូវលុបចោល និងពិន្ទុនឹងត្រូវដកចេញ។
+២. ក្រុមហ៊ុន CMRT រក្សាសិទ្ធិប្រើរយៈពេល ១០ ថ្ងៃធ្វើការបន្ទាប់ពីបញ្ជាក់ការប្តូររង្វាន់ ដើម្បីបញ្ចប់នីតិវិធីផ្ទៀងផ្ទាត់មុនប្រគល់រង្វាន់។
+៣. រង្វាន់មិនអាចផ្ទេរទៅអ្នកដទៃបានទេ ហើយអាចប្តូរបានតែដោយម្ចាស់គណនីប៉ុណ្ណោះ។
+៤. មិនអនុញ្ញាតឱ្យប្តូរជាសាច់ប្រាក់ ឥណទាន ឬផ្លាស់ប្តូរជាប្រភេទផ្សេងទេ។
+៥. ការប្រគល់រង្វាន់ធ្វើនៅបញ្ជរព័ត៌មានផ្សារទំនើប ខាងមុខ H&M ជាន់ផ្ទាល់ដី ដោយត្រូវមានលេខទូរស័ព្ទដែលបានចុះឈ្មោះ និងអត្តសញ្ញាណប័ណ្ណ/លិខិតឆ្លងដែន។
+៦. សកម្មភាពក្លែងបន្លំ ឬបំពានលក្ខខណ្ឌណាមួយ នឹងនាំឱ្យដកសិទ្ធិចេញពីកម្មវិធី។
+
+T&C:
+1. Redemption must be completed within 7 days of reservation, or the reward will be forfeited, and points will be cancelled.
+2. CMRT reserves 10 working day after confirming redemption for completing verification procedure before prize handover.
+3. The reward is non-transferable and can only be redeemed by the account holder.
+4. No cash, credit, or exchanges will be provided.
+5. Reward handover will be at the mall’s Information Counter, located in front of H&M on the Ground Floor with the registered mobile phone and National Identity Card/Passport.
+6. Any fraudulent activity will lead to disqualification from the promotion.
+''';
 
 const loyaltyMockProducts = <LoyaltyProduct>[
   LoyaltyProduct(
     imageUrl:
         'https://arystorephone.com/wp-content/uploads/2025/06/galaxy-zfold7-blueshadow.jpg',
     brandName: 'SAMSUNG',
-    title: 'Samsung Galaxy Z Fold7 12+256GB',
+    title: 'Samsung Galaxy Z Fold7 16G / 1TB (Random Color)',
     store: 'Chip Mong 271 Mega Mall',
     points: 81999,
+    pointCondition: 'Samsung Galaxy Z Fold7 16G / 1TB (Random Color)',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
   LoyaltyProduct(
     imageUrl:
@@ -78,23 +111,28 @@ const loyaltyMockProducts = <LoyaltyProduct>[
     title: 'iPhone 17 Pro Max 512G (Refurbished)',
     store: 'Chip Mong 271 Mega Mall',
     points: 72399,
+    pointCondition: 'iPhone 17 Pro Max 512G (Refurbished)',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
   LoyaltyProduct(
     imageUrl:
-      'https://images.samsung.com/levant/smartphones/galaxy-s25-ultra/buy/product_color_black_PC.png',
+        'https://images.samsung.com/levant/smartphones/galaxy-s25-ultra/buy/product_color_black_PC.png',
     brandName: 'SAMSUNG',
     title: 'Samsung Galaxy S25 Ultra 512GB',
     store: 'Chip Mong 271 Mega Mall',
     points: 69899,
+    pointCondition: 'Samsung Galaxy S25 Ultra 512GB',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
   LoyaltyProduct(
     imageUrl:
-        
         'https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/ipad-pro-11-inch-13-inch.png',
     brandName: 'Apple',
     title: 'iPad Pro M4 13-inch 256GB',
     store: 'Chip Mong 271 Mega Mall',
     points: 55000,
+    pointCondition: 'iPad Pro M4 13-inch 256GB',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
   LoyaltyProduct(
     imageUrl:
@@ -103,13 +141,17 @@ const loyaltyMockProducts = <LoyaltyProduct>[
     title: 'Samsung Galaxy Tab S10+ 12GB/256GB',
     store: 'Chip Mong 271 Mega Mall',
     points: 42500,
+    pointCondition: 'Samsung Galaxy Tab S10+ 12GB/256GB',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
   LoyaltyProduct(
     imageUrl:
-    'https://m.media-amazon.com/images/I/71-D1xCuVwL._AC_UF894,1000_QL80_.jpg',
+        'https://m.media-amazon.com/images/I/71-D1xCuVwL._AC_UF894,1000_QL80_.jpg',
     brandName: 'Apple',
     title: 'MacBook Air M3 13" 8GB/256GB',
     store: 'Chip Mong 271 Mega Mall',
     points: 95000,
+    pointCondition: 'MacBook Air M3 13" 8GB/256GB',
+    termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),
 ];

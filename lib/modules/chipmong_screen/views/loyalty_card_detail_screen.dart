@@ -8,6 +8,7 @@ import '../widget/loyalty_widget/loyalty_product_card.dart';
 import '../widget/loyalty_widget/loyalty_tab_bar.dart';
 import '../widget/loyalty_widget/tier_card.dart';
 import '../widget/loyalty_widget/tier_progress_header.dart';
+import 'loyalty_reward_detail_screen.dart';
 
 class LoyaltyCardDetailScreen extends StatefulWidget {
   const LoyaltyCardDetailScreen({super.key, required this.info});
@@ -47,9 +48,11 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
 
   List<LoyaltyProduct> get _sortedProducts {
     final list = [...loyaltyMockProducts];
-    list.sort((a, b) => _sortDescending
-        ? b.points.compareTo(a.points)
-        : a.points.compareTo(b.points));
+    list.sort(
+      (a, b) => _sortDescending
+          ? b.points.compareTo(a.points)
+          : a.points.compareTo(b.points),
+    );
     return list;
   }
 
@@ -104,7 +107,15 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
               sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate(
-                  (_, i) => LoyaltyProductCard(product: sorted[i]),
+                  (_, i) => LoyaltyProductCard(
+                    product: sorted[i],
+                    onTap: (product) => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            LoyaltyRewardDetailScreen(product: product),
+                      ),
+                    ),
+                  ),
                   childCount: sorted.length,
                 ),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
