@@ -19,10 +19,7 @@ class TierCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
+          
           gradient: LinearGradient(
             colors: outerGradient,
             begin: Alignment.topLeft,
@@ -33,10 +30,7 @@ class TierCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
-            ),
+           borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(20),
