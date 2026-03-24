@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Centralized app colors — single source of truth.
 abstract final class AppColors {
   static const Color primary = Color(0xFFEC407A);
-  static const Color primaryDark = Color(0xFFEA2E6D);
+  static const Color primaryDark = Color.fromARGB(255, 227, 179, 195);
   static const Color accent = Color(0xFFE91E63);
   static const Color background = Color(0xFFF3F3F3);
   static const Color surface = Colors.white;

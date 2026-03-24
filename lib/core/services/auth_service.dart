@@ -7,7 +7,7 @@ class AuthService {
   static String get _baseUrl {
     // Android emulator uses 10.0.2.2 to reach host; iOS uses localhost
     return Platform.isAndroid
-        ? 'http://10.0.2.2:5058'
+        ? 'http://192.168.100.39:5058'
         : 'http://localhost:5058';
   }
 

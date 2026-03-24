@@ -63,7 +63,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     bloc.add(const SetSubmitting(true));
     try {
       final selected = bloc.state.selectedProducts;
-      final dio = Dio(BaseOptions(baseUrl: 'http://10.0.2.2:5058'));
+      final dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.39:5058'));
       final payload = {
         'customerName': customerName,
         'phoneNumber': phoneNumber,
