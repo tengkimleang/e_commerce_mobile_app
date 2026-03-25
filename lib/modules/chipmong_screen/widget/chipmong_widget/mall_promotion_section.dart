@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../models/chipmong_mall_model.dart';
+import '../../views/chipmong_mall_promotion_detail_screen.dart';
 
 class MallPromotionGrid extends StatelessWidget {
   const MallPromotionGrid({super.key, required this.items});
@@ -27,8 +28,8 @@ class MallPromotionGrid extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 10),
-      itemBuilder: (_, i) =>
+      separatorBuilder: (context, index) => const SizedBox(width: 10),
+      itemBuilder: (context, i) =>
           SizedBox(width: 185, child: MallPromotionCard(promo: items[i])),
     );
   }
@@ -47,7 +48,11 @@ class MallPromotionCard extends StatelessWidget {
       elevation: 2,
       shadowColor: Colors.black12,
       child: InkWell(
-        onTap: () {},
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChipmongMallPromotionDetailScreen(promo: promo),
+          ),
+        ),
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,9 +69,9 @@ class MallPromotionCard extends StatelessWidget {
                     height: 105,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) =>
+                    placeholder: (context, url) =>
                         Container(height: 95, color: Colors.grey[200]),
-                    errorWidget: (_, __, ___) => Container(
+                    errorWidget: (context, url, error) => Container(
                       height: 105,
                       color: AppColors.primary.withAlpha(20),
                       child: Icon(

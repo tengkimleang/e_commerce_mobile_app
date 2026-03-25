@@ -23,6 +23,7 @@ class ChipmongMallPromotion {
   final String brandName;
   final String title;
   final String date;
+  final String description;
   final bool isActive;
 
   const ChipmongMallPromotion({
@@ -30,6 +31,7 @@ class ChipmongMallPromotion {
     required this.brandName,
     required this.title,
     required this.date,
+    this.description = '',
     this.isActive = true,
   });
 }
@@ -69,22 +71,13 @@ const chipmongMallCategories = <ChipmongMallCategory>[
     hasBadge: true,
     badgeLabel: 'SALE',
   ),
-  ChipmongMallCategory(
-    icon: Icons.shopping_bag_outlined,
-    label: 'ហាងទំនិញ',
-  ),
-  ChipmongMallCategory(
-    icon: Icons.restaurant,
-    label: 'ភោជនីយដ្ឋាន',
-  ),
+  ChipmongMallCategory(icon: Icons.shopping_bag_outlined, label: 'ហាងទំនិញ'),
+  ChipmongMallCategory(icon: Icons.restaurant, label: 'ភោជនីយដ្ឋាន'),
   ChipmongMallCategory(
     icon: Icons.sports_esports_outlined,
     label: 'ហ្គេមកម្សាន្ត',
   ),
-  ChipmongMallCategory(
-    icon: Icons.apps,
-    label: 'ច្រើនបន្ថែម',
-  ),
+  ChipmongMallCategory(icon: Icons.apps, label: 'ច្រើនបន្ថែម'),
 ];
 
 final chipmongMallBannerImages = <String>[
@@ -100,6 +93,13 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: 'The Pizza Company',
     title: 'BITE BOX SET! 🍕',
     date: 'Jan 28, 2026',
+    description:
+        'BITE BOX SET! 🍕\n\n'
+        'Special combo menu for friends and family at The Pizza Company. '
+        'Get crispy chicken, signature pizza and drinks in one value set.\n\n'
+        'Available every day at Chip Mong Mall branch.\n\n'
+        'Promotion period: Jan 28, 2026 - Feb 28, 2026\n'
+        'For reservation, please contact the restaurant directly.',
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -107,6 +107,12 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: "LEVI'S",
     title: 'MID SEASON SALE ✨',
     date: 'Mar 20, 2026',
+    description:
+        'MID SEASON SALE ✨\n\n'
+        'Enjoy up to 50% off selected LEVI\'S items including jeans, tops '
+        'and accessories.\n\n'
+        'Offer valid while stocks last and may vary by size availability.\n\n'
+        'Visit LEVI\'S store at Chip Mong Mall for full promotion details.',
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -114,6 +120,12 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: 'FILA',
     title: 'New Collection',
     date: 'Mar 10, 2026',
+    description:
+        'FILA New Collection has arrived.\n\n'
+        'Check out new arrivals for sportswear and lifestyle outfits with '
+        'limited launch offers.\n\n'
+        'Members can enjoy extra benefits at checkout.\n\n'
+        'Campaign date: Mar 10, 2026 onward.',
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -121,6 +133,12 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Retail',
     title: 'Weekend Deals 🛒',
     date: 'Mar 15, 2026',
+    description:
+        'Weekend Deals 🛒\n\n'
+        'Save more on groceries, household essentials and selected imported '
+        'products every weekend.\n\n'
+        'Look for in-store labels to find special prices.\n\n'
+        'Promotion valid every Saturday and Sunday.',
   ),
 ];
 
@@ -131,6 +149,11 @@ final chipmongMallPrograms = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Mall',
     title: 'Loyalty Rewards Program',
     date: 'Feb 01, 2026',
+    description:
+        'Join Chip Mong Mall Loyalty Rewards Program today.\n\n'
+        'Earn points on purchases and redeem exciting rewards from partner '
+        'stores.\n\n'
+        'Members also receive exclusive birthday and seasonal offers.',
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -138,6 +161,11 @@ final chipmongMallPrograms = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Mall',
     title: 'Members Exclusive Benefits',
     date: 'Mar 01, 2026',
+    description:
+        'Members Exclusive Benefits for all registered customers.\n\n'
+        'Get priority campaign access, point boosters and selected store '
+        'discounts.\n\n'
+        'Please present your member QR code at checkout.',
   ),
 ];
 
@@ -148,6 +176,10 @@ final chipmongMallNews = <ChipmongMallPromotion>[
     brandName: 'Chip Mong',
     title: 'Grand Reopening 2026',
     date: 'Mar 21, 2026',
+    description:
+        'Chip Mong Mall announces the Grand Reopening 2026 celebration.\n\n'
+        'Enjoy store activations, live performances and opening day gifts.\n\n'
+        'Please follow the official page for updated schedule and activities.',
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -155,5 +187,9 @@ final chipmongMallNews = <ChipmongMallPromotion>[
     brandName: 'Chip Mong',
     title: 'New Outlet Opening',
     date: 'Mar 25, 2026',
+    description:
+        'New Outlet Opening at Chip Mong Mall.\n\n'
+        'Discover new brands and opening promotions prepared for shoppers.\n\n'
+        'Visit us on Mar 25, 2026 to enjoy launch-day discounts.',
   ),
 ];
