@@ -20,6 +20,7 @@ class ChipmongMallCategory {
 
 class ChipmongMallPromotion {
   final String imageUrl;
+  final List<String> imageUrls;
   final String brandName;
   final String title;
   final String date;
@@ -28,12 +29,15 @@ class ChipmongMallPromotion {
 
   const ChipmongMallPromotion({
     required this.imageUrl,
+    this.imageUrls = const [],
     required this.brandName,
     required this.title,
     required this.date,
     this.description = '',
     this.isActive = true,
   });
+
+  List<String> get galleryImages => imageUrls.isEmpty ? [imageUrl] : imageUrls;
 }
 
 class ChipmongMallLoyaltyInfo {
@@ -96,11 +100,15 @@ const _chipmongMallKhmerDetailFromDesign =
     '⏰ មើលព័ត៌មានលម្អិតបន្ថែម https://bit.ly/42VKAlz\n'
     '🍿 ទិញតាម Tiktok: សម្រាប់ព័ត៌មានបន្ថែម https://tinyurl.com/nu26cc4c';
 
-
 final chipmongMallPromotions = <ChipmongMallPromotion>[
   const ChipmongMallPromotion(
     imageUrl:
         'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
+    imageUrls: [
+      'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
+      'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+      'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
+    ],
     brandName: 'The Pizza Company',
     title: 'BITE BOX SET! 🍕',
     date: 'Jan 28, 2026',
@@ -109,6 +117,10 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
   const ChipmongMallPromotion(
     imageUrl:
         'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+    imageUrls: [
+      'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+      'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
+    ],
     brandName: "LEVI'S",
     title: 'MID SEASON SALE ✨',
     date: 'Mar 20, 2026',
@@ -136,6 +148,10 @@ final chipmongMallPrograms = <ChipmongMallPromotion>[
   const ChipmongMallPromotion(
     imageUrl:
         'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
+    imageUrls: [
+      'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
+      'https://www.chipmong.com/wp-content/uploads/2020/12/DSC_7842-1-585x391.jpg',
+    ],
     brandName: 'Chip Mong Mall',
     title: 'Loyalty Rewards Program',
     date: 'Feb 01, 2026',
