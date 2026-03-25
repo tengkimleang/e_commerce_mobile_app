@@ -28,10 +28,8 @@ class MallPromotionGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(width: 10),
-      itemBuilder: (_, i) => SizedBox(
-        width: 185,
-        child: MallPromotionCard(promo: items[i]),
-      ),
+      itemBuilder: (_, i) =>
+          SizedBox(width: 185, child: MallPromotionCard(promo: items[i])),
     );
   }
 }
@@ -58,8 +56,9 @@ class MallPromotionCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                   child: CachedNetworkImage(
                     imageUrl: promo.imageUrl,
                     height: 105,
@@ -84,7 +83,9 @@ class MallPromotionCard extends StatelessWidget {
                     left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 3),
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(6),

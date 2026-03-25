@@ -87,7 +87,7 @@ class _ActiveContent extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          'ចំនួនពិន្ទុធនាគារ',
+          'ពិន្ទុដែលទទួលបាន',
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey[500],
@@ -181,7 +181,7 @@ class _LockedContent extends StatelessWidget {
         ),
         const Spacer(),
         const Text(
-          'រឹបបណ្ណគ្មានទំនិញ?',
+          'របៀបឈានដល់កម្រិត?',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
