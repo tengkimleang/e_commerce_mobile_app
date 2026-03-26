@@ -38,7 +38,8 @@ class _SignupViewState extends State<SignupView> {
     _phoneController = TextEditingController();
     _fullNameController = TextEditingController();
     _termsTapRecognizer = TapGestureRecognizer()..onTap = _openTermsOfUsePage;
-    _privacyTapRecognizer = TapGestureRecognizer()..onTap = _openPrivacyPolicyPage;
+    _privacyTapRecognizer = TapGestureRecognizer()
+      ..onTap = _openPrivacyPolicyPage;
   }
 
   void _openTermsOfUsePage() {
@@ -76,7 +77,26 @@ class _SignupViewState extends State<SignupView> {
     });
 
     try {
-      await _authService.requestOtp(phone);
+      final requestResult = await _authService.requestSignupOtp(
+        fullName: fullName,
+        phoneNumber: phone,
+      );
+      final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
+      final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
+      final sent = requestResult['sent'] == true;
+
+      if (errorCode.isNotEmpty || !sent) {
+        if (!mounted) return;
+        setState(() => _isSubmitting = false);
+
+        _showErrorDialog(
+          title: 'Request Failed',
+          message: errorMsg.isEmpty ? 'Request OTP failed.' : errorMsg,
+          icon: Icons.error_outline_rounded,
+          iconColor: const Color(0xFFEC407A),
+        );
+        return;
+      }
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
@@ -84,7 +104,11 @@ class _SignupViewState extends State<SignupView> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => OtpView(phoneNumber: phone),
+          builder: (_) => OtpView(
+            phoneNumber: phone,
+            fullName: fullName,
+            flow: AuthFlow.signup,
+          ),
         ),
       );
     } on DioException catch (e) {
@@ -107,7 +131,8 @@ class _SignupViewState extends State<SignupView> {
         iconColor = Colors.orangeAccent;
       } else if (e.response != null) {
         title = 'Request Failed';
-        message = e.response?.data?['errorMsg'] ??
+        message =
+            e.response?.data?['errorMsg'] ??
             'Server error. Please try again later.';
         icon = Icons.cloud_off_rounded;
         iconColor = Colors.redAccent;
@@ -177,8 +202,11 @@ class _SignupViewState extends State<SignupView> {
             Text(
               message,
               textAlign: TextAlign.center,
-              style:
-                  TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
           ],
@@ -190,8 +218,10 @@ class _SignupViewState extends State<SignupView> {
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFEC407A),
-                textStyle:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               child: const Text('OK'),
             ),
@@ -224,10 +254,7 @@ class _SignupViewState extends State<SignupView> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.black87,
-                    ),
+                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
                   ),
                 ],
               ),
@@ -248,23 +275,23 @@ class _SignupViewState extends State<SignupView> {
               TextField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                onChanged: (value) => setState(
-                  () => _isPhoneValid = _isValidPhone(value.trim()),
-                ),
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) =>
+                    setState(() => _isPhoneValid = _isValidPhone(value.trim())),
                 decoration: InputDecoration(
                   hintText: 'Enter phone number',
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  errorText: (!_isPhoneValid && _phoneController.text.isNotEmpty)
+                  errorText:
+                      (!_isPhoneValid && _phoneController.text.isNotEmpty)
                       ? 'Please enter a valid phone number'
                       : null,
                 ),
@@ -281,32 +308,47 @@ class _SignupViewState extends State<SignupView> {
                   hintText: 'Enter full name',
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  errorText:
-                      _showFullNameError ? 'Please enter your full name' : null,
+                  errorText: _showFullNameError
+                      ? 'Please enter your full name'
+                      : null,
                 ),
               ),
               const SizedBox(height: 20),
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
                   children: [
-                    const TextSpan(text: 'By clicking Next button you are agreeing to the '),
+                    const TextSpan(
+                      text: 'By clicking Next button you are agreeing to the ',
+                    ),
                     TextSpan(
                       text: 'Terms of Use',
-                      style: const TextStyle(color: Color(0xFFEC407A), decoration: TextDecoration.underline),
+                      style: const TextStyle(
+                        color: Color(0xFFEC407A),
+                        decoration: TextDecoration.underline,
+                      ),
                       recognizer: _termsTapRecognizer,
                     ),
                     const TextSpan(text: ' and the '),
                     TextSpan(
                       text: 'Privacy Policy',
-                      style: const TextStyle(color: Color(0xFFEC407A), decoration: TextDecoration.underline),
+                      style: const TextStyle(
+                        color: Color(0xFFEC407A),
+                        decoration: TextDecoration.underline,
+                      ),
                       recognizer: _privacyTapRecognizer,
                     ),
                   ],

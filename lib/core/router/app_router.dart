@@ -10,6 +10,7 @@ import 'package:e_commerce_mobile_app/modules/notification_screen/views/notifica
 import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mall_screen.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
+import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 
 /// Named routes used throughout the app.
 abstract final class AppRoutes {
@@ -23,6 +24,7 @@ abstract final class AppRoutes {
   static const String notifications = '/notifications';
   static const String priceChecking = '/price-checking';
   static const String chipmongMall = '/chipmong-mall';
+  static const String index = '/index';
 }
 
 /// Generates a [Route] for the given [RouteSettings].
@@ -30,6 +32,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     case AppRoutes.login:
       return _page(const LoginView());
+    case AppRoutes.index:
+      return _page(const IndexView());
     case AppRoutes.otp:
       final phone = settings.arguments as String? ?? '';
       return _page(OtpView(phoneNumber: phone));

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
@@ -5,15 +7,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 
+enum AuthFlow { login, signup }
+
 class OtpView extends StatefulWidget {
   final String phoneNumber;
-  const OtpView({super.key, required this.phoneNumber});
+  final String? fullName;
+  final AuthFlow flow;
+
+  const OtpView({
+    super.key,
+    required this.phoneNumber,
+    this.fullName,
+    this.flow = AuthFlow.login,
+  });
 
   @override
   State<OtpView> createState() => _OtpViewState();
 }
 
 class _OtpViewState extends State<OtpView> {
+  static const int _signupResendCooldownSeconds = 5;
+
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
 
@@ -21,16 +35,25 @@ class _OtpViewState extends State<OtpView> {
 
   bool _showPin = false;
   bool _isSubmitting = false;
+  bool _isResending = false;
+  int _resendSeconds = 0;
+  Timer? _resendTimer;
+
+  bool get _isSignupFlow => widget.flow == AuthFlow.signup;
 
   @override
   void initState() {
     super.initState();
     _controllers = List.generate(4, (_) => TextEditingController());
     _focusNodes = List.generate(4, (_) => FocusNode());
+    if (_isSignupFlow) {
+      _startResendCooldown();
+    }
   }
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
     for (final c in _controllers) {
       c.dispose();
     }
@@ -44,6 +67,195 @@ class _OtpViewState extends State<OtpView> {
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
 
   String get _otpCode => _controllers.map((c) => c.text).join();
+
+  String _pickFirstNonEmpty(Iterable<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is String && candidate.trim().isNotEmpty) {
+        return candidate.trim();
+      }
+    }
+    return '';
+  }
+
+  String? _extractToken(Map<String, dynamic> data) {
+    final nested = data['data'];
+    final nestedMap = nested is Map<String, dynamic> ? nested : null;
+    final token = _pickFirstNonEmpty([
+      data['token'],
+      data['accessToken'],
+      data['jwt'],
+      data['jwtToken'],
+      nestedMap?['token'],
+      nestedMap?['accessToken'],
+      nestedMap?['jwt'],
+      nestedMap?['jwtToken'],
+    ]);
+    return token.isEmpty ? null : token;
+  }
+
+  void _clearOtpInputs() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    if (_focusNodes.isNotEmpty) {
+      _focusNodes.first.requestFocus();
+    }
+    setState(() {});
+  }
+
+  void _startResendCooldown() {
+    _resendTimer?.cancel();
+
+    if (!_isSignupFlow) return;
+
+    setState(() => _resendSeconds = _signupResendCooldownSeconds);
+
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_resendSeconds <= 1) {
+        timer.cancel();
+        setState(() => _resendSeconds = 0);
+        return;
+      }
+
+      setState(() => _resendSeconds -= 1);
+    });
+  }
+
+  Future<void> _onResendSignupOtp() async {
+    if (!_isSignupFlow || _isResending || _resendSeconds > 0) return;
+
+    final fullName = widget.fullName?.trim() ?? '';
+    if (fullName.isEmpty) {
+      _showErrorDialog(
+        title: 'Request Failed',
+        message: 'Full name is missing. Please go back and try signup again.',
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
+      );
+      return;
+    }
+
+    setState(() => _isResending = true);
+
+    try {
+      final requestResult = await _authService.requestSignupOtp(
+        fullName: fullName,
+        phoneNumber: widget.phoneNumber,
+      );
+      final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
+      final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
+      final sent = requestResult['sent'] == true;
+
+      if (!mounted) return;
+
+      if (errorCode.isNotEmpty || !sent) {
+        setState(() => _isResending = false);
+        _showErrorDialog(
+          title: 'Request Failed',
+          message: errorMsg.isEmpty ? 'Request OTP failed.' : errorMsg,
+          icon: Icons.error_outline_rounded,
+          iconColor: const Color(0xFFEC407A),
+        );
+        return;
+      }
+
+      setState(() => _isResending = false);
+      _clearOtpInputs();
+      _startResendCooldown();
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('OTP has been sent again.')));
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() => _isResending = false);
+
+      final isNetworkError =
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout;
+
+      _showErrorDialog(
+        title: isNetworkError ? 'No Connection' : 'Request Failed',
+        message: isNetworkError
+            ? 'No internet connection. Please check your network and try again.'
+            : (e.response?.data?['errorMsg'] ??
+                  'Unable to request OTP right now.'),
+        icon: isNetworkError ? Icons.wifi_off_rounded : Icons.cloud_off_rounded,
+        iconColor: isNetworkError ? Colors.orangeAccent : Colors.redAccent,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isResending = false);
+      _showErrorDialog(
+        title: 'Request Failed',
+        message: e.toString().replaceFirst('Exception: ', ''),
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
+      );
+    }
+  }
+
+  Future<void> _showSignupRecoveryDialog({
+    required String errorCode,
+    required String message,
+  }) async {
+    if (!mounted) return;
+
+    final shouldResend = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text('Verification Failed'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Back'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEC407A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Request New OTP'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (shouldResend == true) {
+      if (_resendSeconds > 0) {
+        _showErrorDialog(
+          title: 'Please Wait',
+          message:
+              'Please wait $_resendSeconds second(s) before requesting OTP.',
+          icon: Icons.timer_outlined,
+          iconColor: Colors.orangeAccent,
+        );
+        return;
+      }
+      await _onResendSignupOtp();
+      return;
+    }
+
+    if (errorCode == 'OTP002' || errorCode == 'OTP003') {
+      Navigator.of(context).pop();
+    }
+  }
 
   void _onChanged(int index, String value) {
     if (value.isNotEmpty) {
@@ -64,15 +276,72 @@ class _OtpViewState extends State<OtpView> {
     setState(() => _isSubmitting = true);
 
     try {
-      await _authService.verifyOtp(
-        phoneNumber: widget.phoneNumber,
-        otpCode: _otpCode,
-      );
+      final verifyData = _isSignupFlow
+          ? await _authService.verifySignupOtp(
+              phoneNumber: widget.phoneNumber,
+              otpCode: _otpCode,
+            )
+          : await _authService.verifyOtp(
+              phoneNumber: widget.phoneNumber,
+              otpCode: _otpCode,
+            );
 
       if (!mounted) return;
 
+      if (_isSignupFlow) {
+        final errorCode = (verifyData['errorCode'] ?? '').toString().trim();
+        final errorMsg = (verifyData['errorMsg'] ?? '').toString().trim();
+        final success = verifyData['success'] == true;
+
+        if (errorCode.isNotEmpty || !success) {
+          setState(() => _isSubmitting = false);
+
+          if (errorCode == 'OTP002' || errorCode == 'OTP003') {
+            await _showSignupRecoveryDialog(
+              errorCode: errorCode,
+              message: errorMsg.isEmpty ? 'OTP verification failed.' : errorMsg,
+            );
+            return;
+          }
+
+          _showErrorDialog(
+            title: 'Verification Failed',
+            message: errorMsg.isEmpty ? 'OTP verification failed.' : errorMsg,
+            icon: Icons.error_outline_rounded,
+            iconColor: const Color(0xFFEC407A),
+          );
+          return;
+        }
+      }
+
+      final nested = verifyData['data'];
+      final nestedMap = nested is Map<String, dynamic> ? nested : null;
+      final resolvedFullName = _pickFirstNonEmpty([
+        widget.fullName,
+        verifyData['fullName'],
+        verifyData['name'],
+        verifyData['username'],
+        nestedMap?['fullName'],
+        nestedMap?['name'],
+        nestedMap?['username'],
+      ]);
+
+      final resolvedPhone = _pickFirstNonEmpty([
+        widget.phoneNumber,
+        verifyData['phoneNumber'],
+        verifyData['phone'],
+        nestedMap?['phoneNumber'],
+        nestedMap?['phone'],
+      ]);
+
       setState(() => _isSubmitting = false);
-      UserSession.markAuthenticated();
+      await UserSession.markAuthenticated(
+        fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
+        phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
+        token: _isSignupFlow ? null : _extractToken(verifyData),
+      );
+
+      if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const IndexView()),
@@ -272,6 +541,33 @@ class _OtpViewState extends State<OtpView> {
                   ),
                 ),
               ),
+              if (_isSignupFlow) ...[
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton(
+                    onPressed:
+                        (_isSubmitting || _isResending || _resendSeconds > 0)
+                        ? null
+                        : _onResendSignupOtp,
+                    child: Text(
+                      _isResending
+                          ? 'Sending...'
+                          : _resendSeconds > 0
+                          ? 'Resend OTP in ${_resendSeconds}s'
+                          : 'Resend OTP',
+                      style: TextStyle(
+                        color:
+                            (_isSubmitting ||
+                                _isResending ||
+                                _resendSeconds > 0)
+                            ? Colors.grey
+                            : const Color(0xFFEC407A),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),

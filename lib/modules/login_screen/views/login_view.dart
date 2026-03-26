@@ -324,8 +324,9 @@ class _LoginContentState extends State<_LoginContent> {
               const Spacer(flex: 5),
               Center(
                 child: TextButton(
-                  onPressed: () {
-                    UserSession.markGuest();
+                  onPressed: () async {
+                    await UserSession.markGuest();
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -569,9 +569,10 @@ class UserInfoView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.of(ctx).pop();
-                        UserSession.markGuest();
+                        await UserSession.markGuest();
+                        if (!context.mounted) return;
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (_) => const LoginView()),
                           (route) => false,

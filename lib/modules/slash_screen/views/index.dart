@@ -15,6 +15,12 @@ class IndexView extends StatefulWidget {
 
 class _IndexViewState extends State<IndexView> {
   String _languageCode = 'en';
+  bool get _isAuthenticated => UserSession.isAuthenticated;
+
+  String get _displayName {
+    final name = UserSession.displayName.trim();
+    return name.isEmpty ? 'User' : name;
+  }
 
   Future<void> _openLanguageSelector() async {
     final selectedCode = await showLanguageBottomSheet(
@@ -36,20 +42,27 @@ class _IndexViewState extends State<IndexView> {
         backgroundColor: const Color(0xFFEC407A),
         elevation: 0,
         flexibleSpace: Padding(
-          padding: const EdgeInsets.only(left: 16, bottom: 30, right: 70),
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 70,
+            top: 64,
+            bottom: 30,
+          ),
           child: Align(
             alignment: Alignment.bottomLeft,
-            child: InkWell(
-              onTap: () {
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const LoginView()));
-              },
-              child: const Text(
-                'Login or Signup',
-                style: TextStyle(fontSize: 15, color: Colors.white),
-              ),
-            ),
+            child: _isAuthenticated
+                ? _GreetingHeader(displayName: _displayName)
+                : InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginView()),
+                      );
+                    },
+                    child: const Text(
+                      'Login or Signup',
+                      style: TextStyle(fontSize: 15, color: Colors.white),
+                    ),
+                  ),
           ),
         ),
         actions: [
@@ -219,6 +232,48 @@ class _IndexViewState extends State<IndexView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _GreetingHeader extends StatelessWidget {
+  const _GreetingHeader({required this.displayName});
+
+  final String displayName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 86,
+          height: 86,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8B6CE),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person, color: Colors.white, size: 42),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Hello,\n$displayName',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 19,
+            height: 1.2,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
