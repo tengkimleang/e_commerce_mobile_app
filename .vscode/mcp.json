@@ -1,9 +1,13 @@
 {
   "servers": {
-    "dart-mcp-server": {
+    "dart_flutter": {
       "type": "stdio",
-      "command": "dart",
-      "args": ["mcp-server"]
+      "command": "/Users/innocraft/Documents/Dev/flutter/bin/dart",
+      "args": [
+        "mcp-server",
+        "--flutter-sdk",
+        "/Users/innocraft/Documents/Dev/flutter"
+      ]
     }
   }
 }

@@ -75,6 +75,28 @@ class LoyaltyProduct {
   });
 }
 
+class LoyaltyItemExchange {
+  final LoyaltyProduct product;
+  final DateTime exchangedAt;
+  final int exchangedPoints;
+  final int remainingPoints;
+  final String referenceNo;
+  final String status;
+  final String pickupLocation;
+  final DateTime collectBeforeDate;
+
+  const LoyaltyItemExchange({
+    required this.product,
+    required this.exchangedAt,
+    required this.exchangedPoints,
+    required this.remainingPoints,
+    required this.referenceNo,
+    required this.status,
+    required this.pickupLocation,
+    required this.collectBeforeDate,
+  });
+}
+
 const loyaltyDefaultTermsAndConditions = '''
 លក្ខខណ្ឌ និង បទបញ្ជា៖
 ១. អតិថិជនត្រូវបញ្ចប់ការប្តូររង្វាន់ក្នុងរយៈពេល ៧ ថ្ងៃបន្ទាប់ពីការកក់ បើមិនដូច្នេះទេ រង្វាន់នឹងត្រូវលុបចោល និងពិន្ទុនឹងត្រូវដកចេញ។
@@ -140,7 +162,7 @@ const loyaltyMockProducts = <LoyaltyProduct>[
     brandName: 'SAMSUNG',
     title: 'Samsung Galaxy Tab S10+ 12GB/256GB',
     store: 'Chip Mong 271 Mega Mall',
-    points: 42500,
+    points: 10,
     pointCondition: 'Samsung Galaxy Tab S10+ 12GB/256GB',
     termsAndConditions: loyaltyDefaultTermsAndConditions,
   ),

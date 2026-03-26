@@ -9,6 +9,7 @@ import '../widget/loyalty_widget/loyalty_product_card.dart';
 import '../widget/loyalty_widget/loyalty_tab_bar.dart';
 import '../widget/loyalty_widget/tier_card.dart';
 import '../widget/loyalty_widget/tier_progress_header.dart';
+import 'loyalty_item_exchanged_detail_screen.dart';
 import 'loyalty_reward_detail_screen.dart';
 
 class LoyaltyCardDetailScreen extends StatefulWidget {
@@ -25,6 +26,8 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     with SingleTickerProviderStateMixin {
   late final PageController _pageController;
   late final TabController _tabController;
+  late int _availablePoints;
+  late List<_PointHistoryItem> _historyItems;
 
   int _currentPage = 0;
   int _selectedRewardFilter = 0;
@@ -63,7 +66,7 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     LoyaltyNavItem(icon: Icons.emoji_events_outlined, label: 'គម្រូ'),
   ];
 
-  static const _historyItems = <_PointHistoryItem>[
+  static const _initialHistoryItems = <_PointHistoryItem>[
     _PointHistoryItem(
       title: 'ចុះបញ្ជីថ្មីជោគជ័យ',
       date: 'Feb 25, 2026',
@@ -133,9 +136,19 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     return _expiryItems.where((item) => item.category == category).toList();
   }
 
+  ChipmongMallLoyaltyInfo get _currentInfo => ChipmongMallLoyaltyInfo(
+    username: widget.info.username,
+    memberId: widget.info.memberId,
+    tier: widget.info.tier,
+    points: _availablePoints,
+    expiryDate: widget.info.expiryDate,
+  );
+
   @override
   void initState() {
     super.initState();
+    _availablePoints = widget.info.points;
+    _historyItems = [..._initialHistoryItems];
     final startPage = loyaltyTiers.indexWhere(
       (t) => t.name.toLowerCase() == widget.info.tier.toLowerCase(),
     );
@@ -225,14 +238,7 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
             ),
             itemBuilder: (_, i) => LoyaltyProductCard(
               product: sorted[i],
-              onTap: (product) => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => LoyaltyRewardDetailScreen(
-                    product: product,
-                    availablePoints: widget.info.points,
-                  ),
-                ),
-              ),
+              onTap: _onRewardProductTap,
             ),
           ),
         ),
@@ -382,10 +388,53 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
         onPageChanged: (p) => setState(() => _currentPage = p),
         itemBuilder: (_, i) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: TierCard(tier: loyaltyTiers[i], info: widget.info),
+          child: TierCard(tier: loyaltyTiers[i], info: _currentInfo),
         ),
       ),
     );
+  }
+
+  Future<void> _onRewardProductTap(LoyaltyProduct product) async {
+    final exchange = await Navigator.of(context).push<LoyaltyItemExchange>(
+      MaterialPageRoute(
+        builder: (_) => LoyaltyRewardDetailScreen(
+          product: product,
+          availablePoints: _availablePoints,
+        ),
+      ),
+    );
+
+    if (!mounted || exchange == null) return;
+
+    _applyExchange(exchange);
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => LoyaltyItemExchangedDetailScreen(exchange: exchange),
+      ),
+    );
+  }
+
+  void _applyExchange(LoyaltyItemExchange exchange) {
+    setState(() {
+      _availablePoints = exchange.remainingPoints;
+      _historyItems = [
+        _PointHistoryItem(
+          title: 'ប្តូររង្វាន់ ${exchange.product.title}',
+          date: _formatDate(exchange.exchangedAt),
+          status: exchange.status,
+          pointsDelta: -exchange.exchangedPoints,
+          category: 'ប្តូររង្វាន់',
+        ),
+        ..._historyItems,
+      ];
+    });
+  }
+
+  String _formatDate(DateTime date) {
+    final month = _months[date.month - 1];
+    final day = date.day.toString().padLeft(2, '0');
+    return '$month $day, ${date.year}';
   }
 }
 
@@ -690,3 +739,18 @@ class _ExpiryItem {
     required this.category,
   });
 }
+
+const _months = <String>[
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];

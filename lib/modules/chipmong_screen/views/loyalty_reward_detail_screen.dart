@@ -136,12 +136,34 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('ប្តូររង្វាន់បានជោគជ័យ'),
-        behavior: SnackBarBehavior.floating,
-      ),
+    final now = DateTime.now();
+    final exchangedPoints = widget.product.points;
+    final exchange = LoyaltyItemExchange(
+      product: widget.product,
+      exchangedAt: now,
+      exchangedPoints: exchangedPoints,
+      remainingPoints: widget.availablePoints - exchangedPoints,
+      referenceNo: _buildExchangeReference(now),
+      status: 'សម្រេចជោគជ័យ',
+      pickupLocation: 'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall',
+      collectBeforeDate: now.add(const Duration(days: 7)),
     );
+    Navigator.of(context).pop(exchange);
+  }
+
+  String _buildExchangeReference(DateTime timestamp) {
+    final brandSeed = widget.product.brandName.toUpperCase().replaceAll(
+      RegExp(r'[^A-Z0-9]'),
+      '',
+    );
+    final shortBrand = brandSeed.isEmpty
+        ? 'CMR'
+        : (brandSeed.length > 3 ? brandSeed.substring(0, 3) : brandSeed);
+    final datePart =
+        '${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}';
+    final timePart =
+        '${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}${timestamp.second.toString().padLeft(2, '0')}';
+    return 'CMR-$datePart-$shortBrand$timePart';
   }
 
   void _showTopErrorBanner() {
