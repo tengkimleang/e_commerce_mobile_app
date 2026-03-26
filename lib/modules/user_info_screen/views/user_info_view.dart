@@ -14,6 +14,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_userna
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -38,8 +39,8 @@ class UserInfoView extends StatelessWidget {
           final userInfo = state is UserInfoUpdated
               ? state.userInfo
               : state is UserInfoInitial
-                  ? state.userInfo
-                  : UserInfoModel.initial();
+              ? state.userInfo
+              : UserInfoModel.initial();
 
           final String username = userInfo.username;
           final DateTime? dateOfBirth = userInfo.dateOfBirth;
@@ -93,43 +94,65 @@ class UserInfoView extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const _SectionTitle(title: 'Personal Information'),
+                                const _SectionTitle(
+                                  title: 'Personal Information',
+                                ),
                                 const SizedBox(height: 18),
                                 _InfoRow(
                                   label: 'Your Name:',
                                   value: username,
                                   trailingIcon: Icons.edit,
                                   trailingColor: accent,
-                                  onTrailingTap: () => _openEditUsername(context, username),
+                                  onTrailingTap: () =>
+                                      _openEditUsername(context, username),
                                 ),
-                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 28,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 _InfoRow(
                                   label: 'Date of Birth:',
                                   value: dateOfBirthLabel(),
                                   trailingIcon: Icons.edit,
                                   trailingColor: accent,
-                                  onTrailingTap: () => _openEditDateOfBirth(context, dateOfBirth),
+                                  onTrailingTap: () => _openEditDateOfBirth(
+                                    context,
+                                    dateOfBirth,
+                                  ),
                                 ),
-                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 28,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 _InfoRow(
                                   label: 'Address',
                                   value: '',
                                   trailingIcon: Icons.chevron_right,
                                   trailingColor: accent,
-                                  onTrailingTap: () => _openReceivingAddress(context),
+                                  onTrailingTap: () =>
+                                      _openReceivingAddress(context),
                                 ),
-                                const Divider(height: 28, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 28,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 _InfoRow(
                                   label: 'Language',
                                   value: languageLabel(),
                                   trailingIcon: Icons.g_translate,
                                   trailingColor: accent,
-                                  onTrailingTap: () => _openEditLanguage(context, languageCode),
+                                  onTrailingTap: () =>
+                                      _openEditLanguage(context, languageCode),
                                 ),
                                 const SizedBox(height: 12),
-                                const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                                const Divider(
+                                  thickness: 8,
+                                  color: Color(0xFFEDEAF1),
+                                ),
                                 const SizedBox(height: 20),
-                                const _SectionTitle(title: 'Account Information'),
+                                const _SectionTitle(
+                                  title: 'Account Information',
+                                ),
                                 const SizedBox(height: 18),
                                 const Text(
                                   'Phone Number:',
@@ -176,7 +199,10 @@ class UserInfoView extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 18),
-                                const Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                                const Divider(
+                                  thickness: 8,
+                                  color: Color(0xFFEDEAF1),
+                                ),
                                 const SizedBox(height: 20),
                                 const _SectionTitle(title: 'Account Security'),
                                 const SizedBox(height: 18),
@@ -186,7 +212,10 @@ class UserInfoView extends StatelessWidget {
                                   trailingText: 'Change',
                                   onTap: () => _openChangePin(context),
                                 ),
-                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 30,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 Row(
                                   children: [
                                     const Expanded(
@@ -202,12 +231,17 @@ class UserInfoView extends StatelessWidget {
                                       value: true,
                                       activeThumbColor: accent,
                                       activeTrackColor: const Color(0xFFF9DCEA),
-                                      inactiveTrackColor: const Color(0xFFF9DCEA),
+                                      inactiveTrackColor: const Color(
+                                        0xFFF9DCEA,
+                                      ),
                                       onChanged: (_) {},
                                     ),
                                   ],
                                 ),
-                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 30,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 Row(
                                   children: [
                                     const Expanded(
@@ -223,18 +257,25 @@ class UserInfoView extends StatelessWidget {
                                       onPressed: () {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (_) => const TermsOfUseView(),
+                                            builder: (_) =>
+                                                const TermsOfUseView(),
                                           ),
                                         );
                                       },
                                       child: const Text(
                                         'See More',
-                                        style: TextStyle(fontSize: 15, color: accent),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: accent,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const Divider(height: 30, color: Color(0xFFD7D1D6)),
+                                const Divider(
+                                  height: 30,
+                                  color: Color(0xFFD7D1D6),
+                                ),
                                 const Text(
                                   'Account Deletion',
                                   style: TextStyle(
@@ -244,7 +285,8 @@ class UserInfoView extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 TextButton(
-                                  onPressed: () => _showDeleteAccountDialog(context),
+                                  onPressed: () =>
+                                      _showDeleteAccountDialog(context),
                                   child: const Text(
                                     'Delete Account!',
                                     style: TextStyle(
@@ -278,7 +320,8 @@ class UserInfoView extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(14),
                                       ),
                                     ),
-                                    onPressed: () => _showLogoutBottomSheet(context),
+                                    onPressed: () =>
+                                        _showLogoutBottomSheet(context),
                                     child: const Text(
                                       'Logout',
                                       style: TextStyle(fontSize: 15),
@@ -321,7 +364,10 @@ class UserInfoView extends StatelessWidget {
     context.read<UserInfoBloc>().add(UpdateUsername(trimmed));
   }
 
-  Future<void> _openEditDateOfBirth(BuildContext context, DateTime? current) async {
+  Future<void> _openEditDateOfBirth(
+    BuildContext context,
+    DateTime? current,
+  ) async {
     final selectedDate = await showDateOfBirthPickerDialog(
       context,
       initialDate: current,
@@ -337,7 +383,10 @@ class UserInfoView extends StatelessWidget {
     context.read<UserInfoBloc>().add(UpdateDateOfBirth(newDate));
   }
 
-  Future<void> _openEditLanguage(BuildContext context, String currentCode) async {
+  Future<void> _openEditLanguage(
+    BuildContext context,
+    String currentCode,
+  ) async {
     final selectedCode = await showLanguageBottomSheet(
       context,
       selectedLanguageCode: currentCode,
@@ -380,9 +429,7 @@ class UserInfoView extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: const Color(0xFFFFF5F8),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
@@ -401,10 +448,7 @@ class UserInfoView extends StatelessWidget {
               const SizedBox(height: 12),
               const Text(
                 'This action cannot be undone.',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF1D1B22),
-                ),
+                style: TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
               ),
               const SizedBox(height: 28),
               Row(
@@ -487,10 +531,7 @@ class UserInfoView extends StatelessWidget {
             const SizedBox(height: 12),
             const Text(
               'Really want to logout?',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFF1D1B22),
-              ),
+              style: TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
             ),
             const SizedBox(height: 28),
             Row(
@@ -530,15 +571,13 @@ class UserInfoView extends StatelessWidget {
                       ),
                       onPressed: () {
                         Navigator.of(ctx).pop();
+                        UserSession.markGuest();
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (_) => const LoginView()),
                           (route) => false,
                         );
                       },
-                      child: const Text(
-                        'Yes',
-                        style: TextStyle(fontSize: 15),
-                      ),
+                      child: const Text('Yes', style: TextStyle(fontSize: 15)),
                     ),
                   ),
                 ),
@@ -715,7 +754,7 @@ class _HeaderCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               'Supermarket Point',
-              style:  TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 color: Color(0xFF9B9B9B),
                 fontWeight: FontWeight.w500,

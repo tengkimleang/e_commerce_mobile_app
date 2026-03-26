@@ -7,6 +7,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
   BuildContext context, {
   required List<ShopOption> shops,
   required ShopOption selectedShop,
+  bool isGuest = false,
 }) {
   return showModalBottomSheet<ShopOption>(
     context: context,
@@ -63,6 +64,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                     return _ShopCard(
                       shop: shop,
                       selected: shop.storeName == selectedShop.storeName,
+                      showGuestLock: isGuest && !shop.guestAllowed,
                     );
                   },
                 ),
@@ -76,10 +78,15 @@ Future<ShopOption?> showShopSelectorBottomSheet(
 }
 
 class _ShopCard extends StatelessWidget {
-  const _ShopCard({required this.shop, required this.selected});
+  const _ShopCard({
+    required this.shop,
+    required this.selected,
+    required this.showGuestLock,
+  });
 
   final ShopOption shop;
   final bool selected;
+  final bool showGuestLock;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +100,11 @@ class _ShopCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected ? accent : const Color(0xFFE4E4E4),
+            color: selected
+                ? accent
+                : (showGuestLock
+                      ? const Color(0xFFF0C0D3)
+                      : const Color(0xFFE4E4E4)),
             width: selected ? 2 : 1,
           ),
           boxShadow: [
@@ -171,6 +182,36 @@ class _ShopCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (showGuestLock) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFDE3EF),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.lock_outline, size: 12, color: accent),
+                              SizedBox(width: 4),
+                              Text(
+                                'Login required',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
@@ -7,15 +8,19 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_v
 
 class QrCodeView extends StatelessWidget {
   final bool showBottomNavigation;
+  final bool? isGuest;
 
-  const QrCodeView({super.key, this.showBottomNavigation = true});
+  const QrCodeView({super.key, this.showBottomNavigation = true, this.isGuest});
 
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
-    const username = 'Jame Taki';
-    const phone = '094754475';
-    const points = '10';
+    final guestMode = isGuest ?? UserSession.isGuest;
+    final username = guestMode ? '' : 'Jame Taki';
+    final phone = guestMode ? '' : '094754475';
+    final points = guestMode ? '0' : '10';
+    final usernameLabel = guestMode ? '--------------------' : username;
+    final phoneLabel = guestMode ? '--------------------' : phone;
 
     final qrData = Uri.encodeComponent(
       'user:$username;phone:$phone;points:$points',
@@ -89,18 +94,15 @@ class QrCodeView extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _InfoRow(label: 'Username:', value: username),
+                        _InfoRow(label: 'Username:', value: usernameLabel),
                         const SizedBox(height: 10),
                         const _DashedDivider(),
                         const SizedBox(height: 10),
-                        _InfoRow(label: 'Phone number:', value: phone),
+                        _InfoRow(label: 'Phone number:', value: phoneLabel),
                         const SizedBox(height: 10),
                         const _DashedDivider(),
                         const SizedBox(height: 10),
-                        const _InfoRow(
-                          label: 'Supermarket Point:',
-                          value: points,
-                        ),
+                        _InfoRow(label: 'Supermarket Point:', value: points),
                       ],
                     ),
                   ),
@@ -375,9 +377,10 @@ class _MallQrFrameState extends State<_MallQrFrame>
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
 
-    _scale = Tween<double>(begin: 1.0, end: 1.08).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 1.08,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -404,7 +407,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
             width: qrSize,
             height: qrSize,
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox(
+            errorBuilder: (context, error, stackTrace) => const SizedBox(
               width: qrSize,
               height: qrSize,
               child: Icon(Icons.qr_code_2, size: qrSize * 0.8),

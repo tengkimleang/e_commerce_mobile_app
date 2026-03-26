@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
-
 
 class OtpView extends StatefulWidget {
   final String phoneNumber;
@@ -72,6 +72,7 @@ class _OtpViewState extends State<OtpView> {
       if (!mounted) return;
 
       setState(() => _isSubmitting = false);
+      UserSession.markAuthenticated();
 
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const IndexView()),
@@ -91,12 +92,15 @@ class _OtpViewState extends State<OtpView> {
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
         title = 'No Connection';
-        message = 'No internet connection. Please check your network and try again.';
+        message =
+            'No internet connection. Please check your network and try again.';
         icon = Icons.wifi_off_rounded;
         iconColor = Colors.orangeAccent;
       } else if (e.response != null) {
         title = 'Verification Failed';
-        message = e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.';
+        message =
+            e.response?.data?['errorMsg'] ??
+            'Server error. Please try again later.';
         icon = Icons.cloud_off_rounded;
         iconColor = Colors.redAccent;
       } else {
@@ -106,7 +110,12 @@ class _OtpViewState extends State<OtpView> {
         iconColor = Colors.red;
       }
 
-      _showErrorDialog(title: title, message: message, icon: icon, iconColor: iconColor);
+      _showErrorDialog(
+        title: title,
+        message: message,
+        icon: icon,
+        iconColor: iconColor,
+      );
     } catch (e) {
       if (!mounted) return;
 
@@ -153,7 +162,11 @@ class _OtpViewState extends State<OtpView> {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
           ],
@@ -165,7 +178,10 @@ class _OtpViewState extends State<OtpView> {
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFEC407A),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               child: const Text('OK'),
             ),
@@ -262,7 +278,9 @@ class _OtpViewState extends State<OtpView> {
                 child: SizedBox(
                   height: 58,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : (_isComplete ? _submit : null),
+                    onPressed: _isSubmitting
+                        ? null
+                        : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFEC407A),
                       foregroundColor: Colors.white,

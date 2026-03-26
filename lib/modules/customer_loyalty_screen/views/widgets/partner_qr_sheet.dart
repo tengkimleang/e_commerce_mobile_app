@@ -63,9 +63,9 @@ void showPartnerQrSheet(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _infoRow('Username:', username),
+                        _infoLine('Username:', username),
                         const SizedBox(height: 12),
-                        _infoRow('Phone number:', phone),
+                        _infoLine('Phone number:', phone),
                         const SizedBox(height: 12),
                         _infoRow('Supermarket Point:', points),
                       ],
@@ -82,6 +82,21 @@ void showPartnerQrSheet(
   );
 }
 
+Widget _infoLine(String label, String value) {
+  if (value.trim().isNotEmpty) {
+    return _infoRow(label, value);
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label, style: const TextStyle(color: Colors.grey)),
+      const SizedBox(height: 8),
+      const _DashedDivider(),
+    ],
+  );
+}
+
 Widget _infoRow(String label, String value) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -90,4 +105,28 @@ Widget _infoRow(String label, String value) {
       Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
     ],
   );
+}
+
+class _DashedDivider extends StatelessWidget {
+  const _DashedDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dashCount = (constraints.maxWidth / 10).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            dashCount,
+            (_) => Container(
+              width: 6,
+              height: 1.2,
+              color: const Color(0xFFCACACA),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

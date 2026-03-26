@@ -10,8 +10,13 @@ import 'widgets/partner_qr_sheet.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
   final List<ProductItem> products;
+  final bool isGuest;
 
-  const CustomerLoyaltySection({super.key, this.products = const []});
+  const CustomerLoyaltySection({
+    super.key,
+    this.products = const [],
+    this.isGuest = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +60,9 @@ class CustomerLoyaltySection extends StatelessWidget {
                   );
                   showPartnerQrSheet(
                     context,
-                    username: state.username,
-                    phone: state.phone,
-                    points: state.points,
+                    username: isGuest ? '' : state.username,
+                    phone: isGuest ? '' : state.phone,
+                    points: isGuest ? '0' : state.points,
                   );
                 },
                 onPriceCheckingTap: () {

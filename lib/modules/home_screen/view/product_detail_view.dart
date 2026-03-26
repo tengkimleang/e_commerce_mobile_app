@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
@@ -125,8 +127,14 @@ class ProductDetailView extends StatelessWidget {
                         width: double.infinity,
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: () =>
-                              context.read<CartBloc>().add(AddToCart(product)),
+                          onPressed: () async {
+                            if (UserSession.isGuest) {
+                              await showAuthRequiredDialog(context);
+                              return;
+                            }
+                            if (!context.mounted) return;
+                            context.read<CartBloc>().add(AddToCart(product));
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: accent,
                             foregroundColor: Colors.white,

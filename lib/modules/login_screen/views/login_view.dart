@@ -11,6 +11,7 @@ import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:flutter/services.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
@@ -59,10 +60,7 @@ class LoginView extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text(
@@ -102,22 +100,26 @@ class LoginView extends StatelessWidget {
     return BlocProvider(
       create: (context) => LoginBloc(),
       child: BlocListener<LoginBloc, LoginState>(
-          listener: (context, state) {
-            debugPrint('[LoginView] BlocListener received state: ${state.runtimeType}');
-            if (state is LoginOtpSent) {
-              debugPrint('[LoginView] Navigating to OtpView with phone: ${state.phoneNumber}');
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OtpView(phoneNumber: state.phoneNumber),
-                ),
-              );
-            } else if (state is LoginError) {
-              _showErrorDialog(context, state);
-            }
-          },
-          child: const _LoginContent(),
-        ),
+        listener: (context, state) {
+          debugPrint(
+            '[LoginView] BlocListener received state: ${state.runtimeType}',
+          );
+          if (state is LoginOtpSent) {
+            debugPrint(
+              '[LoginView] Navigating to OtpView with phone: ${state.phoneNumber}',
+            );
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OtpView(phoneNumber: state.phoneNumber),
+              ),
+            );
+          } else if (state is LoginError) {
+            _showErrorDialog(context, state);
+          }
+        },
+        child: const _LoginContent(),
+      ),
     );
   }
 }
@@ -244,10 +246,8 @@ class _LoginContentState extends State<_LoginContent> {
               BlocBuilder<LoginBloc, LoginState>(
                 builder: (context, state) {
                   return TextField(
-                    inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                              controller: _phoneController,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     textAlignVertical: TextAlignVertical.center,
                     decoration: InputDecoration(
@@ -325,6 +325,7 @@ class _LoginContentState extends State<_LoginContent> {
               Center(
                 child: TextButton(
                   onPressed: () {
+                    UserSession.markGuest();
                     Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
 import 'package:flutter/material.dart';
@@ -86,6 +88,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       branchLabel: '271 MEGA MALL',
       imageUrl:
           'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+      guestAllowed: false,
     ),
     ShopOption(
       storeName: 'CHIP MONG RETAIL OUTLET',
@@ -94,6 +97,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
     ),
   ];
+
+  bool get _isGuest => UserSession.isGuest;
 
   @override
   void initState() {
@@ -204,7 +209,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.12),
+                                color: Colors.black.withValues(alpha: 0.12),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -225,35 +230,35 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: PageView.builder(
-                            controller: pageCtrl,
-                            itemCount: _images.length,
-                            onPageChanged: (i) =>
-                                setPopupState(() => currentPage = i),
-                            itemBuilder: (_, i) => Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(5),
-                                child: CachedNetworkImage(
-                                  imageUrl: _images[i],
-                                  fit: BoxFit.cover,
-                                  placeholder: (_, __) => Container(
-                                    color: Colors.grey[200],
-                                    child: const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
+                          controller: pageCtrl,
+                          itemCount: _images.length,
+                          onPageChanged: (i) =>
+                              setPopupState(() => currentPage = i),
+                          itemBuilder: (_, i) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(5),
+                              child: CachedNetworkImage(
+                                imageUrl: _images[i],
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
                                   ),
-                                  errorWidget: (_, __, ___) => Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 48,
-                                      color: Colors.grey,
-                                    ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 48,
+                                    color: Colors.grey,
                                   ),
                                 ),
                               ),
                             ),
                           ),
+                        ),
                       ),
                     ),
                     // Dot indicators at the bottom
@@ -266,8 +271,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         children: List.generate(_images.length, (i) {
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 4),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
                             width: currentPage == i ? 12 : 8,
                             height: currentPage == i ? 12 : 8,
                             decoration: BoxDecoration(
@@ -323,7 +327,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
+                            color: Colors.black.withValues(alpha: 0.12),
                             blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
@@ -347,14 +351,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        placeholder: (_, __) => Container(
+                        placeholder: (context, url) => Container(
                           height: 220,
                           color: Colors.grey[200],
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
                         ),
-                        errorWidget: (_, __, ___) => Container(
+                        errorWidget: (context, url, error) => Container(
                           height: 220,
                           color: Colors.grey[300],
                           child: const Icon(
@@ -551,7 +555,6 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                     ),
                   ),
                   const SizedBox(width: 8),
-            
                 ],
               ),
             ),
@@ -567,8 +570,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       onPageChanged: (i) => setState(() => _current = i),
                       itemBuilder: (context, index) {
                         return GestureDetector(
-                          onTap: () =>
-                              _showBannerImagePopup(context, index),
+                          onTap: () => _showBannerImagePopup(context, index),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: ClipRRect(
@@ -617,7 +619,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
             //Customer Loyalty Section
             SizedBox(height: 20),
-            CustomerLoyaltySection(products: _getAllProducts()),
+            CustomerLoyaltySection(
+              products: _getAllProducts(),
+              isGuest: _isGuest,
+            ),
 
             const SizedBox(height: 24),
             Padding(
@@ -640,7 +645,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   return Padding(
                     padding: const EdgeInsets.only(left: 16, right: 16),
                     child: GestureDetector(
-                      onTap: () => _showPartnerPopup(context, _partnerImages[index]),
+                      onTap: () =>
+                          _showPartnerPopup(context, _partnerImages[index]),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(14),
                         child: CachedNetworkImage(
@@ -682,9 +688,18 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: InkWell(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BecomePartnerView()),
-                ),
+                onTap: () async {
+                  if (_isGuest) {
+                    await showAuthRequiredDialog(context);
+                    return;
+                  }
+                  if (!context.mounted) return;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const BecomePartnerView(),
+                    ),
+                  );
+                },
                 borderRadius: BorderRadius.circular(14),
                 child: Container(
                   height: 120,
@@ -850,10 +865,16 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           showBottomNavigation: false,
         );
       case 2:
-        return const QrCodeView(showBottomNavigation: false);
+        return QrCodeView(showBottomNavigation: false, isGuest: _isGuest);
       case 3:
+        if (_isGuest) {
+          return const _GuestLoginRequiredTab();
+        }
         return const OrderHistoryView(showBottomNavigation: false);
       case 4:
+        if (_isGuest) {
+          return const _GuestLoginRequiredTab();
+        }
         return const UserInfoView(showBottomNavigation: false);
       default:
         return const SizedBox.shrink();
@@ -865,9 +886,18 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       context,
       shops: _shops,
       selectedShop: _selectedShop,
+      isGuest: _isGuest,
     );
 
     if (!mounted || selected == null) return;
+    if (_isGuest && !selected.guestAllowed) {
+      await showAuthRequiredDialog(
+        context,
+        title: 'Branch unavailable',
+        message: 'This branch requires Login or Signup',
+      );
+      return;
+    }
     setState(() => _selectedShop = selected);
   }
 
@@ -944,6 +974,56 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         builder: (_) => ProductDetailView(
           product: product,
           relatedProducts: relatedProducts,
+        ),
+      ),
+    );
+  }
+}
+
+class _GuestLoginRequiredTab extends StatelessWidget {
+  const _GuestLoginRequiredTab();
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        width: double.infinity,
+        color: const Color(0xFFF3F3F3),
+        child: Column(
+          children: [
+            const Spacer(flex: 4),
+            Image.asset(
+              'assets/images/Chipmong_Logo.png',
+              width: 180,
+              height: 180,
+              fit: BoxFit.contain,
+            ),
+            const Spacer(flex: 5),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    showAuthRequiredDialog(context);
+                  },
+                  child: const Text('Login', style: TextStyle(fontSize: 16)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
