@@ -42,7 +42,14 @@ class UserInfoView extends StatelessWidget {
               ? state.userInfo
               : UserInfoModel.initial();
 
-          final String username = userInfo.username;
+          final sessionFullName = UserSession.fullName.trim();
+          final sessionPhone = UserSession.phoneNumber.trim();
+          final String username = userInfo.username.trim().isNotEmpty
+              ? userInfo.username.trim()
+              : (sessionFullName.isNotEmpty
+                    ? sessionFullName
+                    : (sessionPhone.isNotEmpty ? sessionPhone : 'User'));
+          final String phoneDisplay = _formatPhoneNumber(sessionPhone);
           final DateTime? dateOfBirth = userInfo.dateOfBirth;
           final String languageCode = userInfo.languageCode;
           final File? profileImageFile = userInfo.profileImagePath != null
@@ -154,7 +161,7 @@ class UserInfoView extends StatelessWidget {
                                   title: 'Account Information',
                                 ),
                                 const SizedBox(height: 18),
-                                const Text(
+                                Text(
                                   'Phone Number:',
                                   style: TextStyle(
                                     fontSize: 15,
@@ -162,9 +169,9 @@ class UserInfoView extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  '(+855) 96 909 098',
-                                  style: TextStyle(
+                                Text(
+                                  phoneDisplay,
+                                  style: const TextStyle(
                                     fontSize: 15,
                                     color: Color(0xFF34313A),
                                   ),
@@ -361,7 +368,29 @@ class UserInfoView extends StatelessWidget {
     final trimmed = updatedName.trim();
     if (trimmed.isEmpty || trimmed == current) return;
 
+    if (UserSession.isAuthenticated) {
+      await UserSession.markAuthenticated(fullName: trimmed);
+      if (!context.mounted) return;
+    }
+
+    if (!context.mounted) return;
     context.read<UserInfoBloc>().add(UpdateUsername(trimmed));
+  }
+
+  String _formatPhoneNumber(String rawPhone) {
+    final trimmed = rawPhone.trim();
+    if (trimmed.isEmpty) return 'Not Added';
+
+    final digits = trimmed.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return trimmed;
+
+    if (digits.startsWith('0') && digits.length > 1) {
+      return '(+855) ${digits.substring(1)}';
+    }
+    if (digits.startsWith('855') && digits.length > 3) {
+      return '(+855) ${digits.substring(3)}';
+    }
+    return trimmed;
   }
 
   Future<void> _openEditDateOfBirth(
@@ -380,6 +409,7 @@ class UserInfoView extends StatelessWidget {
       selectedDate.month,
       selectedDate.day,
     );
+    if (!context.mounted) return;
     context.read<UserInfoBloc>().add(UpdateDateOfBirth(newDate));
   }
 
@@ -393,6 +423,7 @@ class UserInfoView extends StatelessWidget {
     );
 
     if (selectedCode == null || selectedCode == currentCode) return;
+    if (!context.mounted) return;
     context.read<UserInfoBloc>().add(UpdateLanguage(selectedCode));
   }
 
@@ -420,6 +451,7 @@ class UserInfoView extends StatelessWidget {
     );
 
     if (picked == null) return;
+    if (!context.mounted) return;
     context.read<UserInfoBloc>().add(UpdateProfileImage(picked.path));
   }
 

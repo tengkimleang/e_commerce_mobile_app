@@ -1,4 +1,5 @@
 import 'dart:async' show TimeoutException;
+import 'dart:convert' show jsonDecode;
 import 'dart:io' show Platform;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,9 @@ class AuthService {
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
       sendTimeout: const Duration(seconds: 15),
+      // Backend contract: business errors may come with any status.
+      // We always parse payload fields like errorCode/sent/success.
+      validateStatus: (status) => status != null,
     ),
   );
 
@@ -48,6 +52,38 @@ class AuthService {
     return false;
   }
 
+  int _readIntField(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final raw = data[key];
+      if (raw is int) return raw;
+      if (raw is num) return raw.toInt();
+      if (raw is String) {
+        final value = int.tryParse(raw.trim());
+        if (value != null) return value;
+      }
+    }
+    return 0;
+  }
+
+  Map<String, dynamic> _toResponseMap(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key.toString(), value));
+    }
+    if (data is String) {
+      final trimmed = data.trim();
+      if (trimmed.isEmpty) {
+        throw Exception('Unexpected empty response from server.');
+      }
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry(key.toString(), value));
+      }
+    }
+    throw Exception('Unexpected response format from server.');
+  }
+
   Future<Map<String, dynamic>> requestSignupOtp({
     required String fullName,
     required String phoneNumber,
@@ -70,10 +106,7 @@ class AuthService {
       '[AuthService] requestSignupOtp response: ${response.statusCode} → ${response.data}',
     );
 
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Unexpected response format from server.');
-    }
+    final data = _toResponseMap(response.data);
 
     final errorCode = _readStringField(data, ['errorCode', 'ErrorCode']);
     final errorMsg = _readStringField(data, [
@@ -113,10 +146,7 @@ class AuthService {
       '[AuthService] verifySignupOtp response: ${response.statusCode} → ${response.data}',
     );
 
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      throw Exception('Unexpected response format from server.');
-    }
+    final data = _toResponseMap(response.data);
 
     final errorCode = _readStringField(data, ['errorCode', 'ErrorCode']);
     final errorMsg = _readStringField(data, [
@@ -150,26 +180,22 @@ class AuthService {
       '[AuthService] requestOtp response: ${response.statusCode} → ${response.data}',
     );
 
-    final data = response.data;
+    final data = _toResponseMap(response.data);
 
-    // Handle non-Map responses (plain text, boolean, etc.)
-    if (data is! Map<String, dynamic>) {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return {'sent': true, 'raw': data};
-      }
-      throw Exception('Unexpected response format from server.');
-    }
+    final errorCode = _readStringField(data, ['errorCode', 'ErrorCode']);
+    final errorMsg = _readStringField(data, [
+      'errorMsg',
+      'ErrorMsg',
+      'message',
+    ]);
+    final sent = _readBoolField(data, ['sent', 'Sent']);
 
-    // Check 'sent' field (requestOtp response) or 'success' as fallback
-    final sent = data['sent'] ?? data['success'];
-    if (sent != true) {
-      throw Exception(
-        data['errorMsg'] ??
-            data['message'] ??
-            'Failed to send OTP. Please try again.',
-      );
-    }
-    return data;
+    return {
+      ...data,
+      'errorCode': errorCode,
+      'errorMsg': errorMsg,
+      'sent': sent,
+    };
   }
 
   Future<Map<String, dynamic>> verifyOtp({
@@ -192,22 +218,66 @@ class AuthService {
       '[AuthService] verifyOtp response: ${response.statusCode} → ${response.data}',
     );
 
-    final data = response.data;
+    final data = _toResponseMap(response.data);
 
-    if (data is! Map<String, dynamic>) {
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return {'success': true, 'raw': data};
-      }
-      throw Exception('Unexpected response format from server.');
-    }
+    final errorCode = _readStringField(data, ['errorCode', 'ErrorCode']);
+    final errorMsg = _readStringField(data, [
+      'errorMsg',
+      'ErrorMsg',
+      'message',
+    ]);
+    final success = _readBoolField(data, ['success', 'Success']);
 
-    final success = data['success'] ?? data['Success'];
-    if (success != true && success != 'true' && success != 1) {
-      throw Exception(
-        data['errorMsg'] ?? data['message'] ?? 'OTP verification failed',
-      );
-    }
+    return {
+      ...data,
+      'errorCode': errorCode,
+      'errorMsg': errorMsg,
+      'success': success,
+    };
+  }
 
-    return data;
+  Future<Map<String, dynamic>> getSignupUser({required int userId}) async {
+    debugPrint('[AuthService] getSignupUser → $userId');
+
+    final response = await _dio
+        .get('/auth/signup/user/$userId')
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Get user timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getSignupUser response: ${response.statusCode} → ${response.data}',
+    );
+
+    final data = _toResponseMap(response.data);
+
+    final errorCode = _readStringField(data, ['errorCode', 'ErrorCode']);
+    final errorMsg = _readStringField(data, [
+      'errorMsg',
+      'ErrorMsg',
+      'message',
+    ]);
+    final success = _readBoolField(data, ['success', 'Success']);
+    final normalizedUserId = _readIntField(data, ['userId', 'UserId']);
+    final fullName = _readStringField(data, ['fullName', 'FullName']);
+    final phoneNumber = _readStringField(data, [
+      'phoneNumber',
+      'PhoneNumber',
+      'phone',
+      'Phone',
+    ]);
+    final isVerified = _readBoolField(data, ['isVerified', 'IsVerified']);
+
+    return {
+      ...data,
+      'errorCode': errorCode,
+      'errorMsg': errorMsg,
+      'success': success,
+      'userId': normalizedUserId,
+      'fullName': fullName,
+      'phoneNumber': phoneNumber,
+      'isVerified': isVerified,
+    };
   }
 }

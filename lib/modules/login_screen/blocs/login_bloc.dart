@@ -7,7 +7,6 @@ import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dar
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/models/login_model.dart';
 
-
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   LoginBloc() : super(const LoginInitial()) {
     on<PhoneChanged>(_onPhoneChanged);
@@ -20,6 +19,30 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   bool _isValidPhone(String phone) {
     final regex = RegExp(r'^0\d{8,9}$');
     return regex.hasMatch(phone);
+  }
+
+  String _resolveRequestOtpMessage({
+    required String errorCode,
+    required String errorMsg,
+  }) {
+    if (errorCode == 'USR404') {
+      return 'This phone is not registered. Please sign up first.';
+    }
+    if (errorMsg.isNotEmpty) return errorMsg;
+    return 'Failed to send OTP. Please try again.';
+  }
+
+  LoginErrorType _resolveBusinessErrorType(String errorCode) {
+    if (errorCode.startsWith('VAL')) {
+      return LoginErrorType.validation;
+    }
+    if (errorCode.startsWith('USR')) {
+      return LoginErrorType.validation;
+    }
+    if (errorCode.isNotEmpty) {
+      return LoginErrorType.server;
+    }
+    return LoginErrorType.unknown;
   }
 
   Future<void> _onPhoneChanged(
@@ -54,10 +77,26 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
 
     emit(const LoginLoading());
-    debugPrint('[LoginBloc] LoginLoading emitted, calling requestOtp($phoneToSubmit)');
+    debugPrint(
+      '[LoginBloc] LoginLoading emitted, calling requestOtp($phoneToSubmit)',
+    );
 
     try {
-      await _authService.requestOtp(phoneToSubmit);
+      final requestResult = await _authService.requestOtp(phoneToSubmit);
+      final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
+      final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
+      final sent = requestResult['sent'] == true;
+
+      if (errorCode.isNotEmpty || !sent) {
+        emit(
+          LoginError(
+            _resolveRequestOtpMessage(errorCode: errorCode, errorMsg: errorMsg),
+            errorType: _resolveBusinessErrorType(errorCode),
+          ),
+        );
+        return;
+      }
+
       debugPrint('[LoginBloc] requestOtp succeeded, emitting LoginOtpSent');
       emit(LoginOtpSent(phoneToSubmit));
     } on DioException catch (e) {
@@ -66,31 +105,41 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
-        emit(const LoginError(
-          'No internet connection. Please check your network and try again.',
-          errorType: LoginErrorType.network,
-        ));
+        emit(
+          const LoginError(
+            'No internet connection. Please check your network and try again.',
+            errorType: LoginErrorType.network,
+          ),
+        );
       } else if (e.response != null) {
-        final msg = e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.';
+        final msg =
+            e.response?.data?['errorMsg'] ??
+            'Server error. Please try again later.';
         emit(LoginError(msg, errorType: LoginErrorType.server));
       } else {
-        emit(const LoginError(
-          'Unable to reach the server. Please try again.',
-          errorType: LoginErrorType.unknown,
-        ));
+        emit(
+          const LoginError(
+            'Unable to reach the server. Please try again.',
+            errorType: LoginErrorType.unknown,
+          ),
+        );
       }
     } on TimeoutException catch (_) {
       debugPrint('[LoginBloc] TimeoutException');
-      emit(const LoginError(
-        'Request timed out. Please check your connection and try again.',
-        errorType: LoginErrorType.network,
-      ));
+      emit(
+        const LoginError(
+          'Request timed out. Please check your connection and try again.',
+          errorType: LoginErrorType.network,
+        ),
+      );
     } catch (e) {
       debugPrint('[LoginBloc] Unexpected error: $e');
-      emit(LoginError(
-        e.toString().replaceFirst('Exception: ', ''),
-        errorType: LoginErrorType.unknown,
-      ));
+      emit(
+        LoginError(
+          e.toString().replaceFirst('Exception: ', ''),
+          errorType: LoginErrorType.unknown,
+        ),
+      );
     }
   }
 }

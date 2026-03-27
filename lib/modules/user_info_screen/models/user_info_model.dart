@@ -11,7 +11,7 @@ class UserInfoModel {
     this.profileImagePath,
   });
 
-  factory UserInfoModel.initial() => const UserInfoModel(username: 'Jame Taki');
+  factory UserInfoModel.initial() => const UserInfoModel(username: 'User');
 
   UserInfoModel copyWith({
     String? username,

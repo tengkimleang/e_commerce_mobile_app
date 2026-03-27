@@ -1,6 +1,7 @@
 // lib/modules/login_screen/views/login_view.dart
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -156,6 +157,20 @@ class _LoginContentState extends State<_LoginContent> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const PrivacyPolicyView()),
+    );
+  }
+
+  Future<void> _loginWithMockUser() async {
+    await UserSession.markAuthenticated(
+      fullName: 'Test User',
+      phoneNumber: '012345678',
+      token: 'dev-mock-token',
+    );
+    if (!mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const IndexView()),
+      (route) => false,
     );
   }
 
@@ -322,6 +337,19 @@ class _LoginContentState extends State<_LoginContent> {
                 ),
               ),
               const Spacer(flex: 5),
+              if (kDebugMode)
+                TextButton(
+                  onPressed: _loginWithMockUser,
+                  child: const Text(
+                    "Quick login (DEV)",
+                    style: TextStyle(
+                      color: Color(0xFFEC407A),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              if (kDebugMode) const SizedBox(height: 6),
               Center(
                 child: TextButton(
                   onPressed: () async {

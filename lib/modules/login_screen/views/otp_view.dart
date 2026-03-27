@@ -77,6 +77,81 @@ class _OtpViewState extends State<OtpView> {
     return '';
   }
 
+  int _pickFirstPositiveInt(Iterable<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is int && candidate > 0) {
+        return candidate;
+      }
+      if (candidate is num && candidate > 0) {
+        return candidate.toInt();
+      }
+      if (candidate is String) {
+        final parsed = int.tryParse(candidate.trim());
+        if (parsed != null && parsed > 0) {
+          return parsed;
+        }
+      }
+    }
+    return 0;
+  }
+
+  String _resolveLoginVerifyMessage({
+    required String errorCode,
+    required String errorMsg,
+  }) {
+    if (errorCode == 'USR404') {
+      return 'This phone is not registered. Please sign up first.';
+    }
+    if (errorMsg.isNotEmpty) {
+      return errorMsg;
+    }
+    return 'OTP verification failed.';
+  }
+
+  Map<String, dynamic>? _extractPrimaryUser(Map<String, dynamic> data) {
+    Map<String, dynamic>? castToStringDynamicMap(dynamic source) {
+      if (source is Map<String, dynamic>) return source;
+      if (source is Map) {
+        return source.map((key, value) => MapEntry(key.toString(), value));
+      }
+      return null;
+    }
+
+    List<dynamic> resolveUsersList(dynamic source) {
+      if (source is List) return source;
+      return const [];
+    }
+
+    final directUsers = resolveUsersList(data['users']);
+    if (directUsers.isNotEmpty) {
+      final user = castToStringDynamicMap(directUsers.first);
+      if (user != null) return user;
+    }
+
+    final directUsersUpper = resolveUsersList(data['Users']);
+    if (directUsersUpper.isNotEmpty) {
+      final user = castToStringDynamicMap(directUsersUpper.first);
+      if (user != null) return user;
+    }
+
+    final nested = castToStringDynamicMap(data['data']);
+    if (nested == null) return null;
+
+    final nestedUsers = resolveUsersList(nested['users']);
+    if (nestedUsers.isNotEmpty) {
+      final user = castToStringDynamicMap(nestedUsers.first);
+      if (user != null) return user;
+    }
+
+    final nestedUsersUpper = resolveUsersList(nested['Users']);
+    if (nestedUsersUpper.isNotEmpty) {
+      final user = castToStringDynamicMap(nestedUsersUpper.first);
+      if (user != null) return user;
+    }
+
+    return null;
+  }
+
   String? _extractToken(Map<String, dynamic> data) {
     final nested = data['data'];
     final nestedMap = nested is Map<String, dynamic> ? nested : null;
@@ -288,57 +363,142 @@ class _OtpViewState extends State<OtpView> {
 
       if (!mounted) return;
 
-      if (_isSignupFlow) {
-        final errorCode = (verifyData['errorCode'] ?? '').toString().trim();
-        final errorMsg = (verifyData['errorMsg'] ?? '').toString().trim();
-        final success = verifyData['success'] == true;
+      final verifyErrorCode = (verifyData['errorCode'] ?? '').toString().trim();
+      final verifyErrorMsg = (verifyData['errorMsg'] ?? '').toString().trim();
+      final verifySuccess = verifyData['success'] == true;
 
-        if (errorCode.isNotEmpty || !success) {
-          setState(() => _isSubmitting = false);
+      if (verifyErrorCode.isNotEmpty || !verifySuccess) {
+        setState(() => _isSubmitting = false);
 
-          if (errorCode == 'OTP002' || errorCode == 'OTP003') {
-            await _showSignupRecoveryDialog(
-              errorCode: errorCode,
-              message: errorMsg.isEmpty ? 'OTP verification failed.' : errorMsg,
-            );
-            return;
-          }
-
-          _showErrorDialog(
-            title: 'Verification Failed',
-            message: errorMsg.isEmpty ? 'OTP verification failed.' : errorMsg,
-            icon: Icons.error_outline_rounded,
-            iconColor: const Color(0xFFEC407A),
+        if (_isSignupFlow &&
+            (verifyErrorCode == 'OTP002' || verifyErrorCode == 'OTP003')) {
+          await _showSignupRecoveryDialog(
+            errorCode: verifyErrorCode,
+            message: verifyErrorMsg.isEmpty
+                ? 'OTP verification failed.'
+                : verifyErrorMsg,
           );
           return;
         }
+
+        _showErrorDialog(
+          title: 'Verification Failed',
+          message: _isSignupFlow
+              ? (verifyErrorMsg.isEmpty
+                    ? 'OTP verification failed.'
+                    : verifyErrorMsg)
+              : _resolveLoginVerifyMessage(
+                  errorCode: verifyErrorCode,
+                  errorMsg: verifyErrorMsg,
+                ),
+          icon: Icons.error_outline_rounded,
+          iconColor: const Color(0xFFEC407A),
+        );
+        return;
       }
 
-      final nested = verifyData['data'];
-      final nestedMap = nested is Map<String, dynamic> ? nested : null;
-      final resolvedFullName = _pickFirstNonEmpty([
-        widget.fullName,
+      var sessionData = verifyData;
+      final verifyNested = verifyData['data'];
+      final verifyNestedMap = verifyNested is Map<String, dynamic>
+          ? verifyNested
+          : null;
+      final verifyPrimaryUser = _extractPrimaryUser(verifyData);
+      final resolvedUserId = _pickFirstPositiveInt([
+        verifyData['userId'],
+        verifyNestedMap?['userId'],
+        verifyPrimaryUser?['userId'],
+        verifyPrimaryUser?['UserId'],
+      ]);
+      final hasNameInVerify = _pickFirstNonEmpty([
         verifyData['fullName'],
         verifyData['name'],
         verifyData['username'],
+        verifyNestedMap?['fullName'],
+        verifyNestedMap?['name'],
+        verifyNestedMap?['username'],
+        verifyPrimaryUser?['fullName'],
+        verifyPrimaryUser?['name'],
+        verifyPrimaryUser?['username'],
+        verifyPrimaryUser?['FullName'],
+        verifyPrimaryUser?['Name'],
+        verifyPrimaryUser?['Username'],
+      ]).isNotEmpty;
+      final shouldFetchUser =
+          resolvedUserId > 0 && (_isSignupFlow || !hasNameInVerify);
+
+      if (shouldFetchUser) {
+        try {
+          final userResult = await _authService.getSignupUser(
+            userId: resolvedUserId,
+          );
+
+          if (!mounted) return;
+
+          final userErrorCode = (userResult['errorCode'] ?? '')
+              .toString()
+              .trim();
+          final userSuccess = userResult['success'] == true;
+
+          if (userErrorCode.isEmpty && userSuccess) {
+            sessionData = userResult;
+          } else {
+            debugPrint(
+              '[OtpView] getSignupUser failed (errorCode=$userErrorCode, success=$userSuccess), fallback to verify response',
+            );
+          }
+        } on DioException catch (e) {
+          // Do not block successful OTP verify if user profile fetch fails.
+          final status = e.response?.statusCode;
+          debugPrint(
+            '[OtpView] getSignupUser DioException (status=$status, type=${e.type}), fallback to verify response',
+          );
+        } catch (e) {
+          debugPrint(
+            '[OtpView] getSignupUser unexpected error ($e), fallback to verify response',
+          );
+        }
+      } else if (_isSignupFlow && resolvedUserId <= 0) {
+        debugPrint(
+          '[OtpView] verifySignupOtp returned no valid userId, skipping getSignupUser',
+        );
+      }
+
+      final nested = sessionData['data'];
+      final nestedMap = nested is Map<String, dynamic> ? nested : null;
+      final sessionPrimaryUser = _extractPrimaryUser(sessionData);
+      final resolvedFullName = _pickFirstNonEmpty([
+        widget.fullName,
+        sessionData['fullName'],
+        sessionData['name'],
+        sessionData['username'],
         nestedMap?['fullName'],
         nestedMap?['name'],
         nestedMap?['username'],
+        sessionPrimaryUser?['fullName'],
+        sessionPrimaryUser?['name'],
+        sessionPrimaryUser?['username'],
+        sessionPrimaryUser?['FullName'],
+        sessionPrimaryUser?['Name'],
+        sessionPrimaryUser?['Username'],
       ]);
 
       final resolvedPhone = _pickFirstNonEmpty([
         widget.phoneNumber,
-        verifyData['phoneNumber'],
-        verifyData['phone'],
+        sessionData['phoneNumber'],
+        sessionData['phone'],
         nestedMap?['phoneNumber'],
         nestedMap?['phone'],
+        sessionPrimaryUser?['phoneNumber'],
+        sessionPrimaryUser?['phone'],
+        sessionPrimaryUser?['PhoneNumber'],
+        sessionPrimaryUser?['Phone'],
       ]);
 
       setState(() => _isSubmitting = false);
       await UserSession.markAuthenticated(
         fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
         phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
-        token: _isSignupFlow ? null : _extractToken(verifyData),
+        token: _isSignupFlow ? null : _extractToken(sessionData),
       );
 
       if (!mounted) return;
