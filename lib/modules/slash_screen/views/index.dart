@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import '../../chipmong_screen/views/chipmong_mall_screen.dart';
@@ -15,7 +19,10 @@ class IndexView extends StatefulWidget {
 
 class _IndexViewState extends State<IndexView> {
   String _languageCode = 'en';
+  String? _profileImagePath;
+  final GlobalKey _menuButtonKey = GlobalKey();
   bool get _isAuthenticated => UserSession.isAuthenticated;
+  String get _languageLabel => _languageCode == 'km' ? 'Khmer' : 'English';
 
   String get _displayName {
     final name = UserSession.displayName.trim();
@@ -35,6 +42,200 @@ class _IndexViewState extends State<IndexView> {
     setState(() => _languageCode = selectedCode);
   }
 
+  List<PopupMenuEntry<_BurgerMenuAction>> _buildBurgerMenuItems() {
+    const accent = Color(0xFFEC0C6E);
+    final options = <_BurgerMenuItemData>[
+      if (_isAuthenticated)
+        const _BurgerMenuItemData(
+          action: _BurgerMenuAction.setProfilePhoto,
+          icon: Icons.camera_alt_outlined,
+          label: 'Set profile photo',
+        ),
+      _BurgerMenuItemData(
+        action: _BurgerMenuAction.language,
+        icon: Icons.g_translate_outlined,
+        label: _languageLabel,
+      ),
+      if (_isAuthenticated)
+        const _BurgerMenuItemData(
+          action: _BurgerMenuAction.logout,
+          icon: Icons.logout_rounded,
+          label: 'Logout',
+        ),
+    ];
+
+    return [
+      for (final option in options)
+        PopupMenuItem<_BurgerMenuAction>(
+          value: option.action,
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Row(
+            children: [
+              Icon(option.icon, color: accent, size: 22),
+              const SizedBox(width: 14),
+              Text(
+                option.label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF2E2E2E),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+    ];
+  }
+
+  Future<void> _openBurgerMenu() async {
+    final buttonContext = _menuButtonKey.currentContext;
+    if (buttonContext == null) return;
+
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final button = buttonContext.findRenderObject() as RenderBox?;
+    if (overlay == null || button == null) return;
+
+    final topLeft = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final buttonRect = Rect.fromLTWH(
+      topLeft.dx,
+      topLeft.dy,
+      button.size.width,
+      button.size.height,
+    );
+
+    const popupWidth = 260.0;
+    final left = (buttonRect.right - popupWidth).clamp(
+      16.0,
+      overlay.size.width - popupWidth - 16,
+    );
+    final top = buttonRect.bottom + 10;
+    final estimatedHeight = _isAuthenticated ? 190.0 : 78.0;
+    final menuRect = Rect.fromLTWH(left, top, popupWidth, estimatedHeight);
+
+    final action = await showMenu<_BurgerMenuAction>(
+      context: context,
+      color: Colors.white,
+      elevation: 12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      position: RelativeRect.fromRect(menuRect, Offset.zero & overlay.size),
+      items: _buildBurgerMenuItems(),
+    );
+
+    if (!mounted || action == null) return;
+
+    switch (action) {
+      case _BurgerMenuAction.language:
+        await _openLanguageSelector();
+      case _BurgerMenuAction.setProfilePhoto:
+        await _openProfilePhotoSelector();
+      case _BurgerMenuAction.logout:
+        await _showLogoutBottomSheet();
+    }
+  }
+
+  Future<void> _openProfilePhotoSelector() async {
+    final source = await showProfileImageSourceBottomSheet(context);
+    if (!mounted || source == null) return;
+
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1200,
+    );
+
+    if (!mounted || pickedFile == null) return;
+
+    setState(() => _profileImagePath = pickedFile.path);
+  }
+
+  Future<void> _showLogoutBottomSheet() async {
+    const accent = Color(0xFFEC407A);
+    final shouldLogout = await showModalBottomSheet<bool>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Logout',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1D1B22),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Really want to logout?',
+              style: TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
+            ),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE2E2E7),
+                        foregroundColor: const Color(0xFF1D1B22),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 15),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(ctx).pop(true),
+                      child: const Text('Yes', style: TextStyle(fontSize: 15)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || shouldLogout != true) return;
+
+    await UserSession.markGuest();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginView()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,7 +252,10 @@ class _IndexViewState extends State<IndexView> {
           child: Align(
             alignment: Alignment.bottomLeft,
             child: _isAuthenticated
-                ? _GreetingHeader(displayName: _displayName)
+                ? _GreetingHeader(
+                    displayName: _displayName,
+                    profileImagePath: _profileImagePath,
+                  )
                 : InkWell(
                     onTap: () {
                       Navigator.of(context).push(
@@ -67,8 +271,9 @@ class _IndexViewState extends State<IndexView> {
         ),
         actions: [
           IconButton(
+            key: _menuButtonKey,
             icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: _openLanguageSelector,
+            onPressed: _openBurgerMenu,
           ),
         ],
         toolbarHeight: 280,
@@ -236,10 +441,28 @@ class _IndexViewState extends State<IndexView> {
   }
 }
 
+enum _BurgerMenuAction { setProfilePhoto, language, logout }
+
+class _BurgerMenuItemData {
+  const _BurgerMenuItemData({
+    required this.action,
+    required this.icon,
+    required this.label,
+  });
+
+  final _BurgerMenuAction action;
+  final IconData icon;
+  final String label;
+}
+
 class _GreetingHeader extends StatelessWidget {
-  const _GreetingHeader({required this.displayName});
+  const _GreetingHeader({
+    required this.displayName,
+    required this.profileImagePath,
+  });
 
   final String displayName;
+  final String? profileImagePath;
 
   @override
   Widget build(BuildContext context) {
@@ -260,7 +483,23 @@ class _GreetingHeader extends StatelessWidget {
               color: Color(0xFFE8B6CE),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person, color: Colors.white, size: 42),
+            child: profileImagePath == null
+                ? const Icon(Icons.person, color: Colors.white, size: 42)
+                : ClipOval(
+                    child: Image.file(
+                      File(profileImagePath!),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (_, error, stackTrace) {
+                        return const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 42,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ),
         const SizedBox(height: 14),
