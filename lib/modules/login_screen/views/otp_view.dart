@@ -108,15 +108,15 @@ class _OtpViewState extends State<OtpView> {
     return 'OTP verification failed.';
   }
 
-  Map<String, dynamic>? _extractPrimaryUser(Map<String, dynamic> data) {
-    Map<String, dynamic>? castToStringDynamicMap(dynamic source) {
-      if (source is Map<String, dynamic>) return source;
-      if (source is Map) {
-        return source.map((key, value) => MapEntry(key.toString(), value));
-      }
-      return null;
+  Map<String, dynamic>? _toStringDynamicMap(dynamic source) {
+    if (source is Map<String, dynamic>) return source;
+    if (source is Map) {
+      return source.map((key, value) => MapEntry(key.toString(), value));
     }
+    return null;
+  }
 
+  Map<String, dynamic>? _extractPrimaryUser(Map<String, dynamic> data) {
     List<dynamic> resolveUsersList(dynamic source) {
       if (source is List) return source;
       return const [];
@@ -124,28 +124,28 @@ class _OtpViewState extends State<OtpView> {
 
     final directUsers = resolveUsersList(data['users']);
     if (directUsers.isNotEmpty) {
-      final user = castToStringDynamicMap(directUsers.first);
+      final user = _toStringDynamicMap(directUsers.first);
       if (user != null) return user;
     }
 
     final directUsersUpper = resolveUsersList(data['Users']);
     if (directUsersUpper.isNotEmpty) {
-      final user = castToStringDynamicMap(directUsersUpper.first);
+      final user = _toStringDynamicMap(directUsersUpper.first);
       if (user != null) return user;
     }
 
-    final nested = castToStringDynamicMap(data['data']);
+    final nested = _toStringDynamicMap(data['data']);
     if (nested == null) return null;
 
     final nestedUsers = resolveUsersList(nested['users']);
     if (nestedUsers.isNotEmpty) {
-      final user = castToStringDynamicMap(nestedUsers.first);
+      final user = _toStringDynamicMap(nestedUsers.first);
       if (user != null) return user;
     }
 
     final nestedUsersUpper = resolveUsersList(nested['Users']);
     if (nestedUsersUpper.isNotEmpty) {
-      final user = castToStringDynamicMap(nestedUsersUpper.first);
+      final user = _toStringDynamicMap(nestedUsersUpper.first);
       if (user != null) return user;
     }
 
@@ -153,8 +153,7 @@ class _OtpViewState extends State<OtpView> {
   }
 
   String? _extractToken(Map<String, dynamic> data) {
-    final nested = data['data'];
-    final nestedMap = nested is Map<String, dynamic> ? nested : null;
+    final nestedMap = _toStringDynamicMap(data['data']);
     final token = _pickFirstNonEmpty([
       data['token'],
       data['accessToken'],
@@ -398,10 +397,9 @@ class _OtpViewState extends State<OtpView> {
       }
 
       var sessionData = verifyData;
+      final verifyToken = _extractToken(verifyData);
       final verifyNested = verifyData['data'];
-      final verifyNestedMap = verifyNested is Map<String, dynamic>
-          ? verifyNested
-          : null;
+      final verifyNestedMap = _toStringDynamicMap(verifyNested);
       final verifyPrimaryUser = _extractPrimaryUser(verifyData);
       final resolvedUserId = _pickFirstPositiveInt([
         verifyData['userId'],
@@ -419,6 +417,8 @@ class _OtpViewState extends State<OtpView> {
         verifyPrimaryUser?['fullName'],
         verifyPrimaryUser?['name'],
         verifyPrimaryUser?['username'],
+        verifyPrimaryUser?['full_name'],
+        verifyPrimaryUser?['user_name'],
         verifyPrimaryUser?['FullName'],
         verifyPrimaryUser?['Name'],
         verifyPrimaryUser?['Username'],
@@ -463,42 +463,127 @@ class _OtpViewState extends State<OtpView> {
         );
       }
 
-      final nested = sessionData['data'];
-      final nestedMap = nested is Map<String, dynamic> ? nested : null;
+      final nestedMap = _toStringDynamicMap(sessionData['data']);
       final sessionPrimaryUser = _extractPrimaryUser(sessionData);
-      final resolvedFullName = _pickFirstNonEmpty([
+      var resolvedFullName = _pickFirstNonEmpty([
         widget.fullName,
         sessionData['fullName'],
         sessionData['name'],
         sessionData['username'],
+        sessionData['full_name'],
+        sessionData['user_name'],
         nestedMap?['fullName'],
         nestedMap?['name'],
         nestedMap?['username'],
+        nestedMap?['full_name'],
+        nestedMap?['user_name'],
         sessionPrimaryUser?['fullName'],
         sessionPrimaryUser?['name'],
         sessionPrimaryUser?['username'],
+        sessionPrimaryUser?['full_name'],
+        sessionPrimaryUser?['user_name'],
         sessionPrimaryUser?['FullName'],
         sessionPrimaryUser?['Name'],
         sessionPrimaryUser?['Username'],
+        verifyData['fullName'],
+        verifyData['name'],
+        verifyData['username'],
+        verifyNestedMap?['fullName'],
+        verifyNestedMap?['name'],
+        verifyNestedMap?['username'],
+        verifyPrimaryUser?['fullName'],
+        verifyPrimaryUser?['name'],
+        verifyPrimaryUser?['username'],
       ]);
 
-      final resolvedPhone = _pickFirstNonEmpty([
+      var resolvedPhone = _pickFirstNonEmpty([
         widget.phoneNumber,
         sessionData['phoneNumber'],
         sessionData['phone'],
+        sessionData['phone_number'],
         nestedMap?['phoneNumber'],
         nestedMap?['phone'],
+        nestedMap?['phone_number'],
         sessionPrimaryUser?['phoneNumber'],
         sessionPrimaryUser?['phone'],
+        sessionPrimaryUser?['phone_number'],
         sessionPrimaryUser?['PhoneNumber'],
         sessionPrimaryUser?['Phone'],
+        verifyData['phoneNumber'],
+        verifyData['phone'],
+        verifyNestedMap?['phoneNumber'],
+        verifyNestedMap?['phone'],
+        verifyPrimaryUser?['phoneNumber'],
+        verifyPrimaryUser?['phone'],
       ]);
+
+      final resolvedToken = _pickFirstNonEmpty([
+        _extractToken(sessionData),
+        verifyToken,
+      ]);
+
+      if (!_isSignupFlow &&
+          resolvedFullName.isEmpty &&
+          resolvedToken.isNotEmpty) {
+        try {
+          final profileResult = await _authService.getUserProfile(
+            accessToken: resolvedToken,
+          );
+          final profileErrorCode = (profileResult['errorCode'] ?? '')
+              .toString()
+              .trim();
+          final profileSuccess = profileResult['success'] == true;
+
+          if (profileErrorCode.isEmpty && profileSuccess) {
+            final profileMap =
+                _toStringDynamicMap(profileResult['data']) ?? profileResult;
+            final profileUser = _extractPrimaryUser(profileResult);
+
+            final profileName = _pickFirstNonEmpty([
+              profileMap['fullName'],
+              profileMap['name'],
+              profileMap['username'],
+              profileMap['full_name'],
+              profileMap['user_name'],
+              profileUser?['fullName'],
+              profileUser?['name'],
+              profileUser?['username'],
+              profileUser?['full_name'],
+              profileUser?['user_name'],
+            ]);
+            final profilePhone = _pickFirstNonEmpty([
+              profileMap['phoneNumber'],
+              profileMap['phone'],
+              profileMap['phone_number'],
+              profileUser?['phoneNumber'],
+              profileUser?['phone'],
+              profileUser?['phone_number'],
+            ]);
+
+            if (profileName.isNotEmpty) {
+              resolvedFullName = profileName;
+            }
+            if (profilePhone.isNotEmpty) {
+              resolvedPhone = profilePhone;
+            }
+          }
+        } on DioException catch (e) {
+          final status = e.response?.statusCode;
+          debugPrint(
+            '[OtpView] getUserProfile DioException (status=$status, type=${e.type}), keep verify response name',
+          );
+        } catch (e) {
+          debugPrint(
+            '[OtpView] getUserProfile unexpected error ($e), keep verify response name',
+          );
+        }
+      }
 
       setState(() => _isSubmitting = false);
       await UserSession.markAuthenticated(
         fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
         phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
-        token: _isSignupFlow ? null : _extractToken(sessionData),
+        token: resolvedToken.isEmpty ? null : resolvedToken,
       );
 
       if (!mounted) return;

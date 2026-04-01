@@ -5,6 +5,8 @@ import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarke
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
+import '../models/mall_membership_qr_model.dart';
+import '../repositories/mall_membership_qr_repository.dart';
 
 class QrCodeView extends StatelessWidget {
   final bool showBottomNavigation;
@@ -212,44 +214,70 @@ class _DashedDivider extends StatelessWidget {
 // QrCodeBody — embeddable widget used by ChipmongMallScreen QR tab
 // ===========================================================================
 
-class QrCodeBody extends StatelessWidget {
-  const QrCodeBody({super.key});
+class QrCodeBody extends StatefulWidget {
+  final MallMembershipQrRepository? repository;
 
-  static const _memberName = 'Jame';
-  static const _membershipLevel = 'LifeStyle';
-  static const _membershipId = '224256797';
-  static const _membershipType = 'LifeStyle Member';
-  static const _points = 30;
+  const QrCodeBody({super.key, this.repository});
+
+  @override
+  State<QrCodeBody> createState() => _QrCodeBodyState();
+}
+
+class _QrCodeBodyState extends State<QrCodeBody> {
+  late final MallMembershipQrRepository _repository;
+  late final MallMembershipQrModel _fallback;
+  late Future<MallMembershipQrModel> _membershipFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ?? MallMembershipQrRepository();
+    _fallback = _repository.buildLocalFallback();
+    _membershipFuture = _repository.loadMembershipQr();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final qrData = Uri.encodeComponent(
-      'id:$_membershipId;name:$_memberName;level:$_membershipLevel',
-    );
-    final qrUrl =
-        'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
+    return FutureBuilder<MallMembershipQrModel>(
+      future: _membershipFuture,
+      builder: (context, snapshot) {
+        final data = snapshot.data ?? _fallback;
+        final qrData = Uri.encodeComponent(data.qrPayload);
+        final qrUrl =
+            'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
 
-    return Column(
-      children: [
-        const _MallPointsBanner(points: _points),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-            child: Column(
-              children: [
-                _MallQrFrame(qrUrl: qrUrl),
-                const SizedBox(height: 32),
-                const _MallMemberInfoCard(
-                  name: _memberName,
-                  level: _membershipLevel,
-                  id: _membershipId,
-                  type: _membershipType,
+        return Column(
+          children: [
+            _MallPointsBanner(points: data.points),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                child: Column(
+                  children: [
+                    _MallQrFrame(qrUrl: qrUrl),
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 20),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    const SizedBox(height: 32),
+                    _MallMemberInfoCard(
+                      name: data.username,
+                      level: data.tierLevel,
+                      id: data.membershipId,
+                      type: data.membershipType,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

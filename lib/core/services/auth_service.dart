@@ -1,10 +1,13 @@
 import 'dart:async' show TimeoutException;
 import 'dart:convert' show jsonDecode;
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
+  static const _mallMembershipQrEndpoint = '/user/me/mall-qr';
+
   static String get _baseUrl {
     // Android emulator uses 10.0.2.2 to reach host; iOS uses localhost
     return Platform.isAndroid
@@ -82,6 +85,45 @@ class AuthService {
       }
     }
     throw Exception('Unexpected response format from server.');
+  }
+
+  Map<String, dynamic> _extractNestedDataMap(Map<String, dynamic> payload) {
+    final nested = payload['data'];
+    if (nested is Map<String, dynamic>) return nested;
+    if (nested is Map) {
+      return nested.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return payload;
+  }
+
+  Map<String, dynamic> _normalizeProfileResponse(dynamic raw) {
+    final payload = _toResponseMap(raw);
+    final data = _extractNestedDataMap(payload);
+    final errorCode = _readStringField(payload, ['errorCode', 'ErrorCode']);
+    final errorMsg = _readStringField(payload, [
+      'errorMsg',
+      'ErrorMsg',
+      'message',
+    ]);
+    final hasExplicitSuccess =
+        payload.containsKey('success') || payload.containsKey('Success');
+    final success = hasExplicitSuccess
+        ? _readBoolField(payload, ['success', 'Success'])
+        : errorCode.isEmpty;
+
+    return {
+      ...payload,
+      'errorCode': errorCode,
+      'errorMsg': errorMsg,
+      'success': success,
+      'data': data,
+    };
+  }
+
+  Map<String, dynamic> _authHeaders({String? accessToken}) {
+    final token = (accessToken ?? UserSession.token ?? '').trim();
+    if (token.isEmpty) return const {};
+    return {'Authorization': 'Bearer $token'};
   }
 
   Future<Map<String, dynamic>> requestSignupOtp({
@@ -279,5 +321,114 @@ class AuthService {
       'phoneNumber': phoneNumber,
       'isVerified': isVerified,
     };
+  }
+
+  Future<Map<String, dynamic>> getUserProfile({String? accessToken}) async {
+    debugPrint('[AuthService] getUserProfile → $_baseUrl/user/me');
+
+    final response = await _dio
+        .get(
+          '/user/me',
+          options: Options(headers: _authHeaders(accessToken: accessToken)),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Get profile timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getUserProfile response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponse(response.data);
+  }
+
+  Future<Map<String, dynamic>> getMallMembershipQrProfile() async {
+    debugPrint(
+      '[AuthService] getMallMembershipQrProfile → $_baseUrl$_mallMembershipQrEndpoint',
+    );
+
+    final response = await _dio
+        .get(
+          _mallMembershipQrEndpoint,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Get mall QR data timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getMallMembershipQrProfile response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponse(response.data);
+  }
+
+  Future<Map<String, dynamic>> updateUserProfile({
+    required String fullName,
+    required String dateOfBirth,
+    required String address,
+  }) async {
+    final payload = <String, dynamic>{'fullName': fullName, 'address': address};
+    if (dateOfBirth.isNotEmpty) {
+      payload['dateOfBirth'] = dateOfBirth;
+    }
+
+    debugPrint('[AuthService] updateUserProfile payload: $payload');
+
+    final response = await _dio
+        .put(
+          '/user/me',
+          data: payload,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Update profile timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] updateUserProfile response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponse(response.data);
+  }
+
+  Future<Map<String, dynamic>> uploadUserAvatar({
+    required String filePath,
+  }) async {
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw Exception('Selected profile image was not found.');
+    }
+
+    final formData = FormData.fromMap({
+      'avatar': await MultipartFile.fromFile(
+        file.path,
+        filename: file.uri.pathSegments.isEmpty
+            ? 'avatar.jpg'
+            : file.uri.pathSegments.last,
+      ),
+    });
+
+    final response = await _dio
+        .post(
+          '/user/me/avatar',
+          data: formData,
+          options: Options(
+            headers: {..._authHeaders(), 'Content-Type': 'multipart/form-data'},
+          ),
+        )
+        .timeout(
+          const Duration(seconds: 25),
+          onTimeout: () => throw TimeoutException('Upload avatar timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] uploadUserAvatar response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponse(response.data);
   }
 }

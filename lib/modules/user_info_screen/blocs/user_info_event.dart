@@ -2,6 +2,10 @@ abstract class UserInfoEvent {
   const UserInfoEvent();
 }
 
+class LoadUserInfo extends UserInfoEvent {
+  const LoadUserInfo();
+}
+
 class UpdateUsername extends UserInfoEvent {
   final String username;
   const UpdateUsername(this.username);
@@ -20,4 +24,9 @@ class UpdateLanguage extends UserInfoEvent {
 class UpdateProfileImage extends UserInfoEvent {
   final String? profileImagePath;
   const UpdateProfileImage(this.profileImagePath);
+}
+
+class UpdateAddress extends UserInfoEvent {
+  final String address;
+  const UpdateAddress(this.address);
 }

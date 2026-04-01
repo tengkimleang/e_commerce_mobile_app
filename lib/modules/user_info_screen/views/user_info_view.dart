@@ -33,7 +33,7 @@ class UserInfoView extends StatelessWidget {
     const accent = Color(0xFFEC407A);
 
     return BlocProvider(
-      create: (_) => UserInfoBloc(),
+      create: (_) => UserInfoBloc()..add(const LoadUserInfo()),
       child: BlocBuilder<UserInfoBloc, UserInfoState>(
         builder: (context, state) {
           final userInfo = state is UserInfoUpdated
@@ -49,9 +49,14 @@ class UserInfoView extends StatelessWidget {
               : (sessionFullName.isNotEmpty
                     ? sessionFullName
                     : (sessionPhone.isNotEmpty ? sessionPhone : 'User'));
-          final String phoneDisplay = _formatPhoneNumber(sessionPhone);
+          final profilePhone = userInfo.phoneNumber.trim();
+          final rawPhone = profilePhone.isNotEmpty ? profilePhone : sessionPhone;
+          final String phoneDisplay = _formatPhoneNumber(rawPhone);
           final DateTime? dateOfBirth = userInfo.dateOfBirth;
           final String languageCode = userInfo.languageCode;
+          final String address = userInfo.address.trim();
+          final bool isVerified = userInfo.isVerified;
+          final String profileImageUrl = userInfo.profileImageUrl.trim();
           final File? profileImageFile = userInfo.profileImagePath != null
               ? File(userInfo.profileImagePath!)
               : null;
@@ -94,6 +99,8 @@ class UserInfoView extends StatelessWidget {
                           _HeaderCard(
                             username: username,
                             profileImageFile: profileImageFile,
+                            profileImageUrl: profileImageUrl,
+                            points: userInfo.points,
                             onTapCamera: () => _pickProfileImage(context),
                           ),
                           Padding(
@@ -133,11 +140,13 @@ class UserInfoView extends StatelessWidget {
                                 ),
                                 _InfoRow(
                                   label: 'Address',
-                                  value: '',
+                                  value: address.isEmpty ? 'Not Added' : address,
                                   trailingIcon: Icons.chevron_right,
                                   trailingColor: accent,
-                                  onTrailingTap: () =>
-                                      _openReceivingAddress(context),
+                                  onTrailingTap: () => _openReceivingAddress(
+                                    context,
+                                    currentAddress: address,
+                                  ),
                                 ),
                                 const Divider(
                                   height: 28,
@@ -183,22 +192,30 @@ class UserInfoView extends StatelessWidget {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFDFF5E7),
+                                    color: isVerified
+                                        ? const Color(0xFFDFF5E7)
+                                        : const Color(0xFFE6E6E8),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        Icons.check_circle,
-                                        color: Color(0xFF0D9A58),
+                                        isVerified
+                                            ? Icons.check_circle
+                                            : Icons.info_outline,
+                                        color: isVerified
+                                            ? const Color(0xFF0D9A58)
+                                            : const Color(0xFF7B7883),
                                         size: 18,
                                       ),
-                                      SizedBox(width: 6),
+                                      const SizedBox(width: 6),
                                       Text(
-                                        'Verified',
+                                        isVerified ? 'Verified' : 'Unverified',
                                         style: TextStyle(
-                                          color: Color(0xFF0D9A58),
+                                          color: isVerified
+                                              ? const Color(0xFF0D9A58)
+                                              : const Color(0xFF57545C),
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
@@ -368,11 +385,6 @@ class UserInfoView extends StatelessWidget {
     final trimmed = updatedName.trim();
     if (trimmed.isEmpty || trimmed == current) return;
 
-    if (UserSession.isAuthenticated) {
-      await UserSession.markAuthenticated(fullName: trimmed);
-      if (!context.mounted) return;
-    }
-
     if (!context.mounted) return;
     context.read<UserInfoBloc>().add(UpdateUsername(trimmed));
   }
@@ -427,10 +439,20 @@ class UserInfoView extends StatelessWidget {
     context.read<UserInfoBloc>().add(UpdateLanguage(selectedCode));
   }
 
-  Future<void> _openReceivingAddress(BuildContext context) async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ReceivingAddressView()));
+  Future<void> _openReceivingAddress(
+    BuildContext context, {
+    required String currentAddress,
+  }) async {
+    final updatedAddress = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => ReceivingAddressView(initialAddress: currentAddress),
+      ),
+    );
+    if (!context.mounted || updatedAddress == null) return;
+
+    final trimmed = updatedAddress.trim();
+    if (trimmed == currentAddress.trim()) return;
+    context.read<UserInfoBloc>().add(UpdateAddress(trimmed));
   }
 
   Future<void> _openChangePin(BuildContext context) async {
@@ -658,11 +680,15 @@ class _HeaderCard extends StatelessWidget {
   const _HeaderCard({
     required this.username,
     required this.profileImageFile,
+    required this.profileImageUrl,
+    required this.points,
     required this.onTapCamera,
   });
 
   final String username;
   final File? profileImageFile;
+  final String profileImageUrl;
+  final int points;
   final VoidCallback onTapCamera;
 
   @override
@@ -740,6 +766,20 @@ class _HeaderCard extends StatelessWidget {
                               fit: BoxFit.cover,
                             ),
                           )
+                        : profileImageUrl.isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              profileImageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, error, stackTrace) {
+                                return const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Color(0xFFEAA4C3),
+                                );
+                              },
+                            ),
+                          )
                         : const Icon(
                             Icons.person,
                             size: 60,
@@ -807,8 +847,8 @@ class _HeaderCard extends StatelessWidget {
                 child: const Icon(Icons.copyright, color: accent),
               ),
               const SizedBox(width: 10),
-              const Text(
-                '0',
+              Text(
+                points.toString(),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
