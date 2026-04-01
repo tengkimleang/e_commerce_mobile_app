@@ -75,6 +75,50 @@ class LoyaltyProduct {
   });
 }
 
+enum LoyaltyFulfillmentMethod { delivery, pickup }
+
+extension LoyaltyFulfillmentMethodX on LoyaltyFulfillmentMethod {
+  String get label {
+    switch (this) {
+      case LoyaltyFulfillmentMethod.delivery:
+        return 'Delivery';
+      case LoyaltyFulfillmentMethod.pickup:
+        return 'Pick up';
+    }
+  }
+
+  String get khmerLabel {
+    switch (this) {
+      case LoyaltyFulfillmentMethod.delivery:
+        return 'ដឹកជញ្ជូន';
+      case LoyaltyFulfillmentMethod.pickup:
+        return 'ទទួលដោយខ្លួនឯង';
+    }
+  }
+}
+
+enum LoyaltyPickupUserType { accountOwner, representative }
+
+extension LoyaltyPickupUserTypeX on LoyaltyPickupUserType {
+  String get label {
+    switch (this) {
+      case LoyaltyPickupUserType.accountOwner:
+        return 'Account owner';
+      case LoyaltyPickupUserType.representative:
+        return 'Representative';
+    }
+  }
+
+  String get khmerLabel {
+    switch (this) {
+      case LoyaltyPickupUserType.accountOwner:
+        return 'ម្ចាស់គណនី';
+      case LoyaltyPickupUserType.representative:
+        return 'អ្នកតំណាង';
+    }
+  }
+}
+
 class LoyaltyItemExchange {
   final LoyaltyProduct product;
   final DateTime exchangedAt;
@@ -82,7 +126,15 @@ class LoyaltyItemExchange {
   final int remainingPoints;
   final String referenceNo;
   final String status;
+  final LoyaltyFulfillmentMethod fulfillmentMethod;
+  final LoyaltyPickupUserType? pickupUserType;
+  final String receiverName;
+  final String receiverPhone;
+  final String? representativeName;
+  final String? representativePhone;
   final String pickupLocation;
+  final String? deliveryAddress;
+  final String? exchangeNote;
   final DateTime collectBeforeDate;
 
   const LoyaltyItemExchange({
@@ -92,7 +144,15 @@ class LoyaltyItemExchange {
     required this.remainingPoints,
     required this.referenceNo,
     required this.status,
+    required this.fulfillmentMethod,
+    this.pickupUserType,
+    required this.receiverName,
+    required this.receiverPhone,
+    this.representativeName,
+    this.representativePhone,
     required this.pickupLocation,
+    this.deliveryAddress,
+    this.exchangeNote,
     required this.collectBeforeDate,
   });
 }

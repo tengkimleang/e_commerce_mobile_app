@@ -1,5 +1,6 @@
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:dio/dio.dart';
 
 import '../models/mall_membership_qr_model.dart';
 
@@ -8,6 +9,15 @@ class MallMembershipQrRepository {
     : _authService = authService ?? AuthService();
 
   final AuthService _authService;
+
+  static const _syncErrorMessage =
+      'Unable to sync latest QR data right now. Showing current member information.';
+  static const _sessionExpiredMessage =
+      'Your session has expired. Please login again to refresh your QR code.';
+  static const _memberMissingMessage =
+      'Member profile was not found. Please contact support.';
+  static const _permissionDeniedMessage =
+      'You do not have permission to generate this QR code.';
 
   MallMembershipQrModel buildLocalFallback() {
     final sessionName = UserSession.displayName.trim();
@@ -22,6 +32,8 @@ class MallMembershipQrRepository {
           : MallMembershipQrModel.fallback.username,
       membershipId: fallbackId,
       qrPayload: 'cmr://chipmong-mall/member?id=$fallbackId',
+      isFallback: true,
+      clearStatusMessage: true,
     );
   }
 
@@ -33,10 +45,23 @@ class MallMembershipQrRepository {
       final errorCode = _asCleanString(response['errorCode']);
       final success = response['success'] == true;
       if (errorCode.isNotEmpty || !success) {
-        return fallback;
+        return _fallbackForBusinessError(base: fallback, errorCode: errorCode);
       }
 
       final data = _extractDataMap(response);
+      final directPayload = _firstNonEmpty([
+        data['qrPayload'],
+        data['payload'],
+        data['qrData'],
+        data['qrContent'],
+      ]);
+      final token = _firstNonEmpty([
+        data['qrToken'],
+        data['token'],
+        data['scanToken'],
+        data['referenceToken'],
+      ]);
+      final hasQrPayloadOrToken = directPayload.isNotEmpty || token.isNotEmpty;
 
       final username = _firstNonEmpty([
         data['username'],
@@ -61,6 +86,19 @@ class MallMembershipQrRepository {
         fallback.membershipId,
       ]);
 
+      final points = _readInt(
+        values: [data['points'], data['balancePoints'], data['loyaltyPoints']],
+        fallback: fallback.points,
+      );
+
+      if (!hasQrPayloadOrToken) {
+        return _asQrUnavailableFallback(
+          base: fallback,
+          username: username,
+          points: points,
+        );
+      }
+
       final membershipType = _firstNonEmpty([
         data['membershipType'],
         data['type'],
@@ -68,13 +106,9 @@ class MallMembershipQrRepository {
         '$tierLevel Member',
       ]);
 
-      final points = _readInt(
-        values: [data['points'], data['balancePoints'], data['loyaltyPoints']],
-        fallback: fallback.points,
-      );
-
       final qrPayload = _buildQrPayload(
-        data: data,
+        directPayload: directPayload,
+        token: token,
         fallbackMembershipId: membershipId,
         fallbackPayload: fallback.qrPayload,
       );
@@ -94,33 +128,36 @@ class MallMembershipQrRepository {
         qrPayload: qrPayload,
         expiresAt: expiresAt,
         clearExpiresAt: expiresAt == null,
+        isFallback: false,
+        clearStatusMessage: true,
+      );
+    } on DioException catch (e) {
+      final errorCode = _dioErrorCode(e);
+      if (errorCode.isNotEmpty) {
+        return _fallbackForBusinessError(base: fallback, errorCode: errorCode);
+      }
+      return fallback.copyWith(
+        statusMessage: _syncErrorMessage,
+        isFallback: true,
       );
     } catch (_) {
-      return fallback;
+      return fallback.copyWith(
+        statusMessage: _syncErrorMessage,
+        isFallback: true,
+      );
     }
   }
 
   String _buildQrPayload({
-    required Map<String, dynamic> data,
+    required String directPayload,
+    required String token,
     required String fallbackMembershipId,
     required String fallbackPayload,
   }) {
-    final directPayload = _firstNonEmpty([
-      data['qrPayload'],
-      data['payload'],
-      data['qrData'],
-      data['qrContent'],
-    ]);
     if (directPayload.isNotEmpty) return directPayload;
 
-    final token = _firstNonEmpty([
-      data['qrToken'],
-      data['token'],
-      data['scanToken'],
-      data['referenceToken'],
-    ]);
     if (token.isNotEmpty) {
-      return 'cmr://chipmong-mall/member?token=$token';
+      return token;
     }
 
     if (fallbackMembershipId.isNotEmpty) {
@@ -172,5 +209,44 @@ class MallMembershipQrRepository {
       if (parsed != null) return parsed;
     }
     return null;
+  }
+
+  MallMembershipQrModel _asQrUnavailableFallback({
+    required MallMembershipQrModel base,
+    String? username,
+    int? points,
+  }) {
+    return base.copyWith(
+      username: username,
+      points: points,
+      isFallback: true,
+      statusMessage: _syncErrorMessage,
+    );
+  }
+
+  MallMembershipQrModel _fallbackForBusinessError({
+    required MallMembershipQrModel base,
+    required String errorCode,
+  }) {
+    final normalized = errorCode.trim().toUpperCase();
+    final message = switch (normalized) {
+      'AUTH401' => _sessionExpiredMessage,
+      'AUTH403' => _permissionDeniedMessage,
+      'USR404' => _memberMissingMessage,
+      _ => _syncErrorMessage,
+    };
+
+    return base.copyWith(isFallback: true, statusMessage: message);
+  }
+
+  String _dioErrorCode(DioException error) {
+    final payload = error.response?.data;
+    if (payload is Map<String, dynamic>) {
+      return _asCleanString(payload['errorCode'] ?? payload['ErrorCode']);
+    }
+    if (payload is Map) {
+      return _asCleanString(payload['errorCode'] ?? payload['ErrorCode']);
+    }
+    return '';
   }
 }

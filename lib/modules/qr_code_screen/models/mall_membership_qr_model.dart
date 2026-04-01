@@ -6,6 +6,8 @@ class MallMembershipQrModel {
   final int points;
   final String qrPayload;
   final DateTime? expiresAt;
+  final bool isFallback;
+  final String? statusMessage;
 
   const MallMembershipQrModel({
     required this.username,
@@ -15,6 +17,8 @@ class MallMembershipQrModel {
     required this.points,
     required this.qrPayload,
     this.expiresAt,
+    this.isFallback = false,
+    this.statusMessage,
   });
 
   static const fallback = MallMembershipQrModel(
@@ -24,6 +28,7 @@ class MallMembershipQrModel {
     membershipType: 'LifeStyle Member',
     points: 30,
     qrPayload: 'cmr://chipmong-mall/member?id=224256797',
+    isFallback: true,
   );
 
   MallMembershipQrModel copyWith({
@@ -35,6 +40,9 @@ class MallMembershipQrModel {
     String? qrPayload,
     DateTime? expiresAt,
     bool clearExpiresAt = false,
+    bool? isFallback,
+    String? statusMessage,
+    bool clearStatusMessage = false,
   }) {
     return MallMembershipQrModel(
       username: username ?? this.username,
@@ -44,6 +52,10 @@ class MallMembershipQrModel {
       points: points ?? this.points,
       qrPayload: qrPayload ?? this.qrPayload,
       expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      isFallback: isFallback ?? this.isFallback,
+      statusMessage: clearStatusMessage
+          ? null
+          : (statusMessage ?? this.statusMessage),
     );
   }
 }

@@ -12,6 +12,101 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = exchange.product;
+    final isUnderReview = exchange.status == 'កំពុងពិនិត្យ';
+    final statusColor = isUnderReview
+        ? const Color(0xFFF57C00)
+        : const Color(0xFF2E7D32);
+    final headerText = isUnderReview
+        ? 'សំណើប្តូររង្វាន់កំពុងពិនិត្យ'
+        : 'ការប្តូររង្វាន់បានជោគជ័យ';
+    final headerIcon = isUnderReview
+        ? Icons.hourglass_top_rounded
+        : Icons.check_circle_rounded;
+    final detailRows = <_DetailRowEntry>[
+      _DetailRowEntry(label: 'លេខប្រតិបត្តិការ', value: exchange.referenceNo),
+      _DetailRowEntry(
+        label: 'កាលបរិច្ឆេទប្តូរ',
+        value: _formatDateTime(exchange.exchangedAt),
+      ),
+      _DetailRowEntry(
+        label: 'ស្ថានភាព',
+        value: exchange.status,
+        valueColor: statusColor,
+      ),
+      _DetailRowEntry(
+        label: 'របៀបទទួលរង្វាន់',
+        value:
+            '${exchange.fulfillmentMethod.label} (${exchange.fulfillmentMethod.khmerLabel})',
+      ),
+      _DetailRowEntry(label: 'ឈ្មោះអ្នកទទួល', value: exchange.receiverName),
+      _DetailRowEntry(label: 'ទូរស័ព្ទអ្នកទទួល', value: exchange.receiverPhone),
+      _DetailRowEntry(
+        label: 'ពិន្ទុប្រើប្រាស់',
+        value: '-${exchange.exchangedPoints} Points',
+        valueColor: const Color(0xFFD32F2F),
+      ),
+      _DetailRowEntry(
+        label: 'ពិន្ទុនៅសល់',
+        value: '${exchange.remainingPoints} Points',
+        valueColor: AppColors.primary,
+      ),
+      _DetailRowEntry(
+        label: 'ប្តូរមុនថ្ងៃ',
+        value: _formatDate(exchange.collectBeforeDate),
+      ),
+    ];
+
+    if (exchange.fulfillmentMethod == LoyaltyFulfillmentMethod.pickup) {
+      if (exchange.pickupUserType != null) {
+        detailRows.add(
+          _DetailRowEntry(
+            label: 'ប្រភេទអ្នកទទួល',
+            value:
+                '${exchange.pickupUserType!.label} (${exchange.pickupUserType!.khmerLabel})',
+          ),
+        );
+      }
+      detailRows.add(
+        _DetailRowEntry(
+          label: 'ទីតាំងទទួលរង្វាន់',
+          value: exchange.pickupLocation,
+        ),
+      );
+    } else {
+      detailRows.add(
+        _DetailRowEntry(
+          label: 'អាសយដ្ឋានដឹកជញ្ជូន',
+          value: exchange.deliveryAddress ?? '-',
+        ),
+      );
+    }
+
+    if (exchange.representativeName != null &&
+        exchange.representativeName!.isNotEmpty) {
+      detailRows.add(
+        _DetailRowEntry(
+          label: 'ឈ្មោះអ្នកតំណាង',
+          value: exchange.representativeName!,
+        ),
+      );
+    }
+
+    if (exchange.representativePhone != null &&
+        exchange.representativePhone!.isNotEmpty) {
+      detailRows.add(
+        _DetailRowEntry(
+          label: 'ទូរស័ព្ទអ្នកតំណាង',
+          value: exchange.representativePhone!,
+        ),
+      );
+    }
+
+    if (exchange.exchangeNote != null && exchange.exchangeNote!.isNotEmpty) {
+      detailRows.add(
+        _DetailRowEntry(label: 'ចំណាំ', value: exchange.exchangeNote!),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
@@ -48,20 +143,16 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D32).withAlpha(24),
+                        color: statusColor.withAlpha(24),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.check_circle_rounded,
-                        color: Color(0xFF2E7D32),
-                        size: 28,
-                      ),
+                      child: Icon(headerIcon, color: statusColor, size: 28),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'ការប្តូររង្វាន់បានជោគជ័យ',
-                        style: TextStyle(
+                        headerText,
+                        style: const TextStyle(
                           fontFamily: 'Battambang',
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -166,40 +257,15 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                 child: Column(
-                  children: [
-                    _DetailRow(
-                      label: 'លេខប្រតិបត្តិការ',
-                      value: exchange.referenceNo,
-                    ),
-                    _DetailRow(
-                      label: 'កាលបរិច្ឆេទប្តូរ',
-                      value: _formatDateTime(exchange.exchangedAt),
-                    ),
-                    _DetailRow(
-                      label: 'ស្ថានភាព',
-                      value: exchange.status,
-                      valueColor: const Color(0xFF2E7D32),
-                    ),
-                    _DetailRow(
-                      label: 'ពិន្ទុប្រើប្រាស់',
-                      value: '-${exchange.exchangedPoints} Points',
-                      valueColor: const Color(0xFFD32F2F),
-                    ),
-                    _DetailRow(
-                      label: 'ពិន្ទុនៅសល់',
-                      value: '${exchange.remainingPoints} Points',
-                      valueColor: AppColors.primary,
-                    ),
-                    _DetailRow(
-                      label: 'ប្តូរមុនថ្ងៃ',
-                      value: _formatDate(exchange.collectBeforeDate),
-                    ),
-                    _DetailRow(
-                      label: 'ទីតាំងទទួលរង្វាន់',
-                      value: exchange.pickupLocation,
-                      isLast: true,
-                    ),
-                  ],
+                  children: List.generate(detailRows.length, (index) {
+                    final row = detailRows[index];
+                    return _DetailRow(
+                      label: row.label,
+                      value: row.value,
+                      valueColor: row.valueColor,
+                      isLast: index == detailRows.length - 1,
+                    );
+                  }),
                 ),
               ),
             ],
@@ -247,6 +313,18 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
     final day = date.day.toString().padLeft(2, '0');
     return '$month $day, ${date.year}';
   }
+}
+
+class _DetailRowEntry {
+  const _DetailRowEntry({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
 }
 
 class _DetailRow extends StatelessWidget {

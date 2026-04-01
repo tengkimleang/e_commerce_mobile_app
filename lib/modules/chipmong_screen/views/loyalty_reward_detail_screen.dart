@@ -24,6 +24,8 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
   OverlayEntry? _errorBannerEntry;
 
   static const _tabs = ['ព័ត៌មានលម្អិត', 'គោលការណ៍ និង លក្ខខណ្ឌ'];
+  static const _defaultPickupLocation =
+      'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall';
 
   @override
   void dispose() {
@@ -111,25 +113,25 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
   }
 
   Future<void> _openRedeemConfirmationSheet() async {
-    await showModalBottomSheet<void>(
+    final exchangeForm = await showModalBottomSheet<_ExchangeFormData>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withAlpha(130),
       builder: (sheetContext) {
-        return _RedeemConfirmationSheet(
+        return _ExchangeDetailsFormSheet(
           product: widget.product,
-          onConfirm: () {
-            Navigator.of(sheetContext).pop();
-            _handleRedeemConfirm();
-          },
+          pickupLocation: _defaultPickupLocation,
         );
       },
     );
+
+    if (!mounted || exchangeForm == null) return;
+    _handleRedeemConfirm(exchangeForm);
   }
 
-  void _handleRedeemConfirm() {
+  void _handleRedeemConfirm(_ExchangeFormData exchangeForm) {
     final hasEnoughPoints = widget.availablePoints >= widget.product.points;
     if (!hasEnoughPoints) {
       _showTopErrorBanner();
@@ -144,8 +146,16 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
       exchangedPoints: exchangedPoints,
       remainingPoints: widget.availablePoints - exchangedPoints,
       referenceNo: _buildExchangeReference(now),
-      status: 'សម្រេចជោគជ័យ',
-      pickupLocation: 'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall',
+      status: 'កំពុងពិនិត្យ',
+      fulfillmentMethod: exchangeForm.fulfillmentMethod,
+      pickupUserType: exchangeForm.pickupUserType,
+      receiverName: exchangeForm.receiverName,
+      receiverPhone: exchangeForm.receiverPhone,
+      representativeName: exchangeForm.representativeName,
+      representativePhone: exchangeForm.representativePhone,
+      pickupLocation: _defaultPickupLocation,
+      deliveryAddress: exchangeForm.deliveryAddress,
+      exchangeNote: exchangeForm.note,
       collectBeforeDate: now.add(const Duration(days: 7)),
     );
     Navigator.of(context).pop(exchange);
@@ -252,10 +262,10 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
 }
 
 class _RewardSummaryCard extends StatelessWidget {
-  const _RewardSummaryCard({required this.product, this.imageHeight = 280});
+  const _RewardSummaryCard({required this.product});
 
   final LoyaltyProduct product;
-  final double imageHeight;
+  static const _imageHeight = 280.0;
 
   @override
   Widget build(BuildContext context) {
@@ -273,13 +283,13 @@ class _RewardSummaryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             child: CachedNetworkImage(
               imageUrl: product.imageUrl,
-              height: imageHeight,
+              height: _imageHeight,
               width: double.infinity,
               fit: BoxFit.cover,
               placeholder: (context, url) =>
-                  Container(height: imageHeight, color: Colors.grey[200]),
+                  Container(height: _imageHeight, color: Colors.grey[200]),
               errorWidget: (context, url, error) => Container(
-                height: imageHeight,
+                height: _imageHeight,
                 color: AppColors.primary.withAlpha(15),
                 child: Icon(
                   Icons.image_outlined,
@@ -433,77 +443,623 @@ class _DashedLinePainter extends CustomPainter {
   bool shouldRepaint(_) => false;
 }
 
-class _RedeemConfirmationSheet extends StatelessWidget {
-  const _RedeemConfirmationSheet({
+class _ExchangeFormData {
+  const _ExchangeFormData({
+    required this.fulfillmentMethod,
+    this.pickupUserType,
+    required this.receiverName,
+    required this.receiverPhone,
+    this.representativeName,
+    this.representativePhone,
+    this.deliveryAddress,
+    this.note,
+  });
+
+  final LoyaltyFulfillmentMethod fulfillmentMethod;
+  final LoyaltyPickupUserType? pickupUserType;
+  final String receiverName;
+  final String receiverPhone;
+  final String? representativeName;
+  final String? representativePhone;
+  final String? deliveryAddress;
+  final String? note;
+}
+
+class _ExchangeDetailsFormSheet extends StatefulWidget {
+  const _ExchangeDetailsFormSheet({
     required this.product,
-    required this.onConfirm,
+    required this.pickupLocation,
   });
 
   final LoyaltyProduct product;
-  final VoidCallback onConfirm;
+  final String pickupLocation;
+
+  @override
+  State<_ExchangeDetailsFormSheet> createState() =>
+      _ExchangeDetailsFormSheetState();
+}
+
+class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _receiverNameController = TextEditingController();
+  final _receiverPhoneController = TextEditingController();
+  final _deliveryAddressController = TextEditingController();
+  final _representativeNameController = TextEditingController();
+  final _representativePhoneController = TextEditingController();
+  final _noteController = TextEditingController();
+  LoyaltyPickupUserType _pickupUserType = LoyaltyPickupUserType.accountOwner;
+  LoyaltyFulfillmentMethod _selectedFulfillmentMethod =
+      LoyaltyFulfillmentMethod.pickup;
+
+  bool get _isPickup =>
+      _selectedFulfillmentMethod == LoyaltyFulfillmentMethod.pickup;
+
+  @override
+  void dispose() {
+    _receiverNameController.dispose();
+    _receiverPhoneController.dispose();
+    _deliveryAddressController.dispose();
+    _representativeNameController.dispose();
+    _representativePhoneController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  String? _validateRequired(String? value, String fieldName) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return '$fieldName is required';
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^[0-9+ -]{8,16}$').hasMatch(text)) {
+      return 'Invalid phone number';
+    }
+    return null;
+  }
+
+  void _submitForm() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    final isRepresentative =
+        _pickupUserType == LoyaltyPickupUserType.representative;
+    final formData = _ExchangeFormData(
+      fulfillmentMethod: _selectedFulfillmentMethod,
+      pickupUserType: _isPickup ? _pickupUserType : null,
+      receiverName: _receiverNameController.text.trim(),
+      receiverPhone: _receiverPhoneController.text.trim(),
+      representativeName: _isPickup && isRepresentative
+          ? _representativeNameController.text.trim()
+          : null,
+      representativePhone: _isPickup && isRepresentative
+          ? _representativePhoneController.text.trim()
+          : null,
+      deliveryAddress: !_isPickup
+          ? _deliveryAddressController.text.trim()
+          : null,
+      note: _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim(),
+    );
+    Navigator.of(context).pop(formData);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 24),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF9F9F9),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
+      child: Container(
+        margin: const EdgeInsets.only(top: 20),
+        decoration: const BoxDecoration(
+          color: Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 14),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
-              child: Text(
-                'ប្តូររង្វាន់',
-                style: TextStyle(
-                  fontFamily: 'Battambang',
-                  fontSize: 25,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 6),
-                child: _RewardSummaryCard(product: product, imageHeight: 180),
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      textStyle: const TextStyle(
-                        fontFamily: 'Battambang',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(32),
-                      ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.93,
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFCCCCCC),
+                      borderRadius: BorderRadius.circular(99),
                     ),
-                    child: const Text('បញ្ជាក់ការប្តូររង្វាន់'),
                   ),
                 ),
-              ),
+                const SizedBox(height: 14),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 18),
+                  child: Text(
+                    'Exchange Details Form',
+                    style: TextStyle(
+                      fontFamily: 'Battambang',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  child: Row(
+                    children: [
+                      _MethodChoiceChip(
+                        icon: Icons.storefront_rounded,
+                        label: LoyaltyFulfillmentMethod.pickup.label,
+                        selected:
+                            _selectedFulfillmentMethod ==
+                            LoyaltyFulfillmentMethod.pickup,
+                        onTap: () {
+                          setState(() {
+                            _selectedFulfillmentMethod =
+                                LoyaltyFulfillmentMethod.pickup;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      _MethodChoiceChip(
+                        icon: Icons.local_shipping_rounded,
+                        label: LoyaltyFulfillmentMethod.delivery.label,
+                        selected:
+                            _selectedFulfillmentMethod ==
+                            LoyaltyFulfillmentMethod.delivery,
+                        onTap: () {
+                          setState(() {
+                            _selectedFulfillmentMethod =
+                                LoyaltyFulfillmentMethod.delivery;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.product.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontFamily: 'Battambang',
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      widget.product.store,
+                                      style: TextStyle(
+                                        color: Colors.grey[700],
+                                        fontSize: 12.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withAlpha(20),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.fromLTRB(
+                                  10,
+                                  8,
+                                  10,
+                                  8,
+                                ),
+                                child: Text(
+                                  '${widget.product.points} Points',
+                                  style: const TextStyle(
+                                    fontFamily: 'Battambang',
+                                    fontSize: 13,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Customer Information',
+                          style: TextStyle(
+                            fontFamily: 'Battambang',
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _receiverNameController,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Receiver full name',
+                            hintText: 'Enter full name',
+                          ),
+                          validator: (value) =>
+                              _validateRequired(value, 'Receiver full name'),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _receiverPhoneController,
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: 'Receiver phone number',
+                            hintText: 'Enter phone number',
+                          ),
+                          validator: _validatePhone,
+                        ),
+                        const SizedBox(height: 12),
+                        if (_isPickup) ...[
+                          const Text(
+                            'Pickup User Type',
+                            style: TextStyle(
+                              fontFamily: 'Battambang',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _PickupUserTypeCard(
+                                  title:
+                                      LoyaltyPickupUserType.accountOwner.label,
+                                  subtitle: LoyaltyPickupUserType
+                                      .accountOwner
+                                      .khmerLabel,
+                                  selected:
+                                      _pickupUserType ==
+                                      LoyaltyPickupUserType.accountOwner,
+                                  onTap: () {
+                                    setState(() {
+                                      _pickupUserType =
+                                          LoyaltyPickupUserType.accountOwner;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _PickupUserTypeCard(
+                                  title: LoyaltyPickupUserType
+                                      .representative
+                                      .label,
+                                  subtitle: LoyaltyPickupUserType
+                                      .representative
+                                      .khmerLabel,
+                                  selected:
+                                      _pickupUserType ==
+                                      LoyaltyPickupUserType.representative,
+                                  onTap: () {
+                                    setState(() {
+                                      _pickupUserType =
+                                          LoyaltyPickupUserType.representative;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFFE2E2E2),
+                              ),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.place_rounded,
+                                  color: AppColors.primary.withAlpha(170),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Pickup Location',
+                                        style: TextStyle(
+                                          fontFamily: 'Battambang',
+                                          color: Colors.grey[700],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        widget.pickupLocation,
+                                        style: const TextStyle(
+                                          fontFamily: 'Battambang',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (_pickupUserType ==
+                              LoyaltyPickupUserType.representative) ...[
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _representativeNameController,
+                              textInputAction: TextInputAction.next,
+                              decoration: const InputDecoration(
+                                labelText: 'Representative full name',
+                                hintText: 'Enter representative name',
+                              ),
+                              validator: (value) {
+                                if (_pickupUserType !=
+                                    LoyaltyPickupUserType.representative) {
+                                  return null;
+                                }
+                                return _validateRequired(
+                                  value,
+                                  'Representative full name',
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _representativePhoneController,
+                              keyboardType: TextInputType.phone,
+                              textInputAction: TextInputAction.next,
+                              decoration: const InputDecoration(
+                                labelText: 'Representative phone number',
+                                hintText: 'Enter representative phone',
+                              ),
+                              validator: (value) {
+                                if (_pickupUserType !=
+                                    LoyaltyPickupUserType.representative) {
+                                  return null;
+                                }
+                                return _validatePhone(value);
+                              },
+                            ),
+                          ],
+                        ] else ...[
+                          const Text(
+                            'Delivery Details',
+                            style: TextStyle(
+                              fontFamily: 'Battambang',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _deliveryAddressController,
+                            keyboardType: TextInputType.streetAddress,
+                            maxLines: 3,
+                            textInputAction: TextInputAction.newline,
+                            decoration: const InputDecoration(
+                              labelText: 'Delivery address',
+                              hintText: 'House No, Street, Khan, City',
+                              alignLabelWithHint: true,
+                            ),
+                            validator: (value) =>
+                                _validateRequired(value, 'Delivery address'),
+                          ),
+                        ],
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _noteController,
+                          maxLines: 2,
+                          textInputAction: TextInputAction.done,
+                          decoration: const InputDecoration(
+                            labelText: 'Note (optional)',
+                            hintText:
+                                'Special instruction for collection/delivery',
+                            alignLabelWithHint: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 14),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 58,
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          textStyle: const TextStyle(
+                            fontFamily: 'Battambang',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text('បញ្ជាក់ការប្តូររង្វាន់'),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MethodChoiceChip extends StatelessWidget {
+  const _MethodChoiceChip({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(99),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary.withAlpha(20) : Colors.white,
+            borderRadius: BorderRadius.circular(99),
+            border: Border.all(
+              color: selected ? AppColors.primary : const Color(0xFFDADADA),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 6, 12, 6),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: selected ? AppColors.primary : Colors.grey[600],
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Battambang',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? AppColors.primary : Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PickupUserTypeCard extends StatelessWidget {
+  const _PickupUserTypeCard({
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? AppColors.primary : const Color(0xFFE0E0E0),
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontFamily: 'Battambang',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? AppColors.primary : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_off_rounded,
+                    size: 18,
+                    color: selected ? AppColors.primary : Colors.grey[500],
+                  ),
+                ],
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: 'Battambang',
+                  fontSize: 12,
+                  color: Colors.grey[700],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

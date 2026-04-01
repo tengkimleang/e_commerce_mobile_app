@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
@@ -224,9 +226,13 @@ class QrCodeBody extends StatefulWidget {
 }
 
 class _QrCodeBodyState extends State<QrCodeBody> {
+  static const _autoRefreshInterval = Duration(seconds: 90);
+
   late final MallMembershipQrRepository _repository;
   late final MallMembershipQrModel _fallback;
   late Future<MallMembershipQrModel> _membershipFuture;
+  Timer? _autoRefreshTimer;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -234,6 +240,30 @@ class _QrCodeBodyState extends State<QrCodeBody> {
     _repository = widget.repository ?? MallMembershipQrRepository();
     _fallback = _repository.buildLocalFallback();
     _membershipFuture = _repository.loadMembershipQr();
+    _isRefreshing = true;
+    _membershipFuture.whenComplete(() => _isRefreshing = false);
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(_autoRefreshInterval, (_) {
+      _refreshMembershipData();
+    });
+  }
+
+  void _refreshMembershipData() {
+    if (!mounted || _isRefreshing) return;
+    _isRefreshing = true;
+    final nextFuture = _repository.loadMembershipQr();
+    nextFuture.whenComplete(() => _isRefreshing = false);
+    setState(() => _membershipFuture = nextFuture);
   }
 
   @override
@@ -254,6 +284,46 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                 padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
                 child: Column(
                   children: [
+                    if ((data.statusMessage ?? '').isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _MallStatusNotice(message: data.statusMessage!),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Auto refresh: 90s',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF8E8E8E),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton.icon(
+                            onPressed:
+                                snapshot.connectionState ==
+                                    ConnectionState.waiting
+                                ? null
+                                : _refreshMembershipData,
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFEC407A),
+                              minimumSize: const Size(0, 34),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                            ),
+                            icon: const Icon(Icons.refresh_rounded, size: 16),
+                            label: const Text(
+                              'Refresh QR',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     _MallQrFrame(qrUrl: qrUrl),
                     if (snapshot.connectionState == ConnectionState.waiting)
                       const Padding(
@@ -278,6 +348,53 @@ class _QrCodeBodyState extends State<QrCodeBody> {
           ],
         );
       },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Backend status notice
+// ---------------------------------------------------------------------------
+class _MallStatusNotice extends StatelessWidget {
+  final String message;
+
+  const _MallStatusNotice({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF6E6),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFC56B)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 18,
+              color: Color(0xFFAF6A00),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 12.5,
+                color: Color(0xFFAF6A00),
+                height: 1.35,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -282,7 +282,20 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
               physics: const NeverScrollableScrollPhysics(),
               itemCount: items.length,
               separatorBuilder: (context, index) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _HistoryItemCard(item: items[i]),
+              itemBuilder: (_, i) => _HistoryItemCard(
+                item: items[i],
+                onTap: items[i].exchange == null
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => LoyaltyItemExchangedDetailScreen(
+                              exchange: items[i].exchange!,
+                            ),
+                          ),
+                        );
+                      },
+              ),
             ),
           ),
         const SizedBox(height: 16),
@@ -425,6 +438,7 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
           status: exchange.status,
           pointsDelta: -exchange.exchangedPoints,
           category: 'ប្តូររង្វាន់',
+          exchange: exchange,
         ),
         ..._historyItems,
       ];
@@ -439,9 +453,10 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
 }
 
 class _HistoryItemCard extends StatelessWidget {
-  const _HistoryItemCard({required this.item});
+  const _HistoryItemCard({required this.item, this.onTap});
 
   final _PointHistoryItem item;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -449,108 +464,126 @@ class _HistoryItemCard extends StatelessWidget {
     final pointsColor = isPositive
         ? const Color(0xFF2E7D32)
         : const Color(0xFFD32F2F);
+    final statusColor = item.status == 'កំពុងពិនិត្យ'
+        ? const Color(0xFFF57C00)
+        : const Color(0xFF2E7D32);
     final pointsText = isPositive
         ? '+${item.pointsDelta} Points'
         : '${item.pointsDelta} Points';
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.wallet_giftcard_rounded,
-                  color: Colors.white,
-                  size: 27,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.wallet_giftcard_rounded,
+                      color: Colors.white,
+                      size: 27,
+                    ),
+                  ),
+                  Positioned(
+                    right: -1,
+                    bottom: -1,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF22B24C),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 9,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: const TextStyle(
+                        fontFamily: 'Battambang',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          item.date,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            item.status,
+                            style: TextStyle(
+                              fontFamily: 'Battambang',
+                              fontSize: 12,
+                              color: statusColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                right: -1,
-                bottom: -1,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF22B24C),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 92,
+                child: Text(
+                  pointsText,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: pointsColor,
+                    fontWeight: FontWeight.w700,
                   ),
-                  child: const Icon(Icons.check, color: Colors.white, size: 9),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontFamily: 'Battambang',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      item.date,
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        item.status,
-                        style: const TextStyle(
-                          fontFamily: 'Battambang',
-                          fontSize: 12,
-                          color: Color(0xFF2E7D32),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          SizedBox(
-            width: 92,
-            child: Text(
-              pointsText,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 12,
-                color: pointsColor,
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -714,6 +747,7 @@ class _PointHistoryItem {
   final String status;
   final int pointsDelta;
   final String category;
+  final LoyaltyItemExchange? exchange;
 
   const _PointHistoryItem({
     required this.title,
@@ -721,6 +755,7 @@ class _PointHistoryItem {
     required this.status,
     required this.pointsDelta,
     required this.category,
+    this.exchange,
   });
 }
 
