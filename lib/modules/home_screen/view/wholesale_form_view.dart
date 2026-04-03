@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
@@ -63,7 +64,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     bloc.add(const SetSubmitting(true));
     try {
       final selected = bloc.state.selectedProducts;
-      final dio = Dio(BaseOptions(baseUrl: 'http://192.168.100.39:5058'));
+      final dio = Dio(BaseOptions(baseUrl: ApiUrl.baseUrl));
       final payload = {
         'customerName': customerName,
         'phoneNumber': phoneNumber,
@@ -83,7 +84,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       } else {
         _showErrorDialog(
           title: 'Submission Failed',
-          message: resp.data?.toString() ?? 'Something went wrong. Please try again.',
+          message:
+              resp.data?.toString() ??
+              'Something went wrong. Please try again.',
           icon: Icons.cloud_off_rounded,
           iconColor: Colors.redAccent,
         );
@@ -96,14 +99,17 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
           e.type == DioExceptionType.sendTimeout) {
         _showErrorDialog(
           title: 'No Connection',
-          message: 'No internet connection. Please check your network and try again.',
+          message:
+              'No internet connection. Please check your network and try again.',
           icon: Icons.wifi_off_rounded,
           iconColor: Colors.orangeAccent,
         );
       } else if (e.response != null) {
         _showErrorDialog(
           title: 'Server Error',
-          message: e.response?.data?['errorMsg'] ?? 'Server error. Please try again later.',
+          message:
+              e.response?.data?['errorMsg'] ??
+              'Server error. Please try again later.',
           icon: Icons.cloud_off_rounded,
           iconColor: Colors.redAccent,
         );
@@ -212,10 +218,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                   ),
                   child: const Text(
                     'Done',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -259,7 +262,11 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
           ],
@@ -274,7 +281,10 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
               },
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFEC407A),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               child: const Text('OK'),
             ),
@@ -290,215 +300,226 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       create: (_) => WholesaleFormBloc(),
       child: Builder(
         builder: (context) => Scaffold(
-      appBar: AppBar(
-        title: const Text('Wholesale Form'),
-        backgroundColor: const Color(0xFFEC407A),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Customer Name',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildField(controller: _nameController),
-                      const SizedBox(height: 16),
-
-                      const Text(
-                        'Phone number',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      // Phone field: only rebuilds when isPhoneValid changes
-                      BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
-                        buildWhen: (prev, curr) =>
-                            prev.isPhoneValid != curr.isPhoneValid,
-                        builder: (context, state) => TextField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          textAlignVertical: TextAlignVertical.center,
-                          decoration: InputDecoration(
-                            hintText: 'Enter phone number',
-                            hintStyle: TextStyle(color: Colors.grey[500]),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFEC407A),
-                                width: 1.8,
-                              ),
-                            ),
-                            errorText: !state.isPhoneValid &&
-                                    _phoneController.text.isNotEmpty
-                                ? 'Please enter a valid phone number'
-                                : null,
-                            errorStyle: const TextStyle(fontSize: 12),
+          appBar: AppBar(
+            title: const Text('Wholesale Form'),
+            backgroundColor: const Color(0xFFEC407A),
+            centerTitle: true,
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Customer Name',
+                            style: TextStyle(fontSize: 14),
                           ),
-                          onChanged: (v) {
-                            final isValid =
-                                RegExp(r'^0\d{8,9}$').hasMatch(v.trim());
-                            final bloc = context.read<WholesaleFormBloc>();
-                            if (isValid != bloc.state.isPhoneValid) {
-                              bloc.add(SetPhoneValid(isValid));
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 8),
+                          _buildField(controller: _nameController),
+                          const SizedBox(height: 16),
 
-                      const Text('Remark', style: TextStyle(fontSize: 14)),
-                      const SizedBox(height: 8),
-                      _buildField(controller: _remarkController, maxLines: 4),
-                      const SizedBox(height: 16),
-
-                      // Search product (navigates to product list)
-                      GestureDetector(
-                        onTap: () async {
-                          final result = await Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => PriceCheckingView(
-                                selectionMode: true,
-                                products: ProductData.allProducts,
-                              ),
-                            ),
-                          );
-
-                          if (result == null) return;
-
-                          final List<Map<String, String>> items = [];
-                          if (result is List) {
-                            for (final r in result) {
-                              if (r is Map) {
-                                items.add(Map<String, String>.from(r));
-                              }
-                            }
-                          } else if (result is Map) {
-                            items.add(Map<String, String>.from(result));
-                          }
-
-                          if (context.mounted && items.isNotEmpty) {
-                            context
-                                .read<WholesaleFormBloc>()
-                                .add(AddSelectedProducts(items));
-                          }
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                          const Text(
+                            'Phone number',
+                            style: TextStyle(fontSize: 14),
                           ),
-                          child: Row(
-                            children: const [
-                              Expanded(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 14),
-                                  child: Text(
-                                    'Search product',
-                                    style: TextStyle(color: Colors.grey),
+                          const SizedBox(height: 8),
+                          // Phone field: only rebuilds when isPhoneValid changes
+                          BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                            buildWhen: (prev, curr) =>
+                                prev.isPhoneValid != curr.isPhoneValid,
+                            builder: (context, state) => TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              textAlignVertical: TextAlignVertical.center,
+                              decoration: InputDecoration(
+                                hintText: 'Enter phone number',
+                                hintStyle: TextStyle(color: Colors.grey[500]),
+                                filled: true,
+                                fillColor: Colors.grey.shade50,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFEC407A),
+                                    width: 1.8,
                                   ),
                                 ),
+                                errorText:
+                                    !state.isPhoneValid &&
+                                        _phoneController.text.isNotEmpty
+                                    ? 'Please enter a valid phone number'
+                                    : null,
+                                errorStyle: const TextStyle(fontSize: 12),
                               ),
-                              Icon(Icons.search, color: Color(0xFFEC407A)),
-                            ],
+                              onChanged: (v) {
+                                final isValid = RegExp(
+                                  r'^0\d{8,9}$',
+                                ).hasMatch(v.trim());
+                                final bloc = context.read<WholesaleFormBloc>();
+                                if (isValid != bloc.state.isPhoneValid) {
+                                  bloc.add(SetPhoneValid(isValid));
+                                }
+                              },
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
+                          const SizedBox(height: 16),
 
-                      // Selected products — only rebuilds when the list changes
-                      BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
-                        buildWhen: (prev, curr) =>
-                            prev.selectedProducts != curr.selectedProducts,
-                        builder: (context, state) => Column(
-                          children: state.selectedProducts
-                              .map(
-                                (p) => Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: _buildSelectedCard(context, p),
+                          const Text('Remark', style: TextStyle(fontSize: 14)),
+                          const SizedBox(height: 8),
+                          _buildField(
+                            controller: _remarkController,
+                            maxLines: 4,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Search product (navigates to product list)
+                          GestureDetector(
+                            onTap: () async {
+                              final result = await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => PriceCheckingView(
+                                    selectionMode: true,
+                                    products: ProductData.allProducts,
+                                  ),
                                 ),
-                              )
-                              .toList(),
-                        ),
+                              );
+
+                              if (result == null) return;
+
+                              final List<Map<String, String>> items = [];
+                              if (result is List) {
+                                for (final r in result) {
+                                  if (r is Map) {
+                                    items.add(Map<String, String>.from(r));
+                                  }
+                                }
+                              } else if (result is Map) {
+                                items.add(Map<String, String>.from(result));
+                              }
+
+                              if (context.mounted && items.isNotEmpty) {
+                                context.read<WholesaleFormBloc>().add(
+                                  AddSelectedProducts(items),
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: const [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                      child: Text(
+                                        'Search product',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(Icons.search, color: Color(0xFFEC407A)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Selected products — only rebuilds when the list changes
+                          BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                            buildWhen: (prev, curr) =>
+                                prev.selectedProducts != curr.selectedProducts,
+                            builder: (context, state) => Column(
+                              children: state.selectedProducts
+                                  .map(
+                                    (p) => Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12.0,
+                                      ),
+                                      child: _buildSelectedCard(context, p),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+
+                          const SizedBox(height: 40),
+                        ],
                       ),
-
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Submit bar — only rebuilds when isSubmitting changes
-              BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
-                buildWhen: (prev, curr) =>
-                    prev.isSubmitting != curr.isSubmitting,
-                builder: (context, state) => Container(
-                  width: double.infinity,
-                  height: 54,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEC407A),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8),
                     ),
                   ),
-                  child: TextButton(
-                    onPressed: state.isSubmitting
-                        ? null
-                        : () => _submit(context),
-                    child: state.isSubmitting
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Submit',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
+
+                  // Submit bar — only rebuilds when isSubmitting changes
+                  BlocBuilder<WholesaleFormBloc, WholesaleFormState>(
+                    buildWhen: (prev, curr) =>
+                        prev.isSubmitting != curr.isSubmitting,
+                    builder: (context, state) => Container(
+                      width: double.infinity,
+                      height: 54,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEC407A),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: TextButton(
+                        onPressed: state.isSubmitting
+                            ? null
+                            : () => _submit(context),
+                        child: state.isSubmitting
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Submit',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );
@@ -538,9 +559,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
             child: Text(p['title'] ?? '', style: const TextStyle(fontSize: 14)),
           ),
           IconButton(
-            onPressed: () => context
-                .read<WholesaleFormBloc>()
-                .add(RemoveSelectedProduct(p['id'] ?? '')),
+            onPressed: () => context.read<WholesaleFormBloc>().add(
+              RemoveSelectedProduct(p['id'] ?? ''),
+            ),
             icon: const Icon(Icons.delete_outline, color: Colors.grey),
           ),
         ],

@@ -1,19 +1,19 @@
 import 'dart:async' show TimeoutException;
 import 'dart:convert' show jsonDecode;
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
   static const _mallMembershipQrEndpoint = '/user/me/mall-qr';
+  static const _loyaltyRewardsEndpoint = '/loyalty/rewards';
+  static const _loyaltyExchangesEndpoint = '/loyalty/exchanges';
+  static const _loyaltyPointsHistoryEndpoint = '/loyalty/points/history';
+  static const _loyaltyPointsExpiryEndpoint = '/loyalty/points/expiry';
 
-  static String get _baseUrl {
-    // Android emulator uses 10.0.2.2 to reach host; iOS uses localhost
-    return Platform.isAndroid
-        ? 'http://192.168.100.39:5058'
-        : 'http://localhost:5058';
-  }
+  static String get _baseUrl => ApiUrl.baseUrl;
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -118,6 +118,45 @@ class AuthService {
       'success': success,
       'data': data,
     };
+  }
+
+  Map<String, dynamic> _normalizeProfileResponseWithStatus(Response response) {
+    final normalized = _normalizeProfileResponse(response.data);
+    final status = response.statusCode ?? 0;
+    if (status >= 200 && status < 300) return normalized;
+
+    final code = _asCleanString(normalized['errorCode']);
+    final message = _asCleanString(normalized['errorMsg']);
+    return {
+      ...normalized,
+      'success': false,
+      'errorCode': code.isNotEmpty ? code : 'HTTP$status',
+      'errorMsg': message.isNotEmpty
+          ? message
+          : 'Request failed (HTTP $status).',
+    };
+  }
+
+  bool _hasSerializerBodyError(dynamic raw) {
+    final payload = _toResponseMap(raw);
+    final errors = payload['errors'];
+    if (errors is! Map) return false;
+
+    final serializerErrors =
+        errors['serializerErrors'] ??
+        errors['SerializerErrors'] ??
+        errors['serializerError'];
+    if (serializerErrors is List && serializerErrors.isNotEmpty) {
+      return serializerErrors.any(
+        (item) =>
+            item.toString().toLowerCase().contains('json tokens') ||
+            item.toString().toLowerCase().contains(
+              'lineNumber: 0'.toLowerCase(),
+            ),
+      );
+    }
+    final text = serializerErrors?.toString().toLowerCase() ?? '';
+    return text.contains('json tokens') || text.contains('linenumber: 0');
   }
 
   Map<String, dynamic> _authHeaders({String? accessToken}) {
@@ -430,5 +469,323 @@ class AuthService {
     );
 
     return _normalizeProfileResponse(response.data);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyRewards({
+    String? category,
+    String? sort,
+    int? page,
+    int? pageSize,
+  }) async {
+    final query = <String, dynamic>{};
+    if (_asCleanString(category).isNotEmpty) query['category'] = category;
+    if (_asCleanString(sort).isNotEmpty) query['sort'] = sort;
+    if (page != null && page > 0) query['page'] = page;
+    if (pageSize != null && pageSize > 0) query['pageSize'] = pageSize;
+
+    debugPrint(
+      '[AuthService] getLoyaltyRewards → $_baseUrl$_loyaltyRewardsEndpoint query=$query',
+    );
+
+    var response = await _dio
+        .get(
+          _loyaltyRewardsEndpoint,
+          queryParameters: query,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty rewards timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getLoyaltyRewards response: ${response.statusCode} → ${response.data}',
+    );
+
+    if (response.statusCode == 400 && _hasSerializerBodyError(response.data)) {
+      debugPrint(
+        '[AuthService] getLoyaltyRewards retrying with JSON body for backend compatibility',
+      );
+      response = await _dio
+          .get(
+            _loyaltyRewardsEndpoint,
+            data: query,
+            options: Options(
+              headers: {..._authHeaders(), 'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Get loyalty rewards timed out'),
+          );
+
+      debugPrint(
+        '[AuthService] getLoyaltyRewards retry response: ${response.statusCode} → ${response.data}',
+      );
+    }
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyRewardDetail({
+    required String rewardId,
+  }) async {
+    final response = await _dio
+        .get(
+          '$_loyaltyRewardsEndpoint/$rewardId',
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty reward detail timed out'),
+        );
+
+    return _normalizeProfileResponse(response.data);
+  }
+
+  Future<Map<String, dynamic>> createLoyaltyExchange({
+    required Map<String, dynamic> payload,
+    String? idempotencyKey,
+  }) async {
+    final headers = <String, dynamic>{..._authHeaders()};
+    final key = _asCleanString(idempotencyKey);
+    if (key.isNotEmpty) headers['Idempotency-Key'] = key;
+
+    debugPrint(
+      '[AuthService] createLoyaltyExchange → $_baseUrl$_loyaltyExchangesEndpoint payload=$payload',
+    );
+
+    final response = await _dio
+        .post(
+          _loyaltyExchangesEndpoint,
+          data: payload,
+          options: Options(headers: headers),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Create loyalty exchange timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] createLoyaltyExchange response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyExchanges({
+    String? status,
+    int? page,
+    int? pageSize,
+  }) async {
+    final query = <String, dynamic>{};
+    if (_asCleanString(status).isNotEmpty) query['status'] = status;
+    if (page != null && page > 0) query['page'] = page;
+    if (pageSize != null && pageSize > 0) query['pageSize'] = pageSize;
+
+    debugPrint(
+      '[AuthService] getLoyaltyExchanges → $_baseUrl$_loyaltyExchangesEndpoint query=$query',
+    );
+
+    var response = await _dio
+        .get(
+          _loyaltyExchangesEndpoint,
+          queryParameters: query,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty exchanges timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getLoyaltyExchanges response: ${response.statusCode} → ${response.data}',
+    );
+
+    if (response.statusCode == 400 && _hasSerializerBodyError(response.data)) {
+      debugPrint(
+        '[AuthService] getLoyaltyExchanges retrying with JSON body for backend compatibility',
+      );
+      response = await _dio
+          .get(
+            _loyaltyExchangesEndpoint,
+            data: query,
+            options: Options(
+              headers: {..._authHeaders(), 'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Get loyalty exchanges timed out'),
+          );
+
+      debugPrint(
+        '[AuthService] getLoyaltyExchanges retry response: ${response.statusCode} → ${response.data}',
+      );
+    }
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyExchangeDetail({
+    required String exchangeId,
+  }) async {
+    debugPrint(
+      '[AuthService] getLoyaltyExchangeDetail → $_baseUrl$_loyaltyExchangesEndpoint/$exchangeId',
+    );
+
+    var response = await _dio
+        .get(
+          '$_loyaltyExchangesEndpoint/$exchangeId',
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty exchange detail timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getLoyaltyExchangeDetail response: ${response.statusCode} → ${response.data}',
+    );
+
+    if (response.statusCode == 400 && _hasSerializerBodyError(response.data)) {
+      debugPrint(
+        '[AuthService] getLoyaltyExchangeDetail retrying with JSON body for backend compatibility',
+      );
+      response = await _dio
+          .get(
+            '$_loyaltyExchangesEndpoint/$exchangeId',
+            data: {'exchangeId': exchangeId},
+            options: Options(
+              headers: {..._authHeaders(), 'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Get loyalty exchange detail timed out'),
+          );
+
+      debugPrint(
+        '[AuthService] getLoyaltyExchangeDetail retry response: ${response.statusCode} → ${response.data}',
+      );
+    }
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyPointsHistory({
+    String? category,
+    int? page,
+    int? pageSize,
+  }) async {
+    final query = <String, dynamic>{};
+    if (_asCleanString(category).isNotEmpty) query['category'] = category;
+    if (page != null && page > 0) query['page'] = page;
+    if (pageSize != null && pageSize > 0) query['pageSize'] = pageSize;
+
+    debugPrint(
+      '[AuthService] getLoyaltyPointsHistory → $_baseUrl$_loyaltyPointsHistoryEndpoint query=$query',
+    );
+
+    var response = await _dio
+        .get(
+          _loyaltyPointsHistoryEndpoint,
+          queryParameters: query,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty points history timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getLoyaltyPointsHistory response: ${response.statusCode} → ${response.data}',
+    );
+
+    if (response.statusCode == 400 && _hasSerializerBodyError(response.data)) {
+      debugPrint(
+        '[AuthService] getLoyaltyPointsHistory retrying with JSON body for backend compatibility',
+      );
+      response = await _dio
+          .get(
+            _loyaltyPointsHistoryEndpoint,
+            data: query,
+            options: Options(
+              headers: {..._authHeaders(), 'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Get loyalty points history timed out'),
+          );
+
+      debugPrint(
+        '[AuthService] getLoyaltyPointsHistory retry response: ${response.statusCode} → ${response.data}',
+      );
+    }
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> getLoyaltyPointsExpiry({
+    String? category,
+  }) async {
+    final query = <String, dynamic>{};
+    if (_asCleanString(category).isNotEmpty) query['category'] = category;
+
+    debugPrint(
+      '[AuthService] getLoyaltyPointsExpiry → $_baseUrl$_loyaltyPointsExpiryEndpoint query=$query',
+    );
+
+    var response = await _dio
+        .get(
+          _loyaltyPointsExpiryEndpoint,
+          queryParameters: query,
+          options: Options(headers: _authHeaders()),
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Get loyalty points expiry timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] getLoyaltyPointsExpiry response: ${response.statusCode} → ${response.data}',
+    );
+
+    if (response.statusCode == 400 && _hasSerializerBodyError(response.data)) {
+      debugPrint(
+        '[AuthService] getLoyaltyPointsExpiry retrying with JSON body for backend compatibility',
+      );
+      response = await _dio
+          .get(
+            _loyaltyPointsExpiryEndpoint,
+            data: query,
+            options: Options(
+              headers: {..._authHeaders(), 'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Get loyalty points expiry timed out'),
+          );
+
+      debugPrint(
+        '[AuthService] getLoyaltyPointsExpiry retry response: ${response.statusCode} → ${response.data}',
+      );
+    }
+
+    return _normalizeProfileResponseWithStatus(response);
   }
 }

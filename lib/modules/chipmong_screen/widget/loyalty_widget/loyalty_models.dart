@@ -50,6 +50,7 @@ const loyaltyTiers = <LoyaltyTier>[
 // Loyalty product model + mock data
 // ---------------------------------------------------------------------------
 class LoyaltyProduct {
+  final String rewardId;
   final String imageUrl;
   final String brandName;
   final String category;
@@ -62,6 +63,7 @@ class LoyaltyProduct {
   final String termsAndConditions;
 
   const LoyaltyProduct({
+    this.rewardId = '',
     required this.imageUrl,
     required this.brandName,
     this.category = 'ប័ណ្ណទិញទំនិញ',
@@ -73,6 +75,34 @@ class LoyaltyProduct {
     this.pointCondition = '',
     this.termsAndConditions = '',
   });
+
+  LoyaltyProduct copyWith({
+    String? rewardId,
+    String? imageUrl,
+    String? brandName,
+    String? category,
+    String? title,
+    String? store,
+    int? points,
+    String? expiryDate,
+    int? redeemLimit,
+    String? pointCondition,
+    String? termsAndConditions,
+  }) {
+    return LoyaltyProduct(
+      rewardId: rewardId ?? this.rewardId,
+      imageUrl: imageUrl ?? this.imageUrl,
+      brandName: brandName ?? this.brandName,
+      category: category ?? this.category,
+      title: title ?? this.title,
+      store: store ?? this.store,
+      points: points ?? this.points,
+      expiryDate: expiryDate ?? this.expiryDate,
+      redeemLimit: redeemLimit ?? this.redeemLimit,
+      pointCondition: pointCondition ?? this.pointCondition,
+      termsAndConditions: termsAndConditions ?? this.termsAndConditions,
+    );
+  }
 }
 
 enum LoyaltyFulfillmentMethod { delivery, pickup }
@@ -154,6 +184,28 @@ class LoyaltyItemExchange {
     this.deliveryAddress,
     this.exchangeNote,
     required this.collectBeforeDate,
+  });
+}
+
+class LoyaltyExchangeRequest {
+  final LoyaltyFulfillmentMethod fulfillmentMethod;
+  final LoyaltyPickupUserType? pickupUserType;
+  final String receiverName;
+  final String receiverPhone;
+  final String? representativeName;
+  final String? representativePhone;
+  final String? deliveryAddress;
+  final String? note;
+
+  const LoyaltyExchangeRequest({
+    required this.fulfillmentMethod,
+    this.pickupUserType,
+    required this.receiverName,
+    required this.receiverPhone,
+    this.representativeName,
+    this.representativePhone,
+    this.deliveryAddress,
+    this.note,
   });
 }
 

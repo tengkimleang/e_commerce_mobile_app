@@ -341,7 +341,7 @@ class _LoginContentState extends State<_LoginContent> {
                 TextButton(
                   onPressed: _loginWithMockUser,
                   child: const Text(
-                    "Quick login (DEV)",
+                    "Quick login as mock account (DEV)",
                     style: TextStyle(
                       color: Color(0xFFEC407A),
                       fontSize: 14,

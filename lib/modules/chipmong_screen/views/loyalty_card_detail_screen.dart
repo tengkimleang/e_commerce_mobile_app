@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/chipmong_mall_model.dart';
+import '../repositories/loyalty_repository.dart';
 import '../widget/loyalty_widget/loyalty_bottom_nav_bar.dart';
 import '../widget/loyalty_widget/loyalty_filter_bar.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
@@ -26,14 +28,19 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     with SingleTickerProviderStateMixin {
   late final PageController _pageController;
   late final TabController _tabController;
+  late final LoyaltyRepository _loyaltyRepository;
   late int _availablePoints;
+  late List<LoyaltyProduct> _rewards;
   late List<_PointHistoryItem> _historyItems;
+  late List<_ExpiryItem> _expiryItems;
 
   int _currentPage = 0;
   int _selectedRewardFilter = 0;
   int _selectedHistoryCategory = 0;
   int _selectedExpiryCategory = 0;
   bool _sortDescending = true;
+  bool _isSyncingData = false;
+  String? _rewardsLoadMessage;
 
   static const _rewardFilters = [
     'ទាំងអស់',
@@ -66,56 +73,13 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     LoyaltyNavItem(icon: Icons.emoji_events_outlined, label: 'គម្រូ'),
   ];
 
-  static const _initialHistoryItems = <_PointHistoryItem>[
-    _PointHistoryItem(
-      title: 'ចុះបញ្ជីថ្មីជោគជ័យ',
-      date: 'Feb 25, 2026',
-      status: 'សម្រេចជោគជ័យ',
-      pointsDelta: 30,
-      category: 'ទទួលបាន',
-    ),
-    _PointHistoryItem(
-      title: 'ប្តូររង្វាន់ Samsung Galaxy Z Fold7',
-      date: 'Feb 24, 2026',
-      status: 'សម្រេចជោគជ័យ',
-      pointsDelta: -81999,
-      category: 'ប្តូររង្វាន់',
-    ),
-    _PointHistoryItem(
-      title: 'ប្រើប័ណ្ណបញ្ចុះតម្លៃក្នុងហាង',
-      date: 'Feb 20, 2026',
-      status: 'សម្រេចជោគជ័យ',
-      pointsDelta: -1200,
-      category: 'ប្រើរង្វាន់',
-    ),
-  ];
-
-  static const _expiryItems = <_ExpiryItem>[
-    _ExpiryItem(
-      title: 'ចុះបញ្ជីថ្មីជោគជ័យ',
-      status: 'មិនផុតកំណត់',
-      pointsDelta: 30,
-      expiryDate: '25/02/2027',
-      category: 'មិនផុតកំណត់',
-    ),
-    _ExpiryItem(
-      title: 'ប័ណ្ណបញ្ចុះតម្លៃពិសេស 10%',
-      status: 'ជិតផុតកំណត់',
-      pointsDelta: 20,
-      expiryDate: '12/04/2026',
-      category: 'ជិតផុតកំណត់',
-    ),
-    _ExpiryItem(
-      title: 'ប័ណ្ណបញ្ចុះតម្លៃចាស់',
-      status: 'ផុតកំណត់',
-      pointsDelta: 15,
-      expiryDate: '15/02/2026',
-      category: 'ផុតកំណត់',
-    ),
-  ];
-
   List<LoyaltyProduct> get _sortedProducts {
-    final list = [...loyaltyMockProducts];
+    final selectedFilter = _rewardFilters[_selectedRewardFilter];
+    final list = _rewards.where((reward) {
+      if (_selectedRewardFilter == 0) return true;
+      final category = reward.category.trim();
+      return category == selectedFilter || category.contains(selectedFilter);
+    }).toList();
     list.sort(
       (a, b) => _sortDescending
           ? b.points.compareTo(a.points)
@@ -147,14 +111,21 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
   @override
   void initState() {
     super.initState();
+    _loyaltyRepository = LoyaltyRepository();
     _availablePoints = widget.info.points;
-    _historyItems = [..._initialHistoryItems];
+    // Start empty so users never interact with mock rewards that have no
+    // backend rewardId.
+    _rewards = const [];
+    _historyItems = const [];
+    _expiryItems = const [];
     final startPage = loyaltyTiers.indexWhere(
       (t) => t.name.toLowerCase() == widget.info.tier.toLowerCase(),
     );
     _currentPage = startPage < 0 ? 0 : startPage;
     _pageController = PageController(initialPage: _currentPage);
     _tabController = TabController(length: 3, vsync: this);
+    _loadLoyaltyData();
+    _syncLatestPointsFromBackend();
   }
 
   @override
@@ -166,32 +137,39 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: TierProgressHeader(
-                tiers: loyaltyTiers,
-                currentPage: _currentPage,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        Navigator.of(context).pop(_currentInfo);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: SafeArea(
+          bottom: false,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: TierProgressHeader(
+                  tiers: loyaltyTiers,
+                  currentPage: _currentPage,
+                ),
               ),
-            ),
-            SliverToBoxAdapter(child: _buildCardPageView()),
-            SliverToBoxAdapter(
-              child: LoyaltyTabBar(controller: _tabController),
-            ),
-            SliverToBoxAdapter(child: _buildDynamicContent()),
-          ],
+              SliverToBoxAdapter(child: _buildCardPageView()),
+              SliverToBoxAdapter(
+                child: LoyaltyTabBar(controller: _tabController),
+              ),
+              SliverToBoxAdapter(child: _buildDynamicContent()),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: LoyaltyBottomNavBar(
-        items: _navItems,
-        selectedIndex: 3,
-        onTap: (i) {
-          if (i != 3) Navigator.of(context).pop();
-        },
+        bottomNavigationBar: LoyaltyBottomNavBar(
+          items: _navItems,
+          selectedIndex: 3,
+          onTap: (i) {
+            if (i != 3) Navigator.of(context).pop(_currentInfo);
+          },
+        ),
       ),
     );
   }
@@ -216,6 +194,11 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_isSyncingData)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(12, 6, 12, 4),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
         LoyaltyFilterBar(
           filters: _rewardFilters,
           selectedIndex: _selectedRewardFilter,
@@ -226,21 +209,23 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: sorted.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.75,
-            ),
-            itemBuilder: (_, i) => LoyaltyProductCard(
-              product: sorted[i],
-              onTap: _onRewardProductTap,
-            ),
-          ),
+          child: sorted.isEmpty
+              ? _RewardsEmptyState(message: _rewardsLoadMessage)
+              : GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: sorted.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemBuilder: (_, i) => LoyaltyProductCard(
+                    product: sorted[i],
+                    onTap: _onRewardProductTap,
+                  ),
+                ),
         ),
         const SizedBox(height: 16),
       ],
@@ -284,16 +269,12 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (_, i) => _HistoryItemCard(
                 item: items[i],
-                onTap: items[i].exchange == null
+                onTap:
+                    (items[i].exchange == null &&
+                        (items[i].exchangeId?.trim().isEmpty ?? true))
                     ? null
                     : () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => LoyaltyItemExchangedDetailScreen(
-                              exchange: items[i].exchange!,
-                            ),
-                          ),
-                        );
+                        _openHistoryDetail(items[i]);
                       },
               ),
             ),
@@ -413,6 +394,7 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
         builder: (_) => LoyaltyRewardDetailScreen(
           product: product,
           availablePoints: _availablePoints,
+          repository: _loyaltyRepository,
         ),
       ),
     );
@@ -426,11 +408,24 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
         builder: (_) => LoyaltyItemExchangedDetailScreen(exchange: exchange),
       ),
     );
+
+    await _refreshHistoryAndExpiry();
   }
 
   void _applyExchange(LoyaltyItemExchange exchange) {
+    final serverRemaining = exchange.remainingPoints < 0
+        ? 0
+        : exchange.remainingPoints;
+    final optimisticRemaining = (_availablePoints - exchange.exchangedPoints)
+        .clamp(0, 1 << 31)
+        .toInt();
+    final resolvedRemaining =
+        (exchange.exchangedPoints > 0 && serverRemaining >= _availablePoints)
+        ? optimisticRemaining
+        : serverRemaining;
+
     setState(() {
-      _availablePoints = exchange.remainingPoints;
+      _availablePoints = resolvedRemaining;
       _historyItems = [
         _PointHistoryItem(
           title: 'ប្តូររង្វាន់ ${exchange.product.title}',
@@ -439,10 +434,163 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
           pointsDelta: -exchange.exchangedPoints,
           category: 'ប្តូររង្វាន់',
           exchange: exchange,
+          exchangeId: exchange.referenceNo,
         ),
         ..._historyItems,
       ];
     });
+
+    _syncLatestPointsFromBackend();
+  }
+
+  Future<void> _loadLoyaltyData() async {
+    setState(() {
+      _isSyncingData = true;
+      _rewardsLoadMessage = null;
+    });
+
+    List<LoyaltyProduct> rewards = const [];
+    String? rewardsLoadMessage;
+
+    try {
+      rewards = await _loyaltyRepository.fetchRewards(
+        category: 'ALL',
+        sort: 'latest',
+        page: 1,
+        pageSize: 100,
+      );
+      if (rewards.isEmpty) {
+        // Compatibility fallback if backend ignores/doesn't support filters.
+        rewards = await _loyaltyRepository.fetchRewards(page: 1, pageSize: 100);
+      }
+      if (rewards.isEmpty) {
+        final isMockSession =
+            (UserSession.token ?? '').trim() == 'dev-mock-token';
+        rewardsLoadMessage = isMockSession
+            ? 'You are using DEV mock login. Please login with OTP account to load real rewards.'
+            : 'No rewards available from backend for this account yet.';
+      }
+    } catch (e) {
+      rewards = const [];
+      rewardsLoadMessage = e is LoyaltyRepositoryException
+          ? e.message
+          : 'Unable to load rewards right now.';
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _rewards = rewards;
+      _rewardsLoadMessage = rewardsLoadMessage;
+      _isSyncingData = false;
+    });
+
+    _refreshHistoryAndExpiry();
+  }
+
+  Future<void> _refreshHistoryAndExpiry() async {
+    List<_PointHistoryItem>? updatedHistoryItems;
+    List<_ExpiryItem>? updatedExpiryItems;
+
+    try {
+      final history = await _loyaltyRepository.fetchPointsHistory(
+        page: 1,
+        pageSize: 100,
+      );
+      updatedHistoryItems = history
+          .map(
+            (entry) => _PointHistoryItem(
+              title: entry.title,
+              date: _formatDate(entry.occurredAt),
+              status: entry.statusLabel,
+              pointsDelta: entry.pointsDelta,
+              category: entry.categoryLabel,
+              exchangeId: entry.exchangeId,
+            ),
+          )
+          .toList();
+    } catch (_) {
+      // Keep previous history on error.
+    }
+
+    try {
+      final expiry = await _loyaltyRepository.fetchPointsExpiry(
+        category: 'ALL',
+      );
+      updatedExpiryItems = expiry
+          .map(
+            (entry) => _ExpiryItem(
+              title: entry.title,
+              status: entry.statusLabel,
+              pointsDelta: entry.pointsDelta,
+              expiryDate: entry.expiryDate == null
+                  ? '--'
+                  : _formatDate(entry.expiryDate!),
+              category: entry.categoryLabel,
+            ),
+          )
+          .toList();
+    } catch (_) {
+      // Keep previous expiry on error.
+    }
+
+    if (!mounted) return;
+    if (updatedHistoryItems == null && updatedExpiryItems == null) return;
+
+    setState(() {
+      if (updatedHistoryItems != null) {
+        _historyItems = updatedHistoryItems;
+      }
+      if (updatedExpiryItems != null) {
+        _expiryItems = updatedExpiryItems;
+      }
+    });
+  }
+
+  Future<void> _syncLatestPointsFromBackend() async {
+    try {
+      final latestPoints = await _loyaltyRepository.fetchCurrentPoints();
+      if (!mounted || latestPoints == _availablePoints) return;
+      setState(() => _availablePoints = latestPoints);
+    } catch (_) {
+      // Keep current point balance on sync failures.
+    }
+  }
+
+  Future<void> _openHistoryDetail(_PointHistoryItem item) async {
+    if (item.exchange != null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) =>
+              LoyaltyItemExchangedDetailScreen(exchange: item.exchange!),
+        ),
+      );
+      return;
+    }
+
+    final exchangeId = item.exchangeId?.trim() ?? '';
+    if (exchangeId.isEmpty) return;
+
+    try {
+      final exchange = await _loyaltyRepository.fetchExchangeDetail(
+        exchangeId: exchangeId,
+        fallbackRemainingPoints: _availablePoints,
+      );
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => LoyaltyItemExchangedDetailScreen(exchange: exchange),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final message = e is LoyaltyRepositoryException
+          ? e.message
+          : 'Unable to load exchange detail right now.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -748,6 +896,7 @@ class _PointHistoryItem {
   final int pointsDelta;
   final String category;
   final LoyaltyItemExchange? exchange;
+  final String? exchangeId;
 
   const _PointHistoryItem({
     required this.title,
@@ -756,7 +905,39 @@ class _PointHistoryItem {
     required this.pointsDelta,
     required this.category,
     this.exchange,
+    this.exchangeId,
   });
+}
+
+class _RewardsEmptyState extends StatelessWidget {
+  const _RewardsEmptyState({this.message});
+
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolved = message?.trim().isNotEmpty == true
+        ? message!.trim()
+        : 'No rewards to display.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        resolved,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontFamily: 'Battambang',
+          fontSize: 14,
+          color: Color(0xFF6E6E6E),
+        ),
+      ),
+    );
+  }
 }
 
 class _ExpiryItem {

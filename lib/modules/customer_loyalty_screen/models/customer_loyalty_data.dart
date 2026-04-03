@@ -19,8 +19,8 @@ class CustomerLoyaltyData {
 }
 
 const customerLoyaltyDefaultData = CustomerLoyaltyData(
-  username: 'Jame Taki',
-  phone: '099 123 4567',
+  username: 'Member',
+  phone: '',
   points: '0',
   promoPeriodText: '01-28 Feb 2026 - Special promotions and bundles.',
   exchangePointsImageUrl:
@@ -77,7 +77,8 @@ const List<ProductItem> PriceCheckingProducts = <ProductItem>[
     name: 'NR-OSTRA FZ-SHRIMP TEMPURA',
     price: 14.25,
     imageUrl:
-'https://food.fnr.sndimg.com/content/dam/images/food/fullset/2016/6/12/3/FNM070116_Penne-with-Vodka-Sauce-and-Mini-Meatballs-recipe_s4x3.jpg.rend.hgtvcom.616.462.85.suffix/1465939620872.webp'  ),
+        'https://food.fnr.sndimg.com/content/dam/images/food/fullset/2016/6/12/3/FNM070116_Penne-with-Vodka-Sauce-and-Mini-Meatballs-recipe_s4x3.jpg.rend.hgtvcom.616.462.85.suffix/1465939620872.webp',
+  ),
   ProductItem(
     id: 'p7',
     name: 'NR-OSTRA FZ-MIX SEAFOOD',
@@ -92,28 +93,28 @@ const List<ProductItem> PriceCheckingProducts = <ProductItem>[
     imageUrl:
         'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
   ),
-   ProductItem(
+  ProductItem(
     id: 'p9',
     name: 'NR-OSTRA FZ-FISH FILLET',
     price: 9.95,
     imageUrl:
         'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
   ),
-   ProductItem(
+  ProductItem(
     id: 'p10',
     name: 'NR-OSTRA FZ-FISH FILLET',
     price: 9.95,
     imageUrl:
         'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
   ),
-   ProductItem(
+  ProductItem(
     id: 'p11',
     name: 'NR-OSTRA FZ-FISH FILLET',
     price: 9.95,
     imageUrl:
         'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80',
   ),
-   ProductItem(
+  ProductItem(
     id: 'p12',
     name: 'NR-OSTRA FZ-FISH FILLET',
     price: 9.95,

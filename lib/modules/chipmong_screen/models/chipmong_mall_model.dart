@@ -61,11 +61,11 @@ class ChipmongMallLoyaltyInfo {
 // ---------------------------------------------------------------------------
 
 const chipmongMallDefaultLoyalty = ChipmongMallLoyaltyInfo(
-  username: 'Jame',
-  memberId: '224256797',
+  username: 'Member',
+  memberId: '000000000',
   tier: 'LIFESTYLE',
-  points: 30,
-  expiryDate: '2027-02-25',
+  points: 0,
+  expiryDate: '--',
 );
 
 const chipmongMallCategories = <ChipmongMallCategory>[

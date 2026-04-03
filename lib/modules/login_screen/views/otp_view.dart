@@ -583,7 +583,9 @@ class _OtpViewState extends State<OtpView> {
       await UserSession.markAuthenticated(
         fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
         phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
-        token: resolvedToken.isEmpty ? null : resolvedToken,
+        // Pass empty string when token is missing to prevent stale token reuse
+        // from a previous account.
+        token: resolvedToken,
       );
 
       if (!mounted) return;

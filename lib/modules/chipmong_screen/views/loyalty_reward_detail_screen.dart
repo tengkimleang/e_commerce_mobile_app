@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../../core/services/user_session.dart';
 import '../../../core/theme/app_theme.dart';
+import '../repositories/loyalty_repository.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
 
 class LoyaltyRewardDetailScreen extends StatefulWidget {
@@ -9,10 +12,12 @@ class LoyaltyRewardDetailScreen extends StatefulWidget {
     super.key,
     required this.product,
     required this.availablePoints,
+    this.repository,
   });
 
   final LoyaltyProduct product;
   final int availablePoints;
+  final LoyaltyRepository? repository;
 
   @override
   State<LoyaltyRewardDetailScreen> createState() =>
@@ -22,10 +27,18 @@ class LoyaltyRewardDetailScreen extends StatefulWidget {
 class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
   int _selectedTab = 0;
   OverlayEntry? _errorBannerEntry;
+  late final LoyaltyRepository _repository;
+  bool _isSubmittingRedeem = false;
 
   static const _tabs = ['ព័ត៌មានលម្អិត', 'គោលការណ៍ និង លក្ខខណ្ឌ'];
   static const _defaultPickupLocation =
       'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall';
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.repository ?? LoyaltyRepository();
+  }
 
   @override
   void dispose() {
@@ -89,7 +102,9 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
                 width: double.infinity,
                 height: 60,
                 child: ElevatedButton(
-                  onPressed: _openRedeemConfirmationSheet,
+                  onPressed: _isSubmittingRedeem
+                      ? null
+                      : _openRedeemConfirmationSheet,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -102,7 +117,16 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
                       borderRadius: BorderRadius.circular(32),
                     ),
                   ),
-                  child: const Text('ប្តូររង្វាន់'),
+                  child: _isSubmittingRedeem
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('ប្តូររង្វាន់'),
                 ),
               ),
             ),
@@ -128,55 +152,87 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
     );
 
     if (!mounted || exchangeForm == null) return;
-    _handleRedeemConfirm(exchangeForm);
+    await _submitExchange(exchangeForm);
   }
 
-  void _handleRedeemConfirm(_ExchangeFormData exchangeForm) {
+  Future<void> _submitExchange(_ExchangeFormData exchangeForm) async {
     final hasEnoughPoints = widget.availablePoints >= widget.product.points;
     if (!hasEnoughPoints) {
-      _showTopErrorBanner();
+      _showTopErrorBanner(
+        requiredPoints: widget.product.points,
+        availablePoints: widget.availablePoints,
+      );
       return;
     }
 
-    final now = DateTime.now();
-    final exchangedPoints = widget.product.points;
-    final exchange = LoyaltyItemExchange(
-      product: widget.product,
-      exchangedAt: now,
-      exchangedPoints: exchangedPoints,
-      remainingPoints: widget.availablePoints - exchangedPoints,
-      referenceNo: _buildExchangeReference(now),
-      status: 'កំពុងពិនិត្យ',
-      fulfillmentMethod: exchangeForm.fulfillmentMethod,
-      pickupUserType: exchangeForm.pickupUserType,
-      receiverName: exchangeForm.receiverName,
-      receiverPhone: exchangeForm.receiverPhone,
-      representativeName: exchangeForm.representativeName,
-      representativePhone: exchangeForm.representativePhone,
-      pickupLocation: _defaultPickupLocation,
-      deliveryAddress: exchangeForm.deliveryAddress,
-      exchangeNote: exchangeForm.note,
-      collectBeforeDate: now.add(const Duration(days: 7)),
-    );
-    Navigator.of(context).pop(exchange);
+    final rewardId = widget.product.rewardId.trim();
+    if (rewardId.isEmpty) {
+      _showSubmitError(
+        message: 'Reward is not available yet. Please refresh and try again.',
+      );
+      return;
+    }
+
+    setState(() => _isSubmittingRedeem = true);
+    try {
+      final exchange = await _repository.createExchange(
+        product: widget.product,
+        request: LoyaltyExchangeRequest(
+          fulfillmentMethod: exchangeForm.fulfillmentMethod,
+          pickupUserType: exchangeForm.pickupUserType,
+          receiverName: exchangeForm.receiverName,
+          receiverPhone: exchangeForm.receiverPhone,
+          representativeName: exchangeForm.representativeName,
+          representativePhone: exchangeForm.representativePhone,
+          deliveryAddress: exchangeForm.deliveryAddress,
+          note: exchangeForm.note,
+        ),
+        fallbackAvailablePoints: widget.availablePoints,
+        idempotencyKey: _buildIdempotencyKey(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop(exchange);
+    } on LoyaltyRepositoryException catch (e) {
+      if (!mounted) return;
+      if (e.code.trim().toUpperCase() == 'LOYALTY_POINTS_INSUFFICIENT') {
+        _showTopErrorBanner(
+          requiredPoints: widget.product.points,
+          availablePoints: widget.availablePoints,
+        );
+      } else {
+        _showSubmitError(message: e.message);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      _showSubmitError(
+        message:
+            'Unable to submit exchange request right now. Please try again.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmittingRedeem = false);
+      }
+    }
   }
 
-  String _buildExchangeReference(DateTime timestamp) {
-    final brandSeed = widget.product.brandName.toUpperCase().replaceAll(
-      RegExp(r'[^A-Z0-9]'),
-      '',
-    );
-    final shortBrand = brandSeed.isEmpty
-        ? 'CMR'
-        : (brandSeed.length > 3 ? brandSeed.substring(0, 3) : brandSeed);
-    final datePart =
-        '${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}';
-    final timePart =
-        '${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}${timestamp.second.toString().padLeft(2, '0')}';
-    return 'CMR-$datePart-$shortBrand$timePart';
+  String _buildIdempotencyKey() {
+    final rewardPart = widget.product.rewardId.trim().isEmpty
+        ? 'reward'
+        : widget.product.rewardId.trim();
+    final millis = DateTime.now().millisecondsSinceEpoch;
+    return 'cmr-exchange-$rewardPart-$millis';
   }
 
-  void _showTopErrorBanner() {
+  void _showSubmitError({required String message}) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showTopErrorBanner({
+    required int requiredPoints,
+    required int availablePoints,
+  }) {
     _errorBannerEntry?.remove();
     _errorBannerEntry = null;
 
@@ -188,14 +244,17 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
           left: 12,
           right: 12,
           top: topInset + 12,
-          child: const _RedeemErrorBanner(),
+          child: _RedeemErrorBanner(
+            requiredPoints: requiredPoints,
+            availablePoints: availablePoints,
+          ),
         );
       },
     );
 
     overlay.insert(_errorBannerEntry!);
 
-    Future<void>.delayed(const Duration(seconds: 3), () {
+    Future<void>.delayed(const Duration(seconds: 5), () {
       _errorBannerEntry?.remove();
       _errorBannerEntry = null;
     });
@@ -490,9 +549,28 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
   LoyaltyPickupUserType _pickupUserType = LoyaltyPickupUserType.accountOwner;
   LoyaltyFulfillmentMethod _selectedFulfillmentMethod =
       LoyaltyFulfillmentMethod.pickup;
+  static final _phoneInputFormatter = FilteringTextInputFormatter.allow(
+    RegExp(r'[0-9០-៩+\- ]'),
+  );
+  static final _phoneLengthFormatter = _PhoneDigitLengthInputFormatter(
+    maxDigits: 13,
+  );
 
   bool get _isPickup =>
       _selectedFulfillmentMethod == LoyaltyFulfillmentMethod.pickup;
+
+  @override
+  void initState() {
+    super.initState();
+    final sessionName = UserSession.displayName.trim();
+    final sessionPhone = UserSession.phoneNumber.trim();
+    if (sessionName.isNotEmpty) {
+      _receiverNameController.text = sessionName;
+    }
+    if (sessionPhone.isNotEmpty) {
+      _receiverPhoneController.text = sessionPhone;
+    }
+  }
 
   @override
   void dispose() {
@@ -511,13 +589,87 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
     return null;
   }
 
+  String _normalizePhone(String input) {
+    const khmerToAscii = <String, String>{
+      '០': '0',
+      '១': '1',
+      '២': '2',
+      '៣': '3',
+      '៤': '4',
+      '៥': '5',
+      '៦': '6',
+      '៧': '7',
+      '៨': '8',
+      '៩': '9',
+    };
+
+    final trimmed = input.trim();
+    final digitBuffer = StringBuffer();
+    var hasLeadingPlus = false;
+
+    for (var i = 0; i < trimmed.length; i++) {
+      final char = trimmed[i];
+      if (char == '+' && digitBuffer.isEmpty && !hasLeadingPlus) {
+        hasLeadingPlus = true;
+        continue;
+      }
+      final normalizedChar = khmerToAscii[char] ?? char;
+      if (RegExp(r'[0-9]').hasMatch(normalizedChar)) {
+        digitBuffer.write(normalizedChar);
+      }
+    }
+
+    final digitsOnly = digitBuffer.toString();
+    if (digitsOnly.isEmpty) return '';
+    return hasLeadingPlus ? '+$digitsOnly' : digitsOnly;
+  }
+
+  String _toLocalPhone(String input) {
+    final normalized = _normalizePhone(input);
+    if (normalized.startsWith('+855') && normalized.length > 4) {
+      return '0${normalized.substring(4)}';
+    }
+    if (normalized.startsWith('855') && normalized.length > 3) {
+      return '0${normalized.substring(3)}';
+    }
+    return normalized;
+  }
+
   String? _validatePhone(String? value) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) return 'Phone number is required';
-    if (!RegExp(r'^[0-9+ -]{8,16}$').hasMatch(text)) {
-      return 'Invalid phone number';
+    final phone = _toLocalPhone(value ?? '');
+    if (phone.isEmpty) {
+      return 'Phone number is required';
+    }
+
+    if (!RegExp(r'^[0-9]+$').hasMatch(phone)) {
+      return 'Phone number must contain only digits';
+    }
+    if (!phone.startsWith('0')) {
+      return 'Phone number must start with 0';
+    }
+    if (phone.length <= 9) {
+      return 'Phone number must be longer than 9 digits';
+    }
+    if (phone.length >= 14) {
+      return 'Phone number must be shorter than 14 digits';
     }
     return null;
+  }
+
+  void _changeFulfillmentMethod(LoyaltyFulfillmentMethod method) {
+    if (_selectedFulfillmentMethod == method) return;
+    setState(() => _selectedFulfillmentMethod = method);
+    _formKey.currentState?.validate();
+  }
+
+  void _changePickupUserType(LoyaltyPickupUserType type) {
+    if (_pickupUserType == type) return;
+    setState(() => _pickupUserType = type);
+    if (type == LoyaltyPickupUserType.accountOwner) {
+      _representativeNameController.clear();
+      _representativePhoneController.clear();
+    }
+    _formKey.currentState?.validate();
   }
 
   void _submitForm() {
@@ -530,12 +682,12 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
       fulfillmentMethod: _selectedFulfillmentMethod,
       pickupUserType: _isPickup ? _pickupUserType : null,
       receiverName: _receiverNameController.text.trim(),
-      receiverPhone: _receiverPhoneController.text.trim(),
+      receiverPhone: _toLocalPhone(_receiverPhoneController.text),
       representativeName: _isPickup && isRepresentative
           ? _representativeNameController.text.trim()
           : null,
       representativePhone: _isPickup && isRepresentative
-          ? _representativePhoneController.text.trim()
+          ? _toLocalPhone(_representativePhoneController.text)
           : null,
       deliveryAddress: !_isPickup
           ? _deliveryAddressController.text.trim()
@@ -567,6 +719,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
           ),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -605,12 +758,9 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         selected:
                             _selectedFulfillmentMethod ==
                             LoyaltyFulfillmentMethod.pickup,
-                        onTap: () {
-                          setState(() {
-                            _selectedFulfillmentMethod =
-                                LoyaltyFulfillmentMethod.pickup;
-                          });
-                        },
+                        onTap: () => _changeFulfillmentMethod(
+                          LoyaltyFulfillmentMethod.pickup,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       _MethodChoiceChip(
@@ -619,12 +769,9 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         selected:
                             _selectedFulfillmentMethod ==
                             LoyaltyFulfillmentMethod.delivery,
-                        onTap: () {
-                          setState(() {
-                            _selectedFulfillmentMethod =
-                                LoyaltyFulfillmentMethod.delivery;
-                          });
-                        },
+                        onTap: () => _changeFulfillmentMethod(
+                          LoyaltyFulfillmentMethod.delivery,
+                        ),
                       ),
                     ],
                   ),
@@ -719,6 +866,10 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                           controller: _receiverPhoneController,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
+                          inputFormatters: [
+                            _phoneInputFormatter,
+                            _phoneLengthFormatter,
+                          ],
                           decoration: const InputDecoration(
                             labelText: 'Receiver phone number',
                             hintText: 'Enter phone number',
@@ -748,12 +899,9 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                                   selected:
                                       _pickupUserType ==
                                       LoyaltyPickupUserType.accountOwner,
-                                  onTap: () {
-                                    setState(() {
-                                      _pickupUserType =
-                                          LoyaltyPickupUserType.accountOwner;
-                                    });
-                                  },
+                                  onTap: () => _changePickupUserType(
+                                    LoyaltyPickupUserType.accountOwner,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -768,12 +916,9 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                                   selected:
                                       _pickupUserType ==
                                       LoyaltyPickupUserType.representative,
-                                  onTap: () {
-                                    setState(() {
-                                      _pickupUserType =
-                                          LoyaltyPickupUserType.representative;
-                                    });
-                                  },
+                                  onTap: () => _changePickupUserType(
+                                    LoyaltyPickupUserType.representative,
+                                  ),
                                 ),
                               ),
                             ],
@@ -852,6 +997,10 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                               controller: _representativePhoneController,
                               keyboardType: TextInputType.phone,
                               textInputAction: TextInputAction.next,
+                              inputFormatters: [
+                                _phoneInputFormatter,
+                                _phoneLengthFormatter,
+                              ],
                               decoration: const InputDecoration(
                                 labelText: 'Representative phone number',
                                 hintText: 'Enter representative phone',
@@ -1067,7 +1216,18 @@ class _PickupUserTypeCard extends StatelessWidget {
 }
 
 class _RedeemErrorBanner extends StatelessWidget {
-  const _RedeemErrorBanner();
+  const _RedeemErrorBanner({
+    required this.requiredPoints,
+    required this.availablePoints,
+  });
+
+  final int requiredPoints;
+  final int availablePoints;
+
+  int get _missingPoints {
+    if (requiredPoints <= availablePoints) return 0;
+    return requiredPoints - availablePoints;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1117,7 +1277,7 @@ class _RedeemErrorBanner extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'You do not have enough points to redeem this voucher',
+                    'Not enough points yet. This reward needs $requiredPoints points, but your balance is $availablePoints points. Earn $_missingPoints more points and try again.',
                     style: TextStyle(
                       fontSize: 34 / 3,
                       color: Colors.grey[700],
@@ -1131,5 +1291,30 @@ class _RedeemErrorBanner extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PhoneDigitLengthInputFormatter extends TextInputFormatter {
+  const _PhoneDigitLengthInputFormatter({required this.maxDigits});
+
+  final int maxDigits;
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final plusCount = RegExp(r'\+').allMatches(newValue.text).length;
+    final plusIndex = newValue.text.indexOf('+');
+    if (plusCount > 1 || (plusCount == 1 && plusIndex > 0)) {
+      return oldValue;
+    }
+
+    final digitCount = RegExp(r'[0-9០-៩]').allMatches(newValue.text).length;
+    if (digitCount > maxDigits) {
+      return oldValue;
+    }
+
+    return newValue;
   }
 }

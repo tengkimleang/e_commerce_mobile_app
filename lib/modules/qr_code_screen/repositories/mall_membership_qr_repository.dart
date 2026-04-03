@@ -232,6 +232,8 @@ class MallMembershipQrRepository {
     final message = switch (normalized) {
       'AUTH401' => _sessionExpiredMessage,
       'AUTH403' => _permissionDeniedMessage,
+      'MEMBER_NOT_FOUND' => _memberMissingMessage,
+      'MEMBER_INACTIVE' => _permissionDeniedMessage,
       'USR404' => _memberMissingMessage,
       _ => _syncErrorMessage,
     };

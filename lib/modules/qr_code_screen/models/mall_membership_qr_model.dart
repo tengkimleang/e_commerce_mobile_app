@@ -22,12 +22,12 @@ class MallMembershipQrModel {
   });
 
   static const fallback = MallMembershipQrModel(
-    username: 'Jame',
+    username: 'Member',
     tierLevel: 'LifeStyle',
-    membershipId: '224256797',
+    membershipId: '000000000',
     membershipType: 'LifeStyle Member',
     points: 30,
-    qrPayload: 'cmr://chipmong-mall/member?id=224256797',
+    qrPayload: 'cmr://chipmong-mall/member?id=000000000',
     isFallback: true,
   );
 

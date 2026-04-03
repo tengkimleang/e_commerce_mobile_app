@@ -6,117 +6,182 @@ import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/repositories/user_info_repository.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 import '../models/mall_membership_qr_model.dart';
 import '../repositories/mall_membership_qr_repository.dart';
 
-class QrCodeView extends StatelessWidget {
+class QrCodeView extends StatefulWidget {
   final bool showBottomNavigation;
   final bool? isGuest;
 
   const QrCodeView({super.key, this.showBottomNavigation = true, this.isGuest});
 
   @override
+  State<QrCodeView> createState() => _QrCodeViewState();
+}
+
+class _QrCodeViewState extends State<QrCodeView> {
+  late final UserInfoRepository _userInfoRepository;
+  late Future<_SupermarketQrProfile> _profileFuture;
+
+  bool get _guestMode => widget.isGuest ?? UserSession.isGuest;
+
+  @override
+  void initState() {
+    super.initState();
+    _userInfoRepository = UserInfoRepository();
+    _profileFuture = _loadProfile();
+  }
+
+  Future<_SupermarketQrProfile> _loadProfile() async {
+    if (_guestMode) return const _SupermarketQrProfile.guest();
+
+    final sessionName = UserSession.displayName.trim();
+    final sessionPhone = UserSession.phoneNumber.trim();
+    var resolvedName = sessionName;
+    var resolvedPhone = sessionPhone;
+    var resolvedPoints = 0;
+
+    try {
+      final profile = await _userInfoRepository.loadUserInfo();
+      final profileName = profile.username.trim();
+      final profilePhone = profile.phoneNumber.trim();
+      if (profileName.isNotEmpty) {
+        resolvedName = profileName;
+      }
+      if (profilePhone.isNotEmpty) {
+        resolvedPhone = profilePhone;
+      }
+      resolvedPoints = profile.points;
+    } catch (_) {
+      // Keep session fallback values.
+    }
+
+    if (resolvedName.isEmpty) {
+      resolvedName = resolvedPhone.isEmpty ? 'User' : resolvedPhone;
+    }
+
+    return _SupermarketQrProfile(
+      username: resolvedName,
+      phone: resolvedPhone,
+      points: resolvedPoints,
+      isGuest: false,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
-    final guestMode = isGuest ?? UserSession.isGuest;
-    final username = guestMode ? '' : 'Jame Taki';
-    final phone = guestMode ? '' : '094754475';
-    final points = guestMode ? '0' : '10';
-    final usernameLabel = guestMode ? '--------------------' : username;
-    final phoneLabel = guestMode ? '--------------------' : phone;
-
-    final qrData = Uri.encodeComponent(
-      'user:$username;phone:$phone;points:$points',
-    );
-    final qrUrl =
-        'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
-      body: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(26),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.09),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+      body: FutureBuilder<_SupermarketQrProfile>(
+        future: _profileFuture,
+        builder: (context, snapshot) {
+          final profile = snapshot.data ?? _SupermarketQrProfile.fromSession();
+          final username = profile.isGuest ? '' : profile.username;
+          final phone = profile.isGuest ? '' : profile.phone;
+          final points = profile.points.toString();
+          final usernameLabel = profile.isGuest
+              ? '--------------------'
+              : username;
+          final phoneLabel = profile.isGuest ? '--------------------' : phone;
+
+          final qrData = Uri.encodeComponent(
+            'user:$username;phone:$phone;points:$points',
+          );
+          final qrUrl =
+              'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
+
+          return Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(26),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.09),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: 86,
-                child: Center(
-                  child: Text(
-                    'QR Code',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 21,
+                child: SafeArea(
+                  bottom: false,
+                  child: SizedBox(
+                    height: 86,
+                    child: Center(
+                      child: Text(
+                        'QR Code',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: accent,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 21,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
-              child: Column(
-                children: [
-                  Image.network(
-                    qrUrl,
-                    width: 300,
-                    height: 300,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 300,
-                      height: 300,
-                      color: Colors.grey[300],
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.qr_code_2, size: 64),
-                    ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+                  child: Column(
+                    children: [
+                      Image.network(
+                        qrUrl,
+                        width: 300,
+                        height: 300,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 300,
+                          height: 300,
+                          color: Colors.grey[300],
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.qr_code_2, size: 64),
+                        ),
+                      ),
+                      const SizedBox(height: 34),
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEDEDED),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 18,
+                        ),
+                        child: Column(
+                          children: [
+                            _InfoRow(label: 'Username:', value: usernameLabel),
+                            const SizedBox(height: 10),
+                            const _DashedDivider(),
+                            const SizedBox(height: 10),
+                            _InfoRow(label: 'Phone number:', value: phoneLabel),
+                            const SizedBox(height: 10),
+                            const _DashedDivider(),
+                            const SizedBox(height: 10),
+                            _InfoRow(
+                              label: 'Supermarket Point:',
+                              value: points,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 34),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEDEDED),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
-                    ),
-                    child: Column(
-                      children: [
-                        _InfoRow(label: 'Username:', value: usernameLabel),
-                        const SizedBox(height: 10),
-                        const _DashedDivider(),
-                        const SizedBox(height: 10),
-                        _InfoRow(label: 'Phone number:', value: phoneLabel),
-                        const SizedBox(height: 10),
-                        const _DashedDivider(),
-                        const SizedBox(height: 10),
-                        _InfoRow(label: 'Supermarket Point:', value: points),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
-      bottomNavigationBar: showBottomNavigation
+      bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
               selectedIndex: 2,
               onTap: (index) => _onBottomNavTap(context, index),
@@ -154,6 +219,45 @@ class QrCodeView extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const UserInfoView()),
       );
     }
+  }
+}
+
+class _SupermarketQrProfile {
+  const _SupermarketQrProfile({
+    required this.username,
+    required this.phone,
+    required this.points,
+    required this.isGuest,
+  });
+
+  const _SupermarketQrProfile.guest()
+    : username = '',
+      phone = '',
+      points = 0,
+      isGuest = true;
+
+  final String username;
+  final String phone;
+  final int points;
+  final bool isGuest;
+
+  factory _SupermarketQrProfile.fromSession() {
+    if (UserSession.isGuest) {
+      return const _SupermarketQrProfile.guest();
+    }
+
+    final sessionName = UserSession.displayName.trim();
+    final sessionPhone = UserSession.phoneNumber.trim();
+    final name = sessionName.isEmpty
+        ? (sessionPhone.isEmpty ? 'User' : sessionPhone)
+        : sessionName;
+
+    return _SupermarketQrProfile(
+      username: name,
+      phone: sessionPhone,
+      points: 0,
+      isGuest: false,
+    );
   }
 }
 

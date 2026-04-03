@@ -61,9 +61,9 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
-    context
-        .read<ChipmongMallBloc>()
-        .add(ChipmongMallTabChanged(_tabController.index));
+    context.read<ChipmongMallBloc>().add(
+      ChipmongMallTabChanged(_tabController.index),
+    );
   }
 
   @override
@@ -114,12 +114,20 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                         MallBannerCarousel(images: state.bannerImages),
                         MallCategoryRow(categories: chipmongMallCategories),
                         GestureDetector(
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  LoyaltyCardDetailScreen(info: state.loyaltyInfo),
-                            ),
-                          ),
+                          onTap: () async {
+                            final updatedInfo = await Navigator.of(context)
+                                .push<ChipmongMallLoyaltyInfo>(
+                                  MaterialPageRoute(
+                                    builder: (_) => LoyaltyCardDetailScreen(
+                                      info: state.loyaltyInfo,
+                                    ),
+                                  ),
+                                );
+                            if (!context.mounted || updatedInfo == null) return;
+                            context.read<ChipmongMallBloc>().add(
+                              ChipmongMallLoyaltyInfoUpdated(updatedInfo),
+                            );
+                          },
                           child: MallLoyaltyCard(info: state.loyaltyInfo),
                         ),
                         MallTabBarHeader(controller: _tabController),
@@ -155,9 +163,9 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
               child: MallBottomNav(
                 items: _navItems,
                 selectedIndex: state.bottomNavIndex,
-                onTap: (i) => context
-                    .read<ChipmongMallBloc>()
-                    .add(ChipmongMallBottomNavChanged(i)),
+                onTap: (i) => context.read<ChipmongMallBloc>().add(
+                  ChipmongMallBottomNavChanged(i),
+                ),
               ),
             ),
           ),
@@ -166,4 +174,3 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
     );
   }
 }
-

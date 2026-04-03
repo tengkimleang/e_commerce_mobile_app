@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 import 'customer_loyalty_event.dart';
 import 'customer_loyalty_state.dart';
@@ -25,10 +26,13 @@ class CustomerLoyaltyBloc
 
     try {
       final data = await _repository.fetchLoyaltyData();
+      final sessionName = UserSession.displayName.trim();
+      final sessionPhone = UserSession.phoneNumber.trim();
+
       emit(
         state.copyWith(
-          username: data.username,
-          phone: data.phone,
+          username: sessionName.isEmpty ? data.username : sessionName,
+          phone: sessionPhone.isEmpty ? data.phone : sessionPhone,
           points: data.points,
           promoPeriodText: data.promoPeriodText,
           exchangePointsImageUrl: data.exchangePointsImageUrl,

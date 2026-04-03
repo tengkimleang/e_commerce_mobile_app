@@ -18,8 +18,11 @@ class UserInfoRepository {
   static const _cacheImagePathKey = 'user_info_cache_profile_image_path';
   static const _cacheImageUrlKey = 'user_info_cache_profile_image_url';
   static const _cacheLanguageKey = 'user_info_cache_language';
+  static const _cacheOwnerKey = 'user_info_cache_owner';
 
-  Future<UserInfoModel> loadUserInfo({String fallbackLanguageCode = 'en'}) async {
+  Future<UserInfoModel> loadUserInfo({
+    String fallbackLanguageCode = 'en',
+  }) async {
     final cached = await _loadCachedUserInfo(
       fallbackLanguageCode: fallbackLanguageCode,
     );
@@ -33,29 +36,33 @@ class UserInfoRepository {
       }
 
       final data = _extractDataMap(response);
-      final hasName = data.containsKey('fullName') || data.containsKey('username');
+      final hasName =
+          data.containsKey('fullName') || data.containsKey('username');
       final hasPhone =
           data.containsKey('phoneNumber') || data.containsKey('phone');
       final hasAddress = data.containsKey('address');
 
-      final remote = UserInfoModel.fromProfileJson(
-        data,
-        fallbackLanguageCode: cached.languageCode,
-      ).copyWith(
-        username: hasName && data['fullName'] != null
-            ? (data['fullName'] ?? data['username']).toString().trim()
-            : (hasName
-                  ? (data['username'] ?? '').toString().trim()
-                  : cached.username),
-        phoneNumber: hasPhone && data['phoneNumber'] != null
-            ? data['phoneNumber'].toString().trim()
-            : (hasPhone
-                  ? (data['phone'] ?? '').toString().trim()
-                  : cached.phoneNumber),
-        address: hasAddress ? (data['address'] ?? '').toString().trim() : cached.address,
-        profileImagePath: cached.profileImagePath,
-        languageCode: cached.languageCode,
-      );
+      final remote =
+          UserInfoModel.fromProfileJson(
+            data,
+            fallbackLanguageCode: cached.languageCode,
+          ).copyWith(
+            username: hasName && data['fullName'] != null
+                ? (data['fullName'] ?? data['username']).toString().trim()
+                : (hasName
+                      ? (data['username'] ?? '').toString().trim()
+                      : cached.username),
+            phoneNumber: hasPhone && data['phoneNumber'] != null
+                ? data['phoneNumber'].toString().trim()
+                : (hasPhone
+                      ? (data['phone'] ?? '').toString().trim()
+                      : cached.phoneNumber),
+            address: hasAddress
+                ? (data['address'] ?? '').toString().trim()
+                : cached.address,
+            profileImagePath: cached.profileImagePath,
+            languageCode: cached.languageCode,
+          );
 
       await cacheUserInfo(remote);
       await _syncSession(remote);
@@ -93,29 +100,33 @@ class UserInfoRepository {
       }
 
       final data = _extractDataMap(response);
-      final hasName = data.containsKey('fullName') || data.containsKey('username');
+      final hasName =
+          data.containsKey('fullName') || data.containsKey('username');
       final hasPhone =
           data.containsKey('phoneNumber') || data.containsKey('phone');
       final hasAddress = data.containsKey('address');
 
-      final remote = UserInfoModel.fromProfileJson(
-        data,
-        fallbackLanguageCode: draft.languageCode,
-      ).copyWith(
-        username: hasName && data['fullName'] != null
-            ? (data['fullName'] ?? data['username']).toString().trim()
-            : (hasName
-                  ? (data['username'] ?? '').toString().trim()
-                  : draft.username),
-        phoneNumber: hasPhone && data['phoneNumber'] != null
-            ? data['phoneNumber'].toString().trim()
-            : (hasPhone
-                  ? (data['phone'] ?? '').toString().trim()
-                  : draft.phoneNumber),
-        address: hasAddress ? (data['address'] ?? '').toString().trim() : draft.address,
-        profileImagePath: draft.profileImagePath,
-        languageCode: draft.languageCode,
-      );
+      final remote =
+          UserInfoModel.fromProfileJson(
+            data,
+            fallbackLanguageCode: draft.languageCode,
+          ).copyWith(
+            username: hasName && data['fullName'] != null
+                ? (data['fullName'] ?? data['username']).toString().trim()
+                : (hasName
+                      ? (data['username'] ?? '').toString().trim()
+                      : draft.username),
+            phoneNumber: hasPhone && data['phoneNumber'] != null
+                ? data['phoneNumber'].toString().trim()
+                : (hasPhone
+                      ? (data['phone'] ?? '').toString().trim()
+                      : draft.phoneNumber),
+            address: hasAddress
+                ? (data['address'] ?? '').toString().trim()
+                : draft.address,
+            profileImagePath: draft.profileImagePath,
+            languageCode: draft.languageCode,
+          );
 
       await cacheUserInfo(remote);
       await _syncSession(remote);
@@ -186,6 +197,13 @@ class UserInfoRepository {
     } else {
       await prefs.setString(_cacheImageUrlKey, imageUrl);
     }
+
+    final owner = _activeSessionOwner(model: model);
+    if (owner.isEmpty) {
+      await prefs.remove(_cacheOwnerKey);
+    } else {
+      await prefs.setString(_cacheOwnerKey, owner);
+    }
   }
 
   Future<UserInfoModel> _loadCachedUserInfo({
@@ -195,6 +213,16 @@ class UserInfoRepository {
     final sessionModel = _buildSessionModel(
       fallbackLanguageCode: fallbackLanguageCode,
     );
+    final activeOwner = _activeSessionOwner();
+    final cachedOwner = (prefs.getString(_cacheOwnerKey) ?? '').trim();
+
+    final canUseCache =
+        activeOwner.isNotEmpty &&
+        cachedOwner.isNotEmpty &&
+        cachedOwner == activeOwner;
+    if (!canUseCache) {
+      return sessionModel;
+    }
 
     final name = (prefs.getString(_cacheNameKey) ?? '').trim();
     final dateText = (prefs.getString(_cacheDobKey) ?? '').trim();
@@ -270,6 +298,22 @@ class UserInfoRepository {
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+
+  String _activeSessionOwner({UserInfoModel? model}) {
+    final modelPhone = model?.phoneNumber.trim() ?? '';
+    if (modelPhone.isNotEmpty) return 'phone:$modelPhone';
+
+    final sessionPhone = UserSession.phoneNumber.trim();
+    if (sessionPhone.isNotEmpty) return 'phone:$sessionPhone';
+
+    final modelName = model?.username.trim() ?? '';
+    if (modelName.isNotEmpty) return 'name:$modelName';
+
+    final sessionName = UserSession.fullName.trim();
+    if (sessionName.isNotEmpty) return 'name:$sessionName';
+
+    return '';
   }
 
   Future<void> _syncSession(UserInfoModel model) async {
