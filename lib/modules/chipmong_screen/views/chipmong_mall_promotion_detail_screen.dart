@@ -57,7 +57,7 @@ class _ChipmongMallPromotionDetailScreenState
         foregroundColor: Colors.black87,
         elevation: 0.5,
         title: const Text(
-          'ព័ត៌មានលម្អិតប្រូម៉ូសិន',
+          'Promotion Details',
           style: TextStyle(
             fontFamily: 'Battambang',
             fontSize: 20,

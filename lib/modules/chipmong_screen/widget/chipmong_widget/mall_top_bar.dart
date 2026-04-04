@@ -21,7 +21,7 @@ class MallTopBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'សាខា',
+                  'Welcome',
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey[500],

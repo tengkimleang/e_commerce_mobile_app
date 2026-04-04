@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/views/set_pin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 
-enum AuthFlow { login, signup }
+enum AuthFlow { login, signup, forgotPin }
 
 class OtpView extends StatefulWidget {
   final String phoneNumber;
@@ -40,13 +41,16 @@ class _OtpViewState extends State<OtpView> {
   Timer? _resendTimer;
 
   bool get _isSignupFlow => widget.flow == AuthFlow.signup;
+  bool get _isForgotPinFlow => widget.flow == AuthFlow.forgotPin;
+  bool get _isPinResetFlow => _isSignupFlow || _isForgotPinFlow;
+  bool get _isLoginOtpFlow => widget.flow == AuthFlow.login;
 
   @override
   void initState() {
     super.initState();
     _controllers = List.generate(4, (_) => TextEditingController());
     _focusNodes = List.generate(4, (_) => FocusNode());
-    if (_isSignupFlow) {
+    if (_isPinResetFlow) {
       _startResendCooldown();
     }
   }
@@ -167,6 +171,51 @@ class _OtpViewState extends State<OtpView> {
     return token.isEmpty ? null : token;
   }
 
+  String? _extractRefreshToken(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    final refreshToken = _pickFirstNonEmpty([
+      data['refreshToken'],
+      data['RefreshToken'],
+      nestedMap?['refreshToken'],
+      nestedMap?['RefreshToken'],
+    ]);
+    return refreshToken.isEmpty ? null : refreshToken;
+  }
+
+  int? _extractAccessTokenExpiresInSeconds(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    final expiresIn = _pickFirstPositiveInt([
+      data['accessTokenExpiresInSeconds'],
+      data['AccessTokenExpiresInSeconds'],
+      data['accessTokenExpiresInSecond'],
+      data['AccessTokenExpiresInSecond'],
+      data['expiresInSeconds'],
+      data['ExpiresInSeconds'],
+      nestedMap?['accessTokenExpiresInSeconds'],
+      nestedMap?['AccessTokenExpiresInSeconds'],
+      nestedMap?['accessTokenExpiresInSecond'],
+      nestedMap?['AccessTokenExpiresInSecond'],
+      nestedMap?['expiresInSeconds'],
+      nestedMap?['ExpiresInSeconds'],
+    ]);
+    return expiresIn > 0 ? expiresIn : null;
+  }
+
+  int? _extractRefreshTokenExpiresInSeconds(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    final expiresIn = _pickFirstPositiveInt([
+      data['refreshTokenExpiresInSeconds'],
+      data['RefreshTokenExpiresInSeconds'],
+      data['refreshExpiresInSeconds'],
+      data['RefreshExpiresInSeconds'],
+      nestedMap?['refreshTokenExpiresInSeconds'],
+      nestedMap?['RefreshTokenExpiresInSeconds'],
+      nestedMap?['refreshExpiresInSeconds'],
+      nestedMap?['RefreshExpiresInSeconds'],
+    ]);
+    return expiresIn > 0 ? expiresIn : null;
+  }
+
   void _clearOtpInputs() {
     for (final c in _controllers) {
       c.clear();
@@ -180,7 +229,7 @@ class _OtpViewState extends State<OtpView> {
   void _startResendCooldown() {
     _resendTimer?.cancel();
 
-    if (!_isSignupFlow) return;
+    if (!_isPinResetFlow) return;
 
     setState(() => _resendSeconds = _signupResendCooldownSeconds);
 
@@ -200,11 +249,10 @@ class _OtpViewState extends State<OtpView> {
     });
   }
 
-  Future<void> _onResendSignupOtp() async {
-    if (!_isSignupFlow || _isResending || _resendSeconds > 0) return;
+  Future<void> _onResendOtp() async {
+    if (!_isPinResetFlow || _isResending || _resendSeconds > 0) return;
 
-    final fullName = widget.fullName?.trim() ?? '';
-    if (fullName.isEmpty) {
+    if (_isSignupFlow && (widget.fullName?.trim().isEmpty ?? true)) {
       _showErrorDialog(
         title: 'Request Failed',
         message: 'Full name is missing. Please go back and try signup again.',
@@ -217,17 +265,23 @@ class _OtpViewState extends State<OtpView> {
     setState(() => _isResending = true);
 
     try {
-      final requestResult = await _authService.requestSignupOtp(
-        fullName: fullName,
-        phoneNumber: widget.phoneNumber,
-      );
+      final requestResult = _isSignupFlow
+          ? await _authService.requestSignupOtp(
+              fullName: widget.fullName?.trim() ?? '',
+              phoneNumber: widget.phoneNumber,
+            )
+          : await _authService.requestForgotPinOtp(
+              phoneNumber: widget.phoneNumber,
+            );
       final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
       final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
       final sent = requestResult['sent'] == true;
+      final success = requestResult['success'] == true;
+      final didSend = sent || success;
 
       if (!mounted) return;
 
-      if (errorCode.isNotEmpty || !sent) {
+      if (errorCode.isNotEmpty || !didSend) {
         setState(() => _isResending = false);
         _showErrorDialog(
           title: 'Request Failed',
@@ -322,7 +376,7 @@ class _OtpViewState extends State<OtpView> {
         );
         return;
       }
-      await _onResendSignupOtp();
+      await _onResendOtp();
       return;
     }
 
@@ -352,6 +406,11 @@ class _OtpViewState extends State<OtpView> {
     try {
       final verifyData = _isSignupFlow
           ? await _authService.verifySignupOtp(
+              phoneNumber: widget.phoneNumber,
+              otpCode: _otpCode,
+            )
+          : _isForgotPinFlow
+          ? await _authService.verifyForgotPinOtp(
               phoneNumber: widget.phoneNumber,
               otpCode: _otpCode,
             )
@@ -398,6 +457,11 @@ class _OtpViewState extends State<OtpView> {
 
       var sessionData = verifyData;
       final verifyToken = _extractToken(verifyData);
+      final verifyRefreshToken = _extractRefreshToken(verifyData);
+      final verifyAccessTokenExpiresInSeconds =
+          _extractAccessTokenExpiresInSeconds(verifyData);
+      final verifyRefreshTokenExpiresInSeconds =
+          _extractRefreshTokenExpiresInSeconds(verifyData);
       final verifyNested = verifyData['data'];
       final verifyNestedMap = _toStringDynamicMap(verifyNested);
       final verifyPrimaryUser = _extractPrimaryUser(verifyData);
@@ -407,24 +471,7 @@ class _OtpViewState extends State<OtpView> {
         verifyPrimaryUser?['userId'],
         verifyPrimaryUser?['UserId'],
       ]);
-      final hasNameInVerify = _pickFirstNonEmpty([
-        verifyData['fullName'],
-        verifyData['name'],
-        verifyData['username'],
-        verifyNestedMap?['fullName'],
-        verifyNestedMap?['name'],
-        verifyNestedMap?['username'],
-        verifyPrimaryUser?['fullName'],
-        verifyPrimaryUser?['name'],
-        verifyPrimaryUser?['username'],
-        verifyPrimaryUser?['full_name'],
-        verifyPrimaryUser?['user_name'],
-        verifyPrimaryUser?['FullName'],
-        verifyPrimaryUser?['Name'],
-        verifyPrimaryUser?['Username'],
-      ]).isNotEmpty;
-      final shouldFetchUser =
-          resolvedUserId > 0 && (_isSignupFlow || !hasNameInVerify);
+      final shouldFetchUser = resolvedUserId > 0 && _isSignupFlow;
 
       if (shouldFetchUser) {
         try {
@@ -521,8 +568,20 @@ class _OtpViewState extends State<OtpView> {
         _extractToken(sessionData),
         verifyToken,
       ]);
+      final resolvedRefreshToken = _pickFirstNonEmpty([
+        _extractRefreshToken(sessionData),
+        verifyRefreshToken,
+      ]);
+      final resolvedAccessTokenExpiresInSeconds = _pickFirstPositiveInt([
+        _extractAccessTokenExpiresInSeconds(sessionData),
+        verifyAccessTokenExpiresInSeconds,
+      ]);
+      final resolvedRefreshTokenExpiresInSeconds = _pickFirstPositiveInt([
+        _extractRefreshTokenExpiresInSeconds(sessionData),
+        verifyRefreshTokenExpiresInSeconds,
+      ]);
 
-      if (!_isSignupFlow &&
+      if (_isLoginOtpFlow &&
           resolvedFullName.isEmpty &&
           resolvedToken.isNotEmpty) {
         try {
@@ -586,14 +645,39 @@ class _OtpViewState extends State<OtpView> {
         // Pass empty string when token is missing to prevent stale token reuse
         // from a previous account.
         token: resolvedToken,
+        // Pass empty string when refresh token is missing to prevent stale
+        // token reuse from a previous account.
+        refreshToken: resolvedRefreshToken,
+        accessTokenExpiresInSeconds: resolvedAccessTokenExpiresInSeconds > 0
+            ? resolvedAccessTokenExpiresInSeconds
+            : null,
+        refreshTokenExpiresInSeconds: resolvedRefreshTokenExpiresInSeconds > 0
+            ? resolvedRefreshTokenExpiresInSeconds
+            : null,
       );
 
       if (!mounted) return;
-
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const IndexView()),
-        (route) => false,
-      );
+      if (_isPinResetFlow) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => SetPinView(
+              flow: _isSignupFlow
+                  ? PinSetupFlow.signup
+                  : PinSetupFlow.forgotPin,
+              phoneNumber: resolvedPhone.isEmpty
+                  ? widget.phoneNumber
+                  : resolvedPhone,
+              fullName: resolvedFullName,
+            ),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const IndexView()),
+          (route) => false,
+        );
+      }
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
@@ -788,14 +872,14 @@ class _OtpViewState extends State<OtpView> {
                   ),
                 ),
               ),
-              if (_isSignupFlow) ...[
+              if (_isPinResetFlow) ...[
                 const SizedBox(height: 12),
                 Center(
                   child: TextButton(
                     onPressed:
                         (_isSubmitting || _isResending || _resendSeconds > 0)
                         ? null
-                        : _onResendSignupOtp,
+                        : _onResendOtp,
                     child: Text(
                       _isResending
                           ? 'Sending...'

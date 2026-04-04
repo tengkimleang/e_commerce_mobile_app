@@ -30,9 +30,9 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
   late final LoyaltyRepository _repository;
   bool _isSubmittingRedeem = false;
 
-  static const _tabs = ['ព័ត៌មានលម្អិត', 'គោលការណ៍ និង លក្ខខណ្ឌ'];
+  static const _tabs = ['Details', 'Terms & Conditions'];
   static const _defaultPickupLocation =
-      'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall';
+      'Information Counter, Chip Mong 271 Mega Mall';
 
   @override
   void initState() {
@@ -57,7 +57,7 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
         foregroundColor: Colors.black87,
         elevation: 0.4,
         title: const Text(
-          'ព័ត៌មានលម្អិតរង្វាន់',
+          'Reward Details',
           style: TextStyle(
             fontFamily: 'Battambang',
             fontSize: 20,
@@ -126,7 +126,7 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('ប្តូររង្វាន់'),
+                      : const Text('Redeem'),
                 ),
               ),
             ),
@@ -302,7 +302,7 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
               ? product.title
               : product.pointCondition)
         : (product.termsAndConditions.isEmpty
-              ? 'អាស្រ័យលើលក្ខខណ្ឌរបស់ហាង និងស្តុកជាក់ស្តែង។'
+              ? 'Subject to store terms and actual stock availability.'
               : product.termsAndConditions);
     return Container(
       width: double.infinity,
@@ -328,6 +328,9 @@ class _RewardSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = product.imageUrl.trim();
+    final hasValidImage = _isValidNetworkUrl(imageUrl);
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -340,23 +343,18 @@ class _RewardSummaryCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl: product.imageUrl,
-              height: _imageHeight,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (context, url) =>
-                  Container(height: _imageHeight, color: Colors.grey[200]),
-              errorWidget: (context, url, error) => Container(
-                height: _imageHeight,
-                color: AppColors.primary.withAlpha(15),
-                child: Icon(
-                  Icons.image_outlined,
-                  size: 44,
-                  color: AppColors.primary.withAlpha(80),
-                ),
-              ),
-            ),
+            child: hasValidImage
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    height: _imageHeight,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) =>
+                        Container(height: _imageHeight, color: Colors.grey[200]),
+                    errorWidget: (context, url, error) =>
+                        _buildImageFallback(),
+                  )
+                : _buildImageFallback(),
           ),
           const SizedBox(height: 14),
           Text(
@@ -391,7 +389,7 @@ class _RewardSummaryCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'ពិន្ទុដើម្បីប្តូររង្វាន់:',
+                      'Points to redeem:',
                       style: TextStyle(
                         fontFamily: 'Battambang',
                         fontSize: 18,
@@ -400,7 +398,7 @@ class _RewardSummaryCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      '${product.points}ពិន្ទុ',
+                      '${product.points} Points',
                       style: const TextStyle(
                         fontFamily: 'Battambang',
                         fontSize: 19,
@@ -420,14 +418,14 @@ class _RewardSummaryCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _MetaInfoBox(
-                        label: 'ថ្ងៃផុតកំណត់',
+                        label: 'Expiry Date',
                         value: product.expiryDate,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: _MetaInfoBox(
-                        label: 'រង្វាន់ដែលនៅសល់',
+                        label: 'Rewards Left',
                         value: '${product.redeemLimit}',
                       ),
                     ),
@@ -439,6 +437,26 @@ class _RewardSummaryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      height: _imageHeight,
+      color: AppColors.primary.withAlpha(15),
+      child: Icon(
+        Icons.image_outlined,
+        size: 44,
+        color: AppColors.primary.withAlpha(80),
+      ),
+    );
+  }
+
+  bool _isValidNetworkUrl(String value) {
+    if (value.isEmpty) return false;
+    final uri = Uri.tryParse(value);
+    if (uri == null) return false;
+    return (uri.scheme == 'http' || uri.scheme == 'https') &&
+        (uri.host.isNotEmpty);
   }
 }
 
@@ -893,9 +911,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                                 child: _PickupUserTypeCard(
                                   title:
                                       LoyaltyPickupUserType.accountOwner.label,
-                                  subtitle: LoyaltyPickupUserType
-                                      .accountOwner
-                                      .khmerLabel,
+                                  subtitle: 'Redeem by account owner',
                                   selected:
                                       _pickupUserType ==
                                       LoyaltyPickupUserType.accountOwner,
@@ -910,9 +926,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                                   title: LoyaltyPickupUserType
                                       .representative
                                       .label,
-                                  subtitle: LoyaltyPickupUserType
-                                      .representative
-                                      .khmerLabel,
+                                  subtitle: 'Redeem by representative',
                                   selected:
                                       _pickupUserType ==
                                       LoyaltyPickupUserType.representative,
@@ -1075,7 +1089,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('បញ្ជាក់ការប្តូររង្វាន់'),
+                        child: const Text('Confirm Redemption'),
                       ),
                     ),
                   ),
@@ -1268,7 +1282,7 @@ class _RedeemErrorBanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'ខុសប្រក្រតី',
+                    'Error',
                     style: TextStyle(
                       fontFamily: 'Battambang',
                       fontSize: 22,

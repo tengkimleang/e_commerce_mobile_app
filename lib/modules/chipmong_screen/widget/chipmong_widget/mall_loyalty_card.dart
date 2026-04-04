@@ -11,10 +11,11 @@ class MallLoyaltyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final matchedTier = loyaltyTiers.where(
-      (t) => t.name.toLowerCase() == info.tier.toLowerCase(),
-    ).firstOrNull;
-    final outerGradient = matchedTier?.gradient ??
+    final matchedTier = loyaltyTiers
+        .where((t) => t.name.toLowerCase() == info.tier.toLowerCase())
+        .firstOrNull;
+    final outerGradient =
+        matchedTier?.gradient ??
         [const Color(0xFFF48FB1), const Color.fromARGB(255, 178, 147, 157)];
     final badgeGrad = matchedTier?.badgeGradient;
     final badgeColor = matchedTier?.badgeColor ?? AppColors.primary;
@@ -75,7 +76,10 @@ class MallLoyaltyCard extends StatelessWidget {
                 Container(
                   // margin: const EdgeInsets.only(top: 20),
                   margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeGrad == null ? badgeColor : null,
                     gradient: badgeGrad != null
@@ -92,8 +96,9 @@ class MallLoyaltyCard extends StatelessWidget {
                     boxShadow: badgeGrad != null
                         ? [
                             BoxShadow(
-                              color: const Color(0xFFB5813C)
-                                  .withValues(alpha: 0.45),
+                              color: const Color(
+                                0xFFB5813C,
+                              ).withValues(alpha: 0.45),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -130,7 +135,7 @@ class MallLoyaltyCard extends StatelessWidget {
             const SizedBox(height: 8),
             // Points section
             Text(
-              'ចំនួនពិន្ទុ',
+              'Available points',
               style: TextStyle(
                 fontSize: 11,
                 color: Colors.grey[500],
@@ -150,7 +155,11 @@ class MallLoyaltyCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 5),
-                const Icon(Icons.stars_rounded, color: AppColors.primary, size: 20),
+                const Icon(
+                  Icons.stars_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -161,14 +170,18 @@ class MallLoyaltyCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'អស់កំណត់ : ${info.expiryDate}',
+                    'Expire : ${info.expiryDate}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontFamily: 'Battambang',
                       color: Colors.black54,
                     ),
                   ),
-                  const Icon(Icons.chevron_right, size: 16, color: Colors.black45),
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: Colors.black45,
+                  ),
                 ],
               ),
             ),

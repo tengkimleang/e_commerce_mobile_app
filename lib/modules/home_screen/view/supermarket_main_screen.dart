@@ -49,7 +49,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   final List<String> _images = [
     'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
-    'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+    'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
     'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
   ];
 
@@ -87,7 +87,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       storeName: 'CHIP MONG 271 MEGA MALL',
       branchLabel: '271 MEGA MALL',
       imageUrl:
-          'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+          'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
       guestAllowed: false,
     ),
     ShopOption(

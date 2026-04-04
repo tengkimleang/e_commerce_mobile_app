@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -8,17 +10,28 @@ class LoyaltyProductCard extends StatelessWidget {
   const LoyaltyProductCard({super.key, required this.product, this.onTap});
 
   final LoyaltyProduct product;
-  final ValueChanged<LoyaltyProduct>? onTap;
+  final FutureOr<void> Function(LoyaltyProduct)? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final imageUrl = product.imageUrl.trim();
+    final hasValidImage = _isValidNetworkUrl(imageUrl);
+
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
       elevation: 2,
       shadowColor: Colors.black12,
       child: InkWell(
-        onTap: onTap == null ? null : () => onTap!(product),
+        onTap: onTap == null
+            ? null
+            : () async {
+                try {
+                  await onTap!(product);
+                } catch (e) {
+                  debugPrint('[LoyaltyProductCard] onTap failed: $e');
+                }
+              },
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,23 +43,18 @@ class LoyaltyProductCard extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: product.imageUrl,
-                    height: 130,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        Container(height: 130, color: Colors.grey[200]),
-                    errorWidget: (context, url, error) => Container(
-                      height: 130,
-                      color: AppColors.primary.withAlpha(15),
-                      child: Icon(
-                        Icons.image_outlined,
-                        size: 40,
-                        color: AppColors.primary.withAlpha(80),
-                      ),
-                    ),
-                  ),
+                  child: hasValidImage
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          height: 130,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) =>
+                              Container(height: 130, color: Colors.grey[200]),
+                          errorWidget: (context, url, error) =>
+                              _buildImageFallback(),
+                        )
+                      : _buildImageFallback(),
                 ),
                 // Brand badge
                 Positioned(
@@ -120,7 +128,7 @@ class LoyaltyProductCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'ប្តូររង្វាន់',
+                          'Reserve',
                           style: TextStyle(
                             fontSize: 10,
                             color: Colors.grey[600],
@@ -137,7 +145,7 @@ class LoyaltyProductCard extends StatelessWidget {
                           ),
                         ),
                         const Text(
-                          ' ពិន្ទុ',
+                          ' Points',
                           style: TextStyle(
                             fontSize: 10,
                             color: AppColors.primary,
@@ -154,6 +162,26 @@ class LoyaltyProductCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      height: 130,
+      color: AppColors.primary.withAlpha(15),
+      child: Icon(
+        Icons.image_outlined,
+        size: 40,
+        color: AppColors.primary.withAlpha(80),
+      ),
+    );
+  }
+
+  bool _isValidNetworkUrl(String value) {
+    if (value.isEmpty) return false;
+    final uri = Uri.tryParse(value);
+    if (uri == null) return false;
+    return (uri.scheme == 'http' || uri.scheme == 'https') &&
+        (uri.host.isNotEmpty);
   }
 }
 

@@ -12,46 +12,41 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final product = exchange.product;
-    final isUnderReview = exchange.status == 'កំពុងពិនិត្យ';
-    final statusColor = isUnderReview
-        ? const Color(0xFFF57C00)
-        : const Color(0xFF2E7D32);
-    final headerText = isUnderReview
-        ? 'សំណើប្តូររង្វាន់កំពុងពិនិត្យ'
-        : 'ការប្តូររង្វាន់បានជោគជ័យ';
-    final headerIcon = isUnderReview
-        ? Icons.hourglass_top_rounded
-        : Icons.check_circle_rounded;
+    final imageUrl = product.imageUrl.trim();
+    final hasValidImage = _isValidNetworkUrl(imageUrl);
+    final statusMeta = _resolveStatusMeta(exchange.status);
+    final statusColor = statusMeta.color;
+    final headerText = statusMeta.headerText;
+    final headerIcon = statusMeta.icon;
     final detailRows = <_DetailRowEntry>[
-      _DetailRowEntry(label: 'លេខប្រតិបត្តិការ', value: exchange.referenceNo),
+      _DetailRowEntry(label: 'Reference No', value: exchange.referenceNo),
       _DetailRowEntry(
-        label: 'កាលបរិច្ឆេទប្តូរ',
+        label: 'Exchange Date',
         value: _formatDateTime(exchange.exchangedAt),
       ),
       _DetailRowEntry(
-        label: 'ស្ថានភាព',
+        label: 'Status',
         value: exchange.status,
         valueColor: statusColor,
       ),
       _DetailRowEntry(
-        label: 'របៀបទទួលរង្វាន់',
-        value:
-            '${exchange.fulfillmentMethod.label} (${exchange.fulfillmentMethod.khmerLabel})',
+        label: 'Fulfillment Method',
+        value: exchange.fulfillmentMethod.label,
       ),
-      _DetailRowEntry(label: 'ឈ្មោះអ្នកទទួល', value: exchange.receiverName),
-      _DetailRowEntry(label: 'ទូរស័ព្ទអ្នកទទួល', value: exchange.receiverPhone),
+      _DetailRowEntry(label: 'Receiver Name', value: exchange.receiverName),
+      _DetailRowEntry(label: 'Receiver Phone', value: exchange.receiverPhone),
       _DetailRowEntry(
-        label: 'ពិន្ទុប្រើប្រាស់',
+        label: 'Points Used',
         value: '-${exchange.exchangedPoints} Points',
         valueColor: const Color(0xFFD32F2F),
       ),
       _DetailRowEntry(
-        label: 'ពិន្ទុនៅសល់',
+        label: 'Remaining Points',
         value: '${exchange.remainingPoints} Points',
         valueColor: AppColors.primary,
       ),
       _DetailRowEntry(
-        label: 'ប្តូរមុនថ្ងៃ',
+        label: 'Collect Before',
         value: _formatDate(exchange.collectBeforeDate),
       ),
     ];
@@ -60,22 +55,21 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
       if (exchange.pickupUserType != null) {
         detailRows.add(
           _DetailRowEntry(
-            label: 'ប្រភេទអ្នកទទួល',
-            value:
-                '${exchange.pickupUserType!.label} (${exchange.pickupUserType!.khmerLabel})',
+            label: 'Pickup User Type',
+            value: exchange.pickupUserType!.label,
           ),
         );
       }
       detailRows.add(
         _DetailRowEntry(
-          label: 'ទីតាំងទទួលរង្វាន់',
+          label: 'Pickup Location',
           value: exchange.pickupLocation,
         ),
       );
     } else {
       detailRows.add(
         _DetailRowEntry(
-          label: 'អាសយដ្ឋានដឹកជញ្ជូន',
+          label: 'Delivery Address',
           value: exchange.deliveryAddress ?? '-',
         ),
       );
@@ -85,7 +79,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
         exchange.representativeName!.isNotEmpty) {
       detailRows.add(
         _DetailRowEntry(
-          label: 'ឈ្មោះអ្នកតំណាង',
+          label: 'Representative Name',
           value: exchange.representativeName!,
         ),
       );
@@ -95,7 +89,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
         exchange.representativePhone!.isNotEmpty) {
       detailRows.add(
         _DetailRowEntry(
-          label: 'ទូរស័ព្ទអ្នកតំណាង',
+          label: 'Representative Phone',
           value: exchange.representativePhone!,
         ),
       );
@@ -103,7 +97,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
 
     if (exchange.exchangeNote != null && exchange.exchangeNote!.isNotEmpty) {
       detailRows.add(
-        _DetailRowEntry(label: 'ចំណាំ', value: exchange.exchangeNote!),
+        _DetailRowEntry(label: 'Note', value: exchange.exchangeNote!),
       );
     }
 
@@ -114,7 +108,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
         foregroundColor: Colors.black87,
         elevation: 0.4,
         title: const Text(
-          'Form Detail Item Exchanged',
+          'Exchange Detail',
           style: TextStyle(
             fontFamily: 'Battambang',
             fontSize: 20,
@@ -176,26 +170,21 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: CachedNetworkImage(
-                        imageUrl: product.imageUrl,
-                        width: 82,
-                        height: 82,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          width: 82,
-                          height: 82,
-                          color: Colors.grey[200],
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          width: 82,
-                          height: 82,
-                          color: AppColors.primary.withAlpha(14),
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: AppColors.primary.withAlpha(90),
-                          ),
-                        ),
-                      ),
+                      child: hasValidImage
+                          ? CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              width: 82,
+                              height: 82,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                width: 82,
+                                height: 82,
+                                color: Colors.grey[200],
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  _buildImageFallback(),
+                            )
+                          : _buildImageFallback(),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -292,7 +281,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text('យល់ព្រម'),
+              child: const Text('OK'),
             ),
           ),
         ),
@@ -313,6 +302,75 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
     final day = date.day.toString().padLeft(2, '0');
     return '$month $day, ${date.year}';
   }
+
+  _ExchangeStatusMeta _resolveStatusMeta(String status) {
+    final normalized = status.trim().toLowerCase();
+    final isPending =
+        normalized.contains('pending') || normalized.contains('review');
+    if (isPending) {
+      return const _ExchangeStatusMeta(
+        color: Color(0xFFF57C00),
+        icon: Icons.hourglass_top_rounded,
+        headerText: 'Redemption request is under review',
+      );
+    }
+
+    final isRejected = normalized.contains('reject');
+    if (isRejected) {
+      return const _ExchangeStatusMeta(
+        color: Color(0xFFD32F2F),
+        icon: Icons.cancel_rounded,
+        headerText: 'Redemption request was rejected',
+      );
+    }
+
+    final isCancelled = normalized.contains('cancel');
+    if (isCancelled) {
+      return const _ExchangeStatusMeta(
+        color: Color(0xFF757575),
+        icon: Icons.remove_circle_rounded,
+        headerText: 'Redemption request was cancelled',
+      );
+    }
+
+    return const _ExchangeStatusMeta(
+      color: Color(0xFF2E7D32),
+      icon: Icons.check_circle_rounded,
+      headerText: 'Redemption completed successfully',
+    );
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      width: 82,
+      height: 82,
+      color: AppColors.primary.withAlpha(14),
+      child: Icon(
+        Icons.image_outlined,
+        color: AppColors.primary.withAlpha(90),
+      ),
+    );
+  }
+
+  bool _isValidNetworkUrl(String value) {
+    if (value.isEmpty) return false;
+    final uri = Uri.tryParse(value);
+    if (uri == null) return false;
+    return (uri.scheme == 'http' || uri.scheme == 'https') &&
+        (uri.host.isNotEmpty);
+  }
+}
+
+class _ExchangeStatusMeta {
+  final Color color;
+  final IconData icon;
+  final String headerText;
+
+  const _ExchangeStatusMeta({
+    required this.color,
+    required this.icon,
+    required this.headerText,
+  });
 }
 
 class _DetailRowEntry {

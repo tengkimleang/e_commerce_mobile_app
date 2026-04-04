@@ -9,6 +9,7 @@ class MallMembershipQrRepository {
     : _authService = authService ?? AuthService();
 
   final AuthService _authService;
+  static final RegExp _khmerPattern = RegExp(r'[\u1780-\u17FF]');
 
   static const _syncErrorMessage =
       'Unable to sync latest QR data right now. Showing current member information.';
@@ -70,13 +71,21 @@ class MallMembershipQrRepository {
         fallback.username,
       ]);
 
-      final tierLevel = _firstNonEmpty([
+      final rawTierLevel = _firstNonEmpty([
+        data['tierLevelEn'],
+        data['tierEn'],
+        data['membershipTierEn'],
+        data['memberTierEn'],
         data['tierLevel'],
         data['tier'],
         data['membershipTier'],
         data['memberTier'],
         fallback.tierLevel,
       ]);
+      final tierLevel = _englishOrFallback(
+        value: rawTierLevel,
+        fallback: fallback.tierLevel,
+      );
 
       final membershipId = _firstNonEmpty([
         data['membershipId'],
@@ -99,12 +108,19 @@ class MallMembershipQrRepository {
         );
       }
 
-      final membershipType = _firstNonEmpty([
+      final rawMembershipType = _firstNonEmpty([
+        data['membershipTypeEn'],
+        data['typeEn'],
+        data['memberTypeEn'],
         data['membershipType'],
         data['type'],
         data['memberType'],
         '$tierLevel Member',
       ]);
+      final membershipType = _englishOrFallback(
+        value: rawMembershipType,
+        fallback: '$tierLevel Member',
+      );
 
       final qrPayload = _buildQrPayload(
         directPayload: directPayload,
@@ -187,6 +203,37 @@ class MallMembershipQrRepository {
   String _asCleanString(dynamic value) {
     if (value == null) return '';
     return value.toString().trim();
+  }
+
+  String _englishOrFallback({required String value, required String fallback}) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return fallback.trim();
+    if (!_khmerPattern.hasMatch(trimmed)) return trimmed;
+
+    final translated = _translateKnownKhmer(trimmed);
+    if (translated.isNotEmpty) return translated;
+    return fallback.trim();
+  }
+
+  String _translateKnownKhmer(String value) {
+    var result = value;
+    const replacements = <String, String>{
+      'សមាជិកភាព': 'Membership',
+      'សមាជិក': 'Member',
+      'កម្រិត': 'Level',
+      'ប្រភេទ': 'Type',
+      'ឡាយហ្វស្តាយ': 'Lifestyle',
+      'លាយហ្វស្តាយ': 'Lifestyle',
+      'ប្រេស្ទីច': 'Prestige',
+      'អេលីត': 'Elite',
+    };
+
+    replacements.forEach((kh, en) {
+      result = result.replaceAll(kh, en);
+    });
+
+    if (_khmerPattern.hasMatch(result)) return '';
+    return result.trim();
   }
 
   int _readInt({required Iterable<dynamic> values, required int fallback}) {

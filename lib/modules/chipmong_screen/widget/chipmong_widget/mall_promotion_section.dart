@@ -15,7 +15,7 @@ class MallPromotionGrid extends StatelessWidget {
     if (items.isEmpty) {
       return const Center(
         child: Text(
-          'មិនមានទិន្នន័យ',
+          'No data available',
           style: TextStyle(
             fontSize: 14,
             fontFamily: 'Battambang',
@@ -96,7 +96,7 @@ class MallPromotionCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text(
-                        'កំពុងចែកជូន',
+                        'Happening',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 9,

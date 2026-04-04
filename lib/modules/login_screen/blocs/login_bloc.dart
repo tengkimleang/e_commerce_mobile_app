@@ -21,30 +21,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     return regex.hasMatch(phone);
   }
 
-  String _resolveRequestOtpMessage({
-    required String errorCode,
-    required String errorMsg,
-  }) {
-    if (errorCode == 'USR404') {
-      return 'This phone is not registered. Please sign up first.';
-    }
-    if (errorMsg.isNotEmpty) return errorMsg;
-    return 'Failed to send OTP. Please try again.';
-  }
-
-  LoginErrorType _resolveBusinessErrorType(String errorCode) {
-    if (errorCode.startsWith('VAL')) {
-      return LoginErrorType.validation;
-    }
-    if (errorCode.startsWith('USR')) {
-      return LoginErrorType.validation;
-    }
-    if (errorCode.isNotEmpty) {
-      return LoginErrorType.server;
-    }
-    return LoginErrorType.unknown;
-  }
-
   Future<void> _onPhoneChanged(
     PhoneChanged event,
     Emitter<LoginState> emit,
@@ -77,28 +53,24 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
 
     emit(const LoginLoading());
-    debugPrint(
-      '[LoginBloc] LoginLoading emitted, calling requestOtp($phoneToSubmit)',
-    );
+    debugPrint('[LoginBloc] checking phone registration for $phoneToSubmit');
 
     try {
-      final requestResult = await _authService.requestOtp(phoneToSubmit);
-      final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
-      final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
-      final sent = requestResult['sent'] == true;
-
-      if (errorCode.isNotEmpty || !sent) {
+      final isRegistered = await _authService.checkLoginPhoneRegistered(
+        phoneNumber: phoneToSubmit,
+      );
+      if (isRegistered == false) {
         emit(
-          LoginError(
-            _resolveRequestOtpMessage(errorCode: errorCode, errorMsg: errorMsg),
-            errorType: _resolveBusinessErrorType(errorCode),
+          LoginPhoneNotRegistered(
+            phoneNumber: phoneToSubmit,
+            message: 'This phone number is not registered yet.',
           ),
         );
         return;
       }
 
-      debugPrint('[LoginBloc] requestOtp succeeded, emitting LoginOtpSent');
-      emit(LoginOtpSent(phoneToSubmit));
+      // If endpoint is unavailable/unknown (null), continue with PIN flow.
+      emit(LoginPinRequired(phoneToSubmit));
     } on DioException catch (e) {
       debugPrint('[LoginBloc] DioException: ${e.type} → ${e.message}');
       if (e.type == DioExceptionType.connectionError ||
@@ -111,21 +83,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             errorType: LoginErrorType.network,
           ),
         );
-      } else if (e.response != null) {
-        final msg =
-            e.response?.data?['errorMsg'] ??
-            'Server error. Please try again later.';
-        emit(LoginError(msg, errorType: LoginErrorType.server));
-      } else {
-        emit(
-          const LoginError(
-            'Unable to reach the server. Please try again.',
-            errorType: LoginErrorType.unknown,
-          ),
-        );
+        return;
       }
-    } on TimeoutException catch (_) {
-      debugPrint('[LoginBloc] TimeoutException');
+      emit(
+        const LoginError(
+          'Unable to check account right now. Please try again.',
+          errorType: LoginErrorType.server,
+        ),
+      );
+    } on TimeoutException {
       emit(
         const LoginError(
           'Request timed out. Please check your connection and try again.',
@@ -135,8 +101,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     } catch (e) {
       debugPrint('[LoginBloc] Unexpected error: $e');
       emit(
-        LoginError(
-          e.toString().replaceFirst('Exception: ', ''),
+        const LoginError(
+          'Unable to continue login right now. Please try again.',
           errorType: LoginErrorType.unknown,
         ),
       );

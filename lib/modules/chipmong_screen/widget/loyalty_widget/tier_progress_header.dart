@@ -15,9 +15,17 @@ class TierProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prev = currentPage > 0 ? tiers[currentPage - 1] : null;
-    final curr = tiers[currentPage];
-    final next = currentPage < tiers.length - 1 ? tiers[currentPage + 1] : null;
+    if (tiers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final safeCurrentPage =
+        currentPage.clamp(0, tiers.length - 1).toInt();
+    final prev = safeCurrentPage > 0 ? tiers[safeCurrentPage - 1] : null;
+    final curr = tiers[safeCurrentPage];
+    final next = safeCurrentPage < tiers.length - 1
+        ? tiers[safeCurrentPage + 1]
+        : null;
 
     return Container(
       color: Colors.white,

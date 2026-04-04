@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
+import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import '../../chipmong_screen/views/chipmong_mall_screen.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
@@ -18,6 +20,7 @@ class IndexView extends StatefulWidget {
 }
 
 class _IndexViewState extends State<IndexView> {
+  final AuthService _authService = AuthService();
   String _languageCode = 'en';
   String? _profileImagePath;
   final GlobalKey _menuButtonKey = GlobalKey();
@@ -228,6 +231,11 @@ class _IndexViewState extends State<IndexView> {
 
     if (!mounted || shouldLogout != true) return;
 
+    try {
+      await _authService.logout();
+    } catch (e) {
+      debugPrint('[IndexView] logout revoke failed: $e');
+    }
     await UserSession.markGuest();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -331,11 +339,21 @@ class _IndexViewState extends State<IndexView> {
                           topLeft: Radius.circular(18),
                         ),
 
-                        child: Image.network(
-                          'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
+                        child: CachedNetworkImage(
+                          imageUrl:
+                              'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
                           fit: BoxFit.cover,
                           height: 100,
                           width: 350,
+                          placeholder: (context, url) =>
+                              Container(height: 100, color: Colors.grey[200]),
+                          errorWidget: (context, url, error) => Container(
+                            height: 100,
+                            width: 350,
+                            color: Colors.grey[200],
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.broken_image_outlined),
+                          ),
                         ),
                       ),
                       const Padding(
@@ -398,11 +416,21 @@ class _IndexViewState extends State<IndexView> {
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(18),
                         ),
-                        child: Image.network(
-                          'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+                        child: CachedNetworkImage(
+                          imageUrl:
+                              'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
                           fit: BoxFit.cover,
                           height: 100,
                           width: 350,
+                          placeholder: (context, url) =>
+                              Container(height: 100, color: Colors.grey[200]),
+                          errorWidget: (context, url, error) => Container(
+                            height: 100,
+                            width: 350,
+                            color: Colors.grey[200],
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.broken_image_outlined),
+                          ),
                         ),
                       ),
                       const Padding(

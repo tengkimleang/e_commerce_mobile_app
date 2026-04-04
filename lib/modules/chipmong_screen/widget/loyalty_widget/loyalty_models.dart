@@ -66,7 +66,7 @@ class LoyaltyProduct {
     this.rewardId = '',
     required this.imageUrl,
     required this.brandName,
-    this.category = 'ប័ណ្ណទិញទំនិញ',
+    this.category = 'Shopping Voucher',
     required this.title,
     required this.store,
     required this.points,
@@ -120,9 +120,9 @@ extension LoyaltyFulfillmentMethodX on LoyaltyFulfillmentMethod {
   String get khmerLabel {
     switch (this) {
       case LoyaltyFulfillmentMethod.delivery:
-        return 'ដឹកជញ្ជូន';
+        return 'Delivery';
       case LoyaltyFulfillmentMethod.pickup:
-        return 'ទទួលដោយខ្លួនឯង';
+        return 'Pick up';
     }
   }
 }
@@ -142,9 +142,9 @@ extension LoyaltyPickupUserTypeX on LoyaltyPickupUserType {
   String get khmerLabel {
     switch (this) {
       case LoyaltyPickupUserType.accountOwner:
-        return 'ម្ចាស់គណនី';
+        return 'Account owner';
       case LoyaltyPickupUserType.representative:
-        return 'អ្នកតំណាង';
+        return 'Representative';
     }
   }
 }
@@ -210,20 +210,12 @@ class LoyaltyExchangeRequest {
 }
 
 const loyaltyDefaultTermsAndConditions = '''
-លក្ខខណ្ឌ និង បទបញ្ជា៖
-១. អតិថិជនត្រូវបញ្ចប់ការប្តូររង្វាន់ក្នុងរយៈពេល ៧ ថ្ងៃបន្ទាប់ពីការកក់ បើមិនដូច្នេះទេ រង្វាន់នឹងត្រូវលុបចោល និងពិន្ទុនឹងត្រូវដកចេញ។
-២. ក្រុមហ៊ុន CMRT រក្សាសិទ្ធិប្រើរយៈពេល ១០ ថ្ងៃធ្វើការបន្ទាប់ពីបញ្ជាក់ការប្តូររង្វាន់ ដើម្បីបញ្ចប់នីតិវិធីផ្ទៀងផ្ទាត់មុនប្រគល់រង្វាន់។
-៣. រង្វាន់មិនអាចផ្ទេរទៅអ្នកដទៃបានទេ ហើយអាចប្តូរបានតែដោយម្ចាស់គណនីប៉ុណ្ណោះ។
-៤. មិនអនុញ្ញាតឱ្យប្តូរជាសាច់ប្រាក់ ឥណទាន ឬផ្លាស់ប្តូរជាប្រភេទផ្សេងទេ។
-៥. ការប្រគល់រង្វាន់ធ្វើនៅបញ្ជរព័ត៌មានផ្សារទំនើប ខាងមុខ H&M ជាន់ផ្ទាល់ដី ដោយត្រូវមានលេខទូរស័ព្ទដែលបានចុះឈ្មោះ និងអត្តសញ្ញាណប័ណ្ណ/លិខិតឆ្លងដែន។
-៦. សកម្មភាពក្លែងបន្លំ ឬបំពានលក្ខខណ្ឌណាមួយ នឹងនាំឱ្យដកសិទ្ធិចេញពីកម្មវិធី។
-
-T&C:
+Terms and Conditions:
 1. Redemption must be completed within 7 days of reservation, or the reward will be forfeited, and points will be cancelled.
-2. CMRT reserves 10 working day after confirming redemption for completing verification procedure before prize handover.
+2. CMRT reserves up to 10 working days after redemption confirmation to complete verification before handover.
 3. The reward is non-transferable and can only be redeemed by the account holder.
 4. No cash, credit, or exchanges will be provided.
-5. Reward handover will be at the mall’s Information Counter, located in front of H&M on the Ground Floor with the registered mobile phone and National Identity Card/Passport.
+5. Reward handover is at the mall Information Counter (in front of H&M, Ground Floor) with the registered phone number and National ID/Passport.
 6. Any fraudulent activity will lead to disqualification from the promotion.
 ''';
 

@@ -14,6 +14,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_userna
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
+import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +26,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_
 
 class UserInfoView extends StatelessWidget {
   final bool showBottomNavigation;
+  static final AuthService _authService = AuthService();
 
   const UserInfoView({super.key, this.showBottomNavigation = true});
 
@@ -50,16 +52,21 @@ class UserInfoView extends StatelessWidget {
                     ? sessionFullName
                     : (sessionPhone.isNotEmpty ? sessionPhone : 'User'));
           final profilePhone = userInfo.phoneNumber.trim();
-          final rawPhone = profilePhone.isNotEmpty ? profilePhone : sessionPhone;
+          final rawPhone = profilePhone.isNotEmpty
+              ? profilePhone
+              : sessionPhone;
           final String phoneDisplay = _formatPhoneNumber(rawPhone);
           final DateTime? dateOfBirth = userInfo.dateOfBirth;
           final String languageCode = userInfo.languageCode;
           final String address = userInfo.address.trim();
           final bool isVerified = userInfo.isVerified;
           final String profileImageUrl = userInfo.profileImageUrl.trim();
-          final File? profileImageFile = userInfo.profileImagePath != null
-              ? File(userInfo.profileImagePath!)
-              : null;
+          final File? profileImageFile = (() {
+            final rawPath = userInfo.profileImagePath?.trim() ?? '';
+            if (rawPath.isEmpty) return null;
+            final file = File(rawPath);
+            return file.existsSync() ? file : null;
+          })();
 
           String dateOfBirthLabel() {
             if (dateOfBirth == null) return 'Not Added';
@@ -140,7 +147,9 @@ class UserInfoView extends StatelessWidget {
                                 ),
                                 _InfoRow(
                                   label: 'Address',
-                                  value: address.isEmpty ? 'Not Added' : address,
+                                  value: address.isEmpty
+                                      ? 'Not Added'
+                                      : address,
                                   trailingIcon: Icons.chevron_right,
                                   trailingColor: accent,
                                   onTrailingTap: () => _openReceivingAddress(
@@ -625,6 +634,11 @@ class UserInfoView extends StatelessWidget {
                       ),
                       onPressed: () async {
                         Navigator.of(ctx).pop();
+                        try {
+                          await _authService.logout();
+                        } catch (e) {
+                          debugPrint('[UserInfoView] logout revoke failed: $e');
+                        }
                         await UserSession.markGuest();
                         if (!context.mounted) return;
                         Navigator.of(context).pushAndRemoveUntil(
@@ -694,6 +708,10 @@ class _HeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
+    final token = (UserSession.token ?? '').trim();
+    final imageHeaders = token.isEmpty
+        ? null
+        : <String, String>{'Authorization': 'Bearer $token'};
 
     return Container(
       width: double.infinity,
@@ -770,8 +788,12 @@ class _HeaderCard extends StatelessWidget {
                         ? ClipOval(
                             child: Image.network(
                               profileImageUrl,
+                              headers: imageHeaders,
                               fit: BoxFit.cover,
                               errorBuilder: (_, error, stackTrace) {
+                                debugPrint(
+                                  '[UserInfoView] avatar load failed for $profileImageUrl: $error',
+                                );
                                 return const Icon(
                                   Icons.person,
                                   size: 60,

@@ -15,18 +15,22 @@ class LoyaltyRepositoryException implements Exception {
 class LoyaltyHistoryEntry {
   final String title;
   final String statusLabel;
+  final String statusCode;
   final int pointsDelta;
   final DateTime occurredAt;
   final String categoryLabel;
   final String? exchangeId;
+  final String? imageUrl;
 
   const LoyaltyHistoryEntry({
     required this.title,
     required this.statusLabel,
+    required this.statusCode,
     required this.pointsDelta,
     required this.occurredAt,
     required this.categoryLabel,
     this.exchangeId,
+    this.imageUrl,
   });
 }
 
@@ -53,7 +57,7 @@ class LoyaltyRepository {
   final AuthService _authService;
 
   static const _fallbackPickupLocation =
-      'Information Counter, ផ្សារទំនើប Chip Mong 271 Mega Mall';
+      'Information Counter, Chip Mong 271 Mega Mall';
 
   Future<List<LoyaltyProduct>> fetchRewards({
     String? category,
@@ -70,6 +74,7 @@ class LoyaltyRepository {
     final data = _requireData(
       response,
       defaultMessage: 'Failed to load rewards',
+      throwOnError: false,
     );
     final items = _extractItems(data);
     return items.map((item) => _parseReward(_toMap(item))).toList();
@@ -160,16 +165,19 @@ class LoyaltyRepository {
   }
 
   Future<List<LoyaltyHistoryEntry>> fetchPointsHistory({
+    String? status,
     int? page,
     int? pageSize,
   }) async {
     final response = await _authService.getLoyaltyExchanges(
+      status: status,
       page: page,
       pageSize: pageSize,
     );
     final data = _requireData(
       response,
       defaultMessage: 'Failed to load loyalty history.',
+      throwOnError: false,
     );
     final items = _extractItems(data);
     return items
@@ -184,6 +192,7 @@ class LoyaltyRepository {
     final data = _requireData(
       response,
       defaultMessage: 'Failed to load loyalty expiry information.',
+      throwOnError: false,
     );
     final items = _extractItems(data);
     return items.map((item) => _parseExpiryEntry(_toMap(item))).toList();
@@ -195,6 +204,7 @@ class LoyaltyRepository {
       final mallQrData = _requireData(
         mallQrResponse,
         defaultMessage: 'Failed to load current loyalty points.',
+        throwOnError: false,
       );
       final points = _readInt([
         mallQrData['points'],
@@ -210,6 +220,7 @@ class LoyaltyRepository {
     final profileData = _requireData(
       profileResponse,
       defaultMessage: 'Failed to load current loyalty points.',
+      throwOnError: false,
     );
     final points = _readInt([
       profileData['points'],
@@ -250,7 +261,7 @@ class LoyaltyRepository {
     final categoryLabel = _firstNonEmpty([
       map['categoryLabel'],
       _rewardCategoryLabel(rawCategory),
-      'ប័ណ្ណទិញទំនិញ',
+      'Shopping Voucher',
     ]);
 
     final points = _readInt([
@@ -319,18 +330,28 @@ class LoyaltyRepository {
     final exchangeId = _emptyToNull(
       _firstNonEmpty([map['exchangeId'], map['id'], map['referenceNo']]),
     );
+    final statusCode = _firstNonEmpty([map['status']]).toUpperCase();
+    final imageUrl = _emptyToNull(
+      _firstNonEmpty([
+        rewardMap['imageUrl'],
+        rewardMap['image'],
+        rewardMap['photoUrl'],
+        map['imageUrl'],
+        map['image'],
+      ]),
+    );
 
     return LoyaltyHistoryEntry(
       title: directTitle.isNotEmpty
           ? directTitle
-          : (rewardTitle.isEmpty
-                ? 'ប្តូររង្វាន់'
-                : 'ប្តូររង្វាន់ $rewardTitle'),
+          : (rewardTitle.isEmpty ? 'Redeemed' : 'Redeemed $rewardTitle'),
       statusLabel: _resolveStatusLabel(map),
+      statusCode: statusCode,
       pointsDelta: pointsDelta,
       occurredAt: occurredAt ?? DateTime.now(),
-      categoryLabel: 'ប្តូររង្វាន់',
+      categoryLabel: 'Redeemed',
       exchangeId: exchangeId,
+      imageUrl: imageUrl,
     );
   }
 
@@ -341,13 +362,17 @@ class LoyaltyRepository {
       map['date'],
     ]);
     final categoryCode = _firstNonEmpty([map['status'], map['category']]);
+    final directStatusLabel = _firstNonEmpty([
+      map['statusLabel'],
+      map['statusLabelEn'],
+      map['statusLabelKh'],
+    ]);
 
     return LoyaltyExpiryEntry(
       title: _firstNonEmpty([map['title'], map['description'], 'Loyalty']),
-      statusLabel: _firstNonEmpty([
-        map['statusLabelKh'],
-        _expiryCategoryLabel(categoryCode),
-      ]),
+      statusLabel: directStatusLabel.isEmpty
+          ? _expiryCategoryLabel(categoryCode)
+          : _toEnglishExpiryLabel(directStatusLabel),
       pointsDelta: _readInt([map['pointsDelta'], map['points']], fallback: 0),
       expiryDate: expiryDate,
       categoryLabel: _expiryCategoryLabel(categoryCode),
@@ -484,6 +509,7 @@ class LoyaltyRepository {
   Map<String, dynamic> _requireData(
     Map<String, dynamic> payload, {
     required String defaultMessage,
+    bool throwOnError = true,
   }) {
     final errorCode = _firstNonEmpty([
       payload['errorCode'],
@@ -497,10 +523,13 @@ class LoyaltyRepository {
     final success = _readBool([payload['success'], payload['Success']]);
 
     if (errorCode.isNotEmpty || !success) {
-      throw LoyaltyRepositoryException(
-        code: errorCode.isEmpty ? 'UNKNOWN' : errorCode,
-        message: errorMsg.isEmpty ? defaultMessage : errorMsg,
-      );
+      if (throwOnError) {
+        throw LoyaltyRepositoryException(
+          code: errorCode.isEmpty ? 'UNKNOWN' : errorCode,
+          message: errorMsg.isEmpty ? defaultMessage : errorMsg,
+        );
+      }
+      return const {'items': []};
     }
 
     final rawData = payload['data'];
@@ -594,31 +623,59 @@ class LoyaltyRepository {
 
   String _resolveStatusLabel(Map<String, dynamic> map) {
     final direct = _firstNonEmpty([
+      map['statusLabel'],
+      map['statusLabelEn'],
+      map['statusEn'],
       map['statusLabelKh'],
       map['statusKh'],
-      map['statusLabel'],
     ]);
-    if (direct.isNotEmpty) return direct;
+    if (direct.isNotEmpty) return _toEnglishStatusLabel(direct);
 
     final statusCode = _firstNonEmpty([map['status']]).toUpperCase();
     return switch (statusCode) {
-      'PENDING_REVIEW' => 'កំពុងពិនិត្យ',
-      'APPROVED' || 'COMPLETED' || 'SUCCESS' => 'សម្រេចជោគជ័យ',
-      'REJECTED' => 'បដិសេធ',
-      'CANCELLED' => 'បោះបង់',
-      _ => statusCode.isEmpty ? 'កំពុងពិនិត្យ' : statusCode,
+      'PENDING_REVIEW' => 'Pending review',
+      'APPROVED' || 'COMPLETED' || 'SUCCESS' => 'Completed',
+      'REJECTED' => 'Rejected',
+      'CANCELLED' => 'Cancelled',
+      _ =>
+        statusCode.isEmpty
+            ? 'Pending review'
+            : _toEnglishStatusLabel(statusCode),
+    };
+  }
+
+  String _toEnglishStatusLabel(String status) {
+    final trimmed = status.trim();
+    switch (trimmed) {
+      case 'កំពុងពិនិត្យ':
+        return 'Pending review';
+      case 'សម្រេចជោគជ័យ':
+        return 'Completed';
+      case 'បដិសេធ':
+        return 'Rejected';
+      case 'បោះបង់':
+        return 'Cancelled';
+    }
+
+    final normalized = trimmed.toUpperCase();
+    return switch (normalized) {
+      'PENDING_REVIEW' => 'Pending review',
+      'APPROVED' || 'COMPLETED' || 'SUCCESS' => 'Completed',
+      'REJECTED' => 'Rejected',
+      'CANCELLED' => 'Cancelled',
+      _ => trimmed.isEmpty ? 'Pending review' : trimmed,
     };
   }
 
   String _rewardCategoryLabel(String code) {
     final normalized = code.trim().toUpperCase();
     return switch (normalized) {
-      'VOUCHER' || 'COUPON' => 'ប័ណ្ណបញ្ចូល',
-      'PRODUCT' => 'ផលិតផល',
-      'CASH_VOUCHER' || 'CASH' => 'ប័ណ្ណទឹកប្រាក់',
-      'GAME' => 'ហ្គេម',
-      'ELECTRONICS' => 'គ្រឿងអេឡិចត្រូនិក',
-      'EVENT_TICKET' || 'TICKET' => 'សំបុត្រកម្មវិធី',
+      'VOUCHER' || 'COUPON' => 'Voucher',
+      'PRODUCT' => 'Merch',
+      'CASH_VOUCHER' || 'CASH' => 'Mall Cash Voucher',
+      'GAME' => 'Game',
+      'ELECTRONICS' => 'Electronics',
+      'EVENT_TICKET' || 'TICKET' => 'Event Ticket',
       _ => '',
     };
   }
@@ -664,10 +721,30 @@ class LoyaltyRepository {
   String _expiryCategoryLabel(String code) {
     final normalized = code.trim().toUpperCase();
     return switch (normalized) {
-      'NOT_EXPIRED' => 'មិនផុតកំណត់',
-      'NEAR_EXPIRY' => 'ជិតផុតកំណត់',
-      'EXPIRED' => 'ផុតកំណត់',
-      _ => 'ទាំងអស់',
+      'NOT_EXPIRED' => 'Not Expired',
+      'NEAR_EXPIRY' => 'Near Expiry',
+      'EXPIRED' => 'Expired',
+      _ => 'All',
+    };
+  }
+
+  String _toEnglishExpiryLabel(String label) {
+    final trimmed = label.trim();
+    switch (trimmed) {
+      case 'មិនផុតកំណត់':
+        return 'Not Expired';
+      case 'ជិតផុតកំណត់':
+        return 'Near Expiry';
+      case 'ផុតកំណត់':
+        return 'Expired';
+    }
+
+    final normalized = trimmed.toUpperCase();
+    return switch (normalized) {
+      'NOT_EXPIRED' => 'Not Expired',
+      'NEAR_EXPIRY' => 'Near Expiry',
+      'EXPIRED' => 'Expired',
+      _ => trimmed,
     };
   }
 
@@ -750,7 +827,7 @@ class LoyaltyRepository {
       rewardId: '',
       imageUrl: '',
       brandName: 'Chip Mong Mall',
-      category: 'ប័ណ្ណទិញទំនិញ',
+      category: 'Shopping Voucher',
       title: 'Reward',
       store: 'Chip Mong 271 Mega Mall',
       points: 0,

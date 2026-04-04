@@ -8,9 +8,9 @@ class LoyaltyTabBar extends StatelessWidget {
   final TabController controller;
 
   static const _tabs = [
-    (icon: Icons.card_giftcard_outlined, label: 'រង្វាន់'),
-    (icon: Icons.history_outlined, label: 'ប្រវត្តិពិន្ទុ'),
-    (icon: Icons.schedule_outlined, label: 'ការផុតកំណត់'),
+    (icon: Icons.card_giftcard_outlined, label: 'Rewards'),
+    (icon: Icons.history_outlined, label: 'History'),
+    (icon: Icons.schedule_outlined, label: 'Expiry'),
   ];
 
   @override
@@ -32,7 +32,9 @@ class LoyaltyTabBar extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 7),
+                      horizontal: 8,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.primary
@@ -46,8 +48,7 @@ class LoyaltyTabBar extends StatelessWidget {
                         Icon(
                           _tabs[i].icon,
                           size: 15,
-                          color:
-                              isSelected ? Colors.white : Colors.grey[600],
+                          color: isSelected ? Colors.white : Colors.grey[600],
                         ),
                         const SizedBox(width: 4),
                         Flexible(

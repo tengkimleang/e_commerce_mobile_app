@@ -9,7 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class SignupView extends StatefulWidget {
-  const SignupView({super.key});
+  const SignupView({super.key, this.initialPhoneNumber});
+
+  final String? initialPhoneNumber;
 
   @override
   State<SignupView> createState() => _SignupViewState();
@@ -40,6 +42,12 @@ class _SignupViewState extends State<SignupView> {
     _termsTapRecognizer = TapGestureRecognizer()..onTap = _openTermsOfUsePage;
     _privacyTapRecognizer = TapGestureRecognizer()
       ..onTap = _openPrivacyPolicyPage;
+
+    final initialPhone = widget.initialPhoneNumber?.trim() ?? '';
+    if (initialPhone.isNotEmpty) {
+      _phoneController.text = initialPhone;
+      _isPhoneValid = _isValidPhone(initialPhone);
+    }
   }
 
   void _openTermsOfUsePage() {

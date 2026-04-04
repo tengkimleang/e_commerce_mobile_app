@@ -71,34 +71,34 @@ const chipmongMallDefaultLoyalty = ChipmongMallLoyaltyInfo(
 const chipmongMallCategories = <ChipmongMallCategory>[
   ChipmongMallCategory(
     icon: Icons.card_giftcard,
-    label: 'កម្មវិធីស្មោះស្ម័គ្រ',
+    label: 'My Offers',
     hasBadge: true,
-    badgeLabel: 'SALE',
+    badgeLabel: 'New',
   ),
-  ChipmongMallCategory(icon: Icons.shopping_bag_outlined, label: 'ហាងទំនិញ'),
-  ChipmongMallCategory(icon: Icons.restaurant, label: 'ភោជនីយដ្ឋាន'),
+  ChipmongMallCategory(icon: Icons.shopping_bag_outlined, label: 'Shops'),
+  ChipmongMallCategory(icon: Icons.restaurant, label: 'Restaurants'),
   ChipmongMallCategory(
     icon: Icons.sports_esports_outlined,
-    label: 'ហ្គេមកម្សាន្ត',
+    label: 'Entertainment',
   ),
-  ChipmongMallCategory(icon: Icons.apps, label: 'ច្រើនបន្ថែម'),
+  ChipmongMallCategory(icon: Icons.apps, label: 'More'),
 ];
 
 final chipmongMallBannerImages = <String>[
   'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
-  'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+  'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
   'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
 ];
 
-const _chipmongMallKhmerDetailFromDesign =
-    'ARMY! ARE YOU READY? 🔥 សម្រាប់ការផ្សាយផ្ទាល់ក៏នៅជិតមកដល់ទៀតហើយ 😱\n\n'
-    'ត្រៀមខ្លួនចាំទិញសំបុត្រឱ្យហើយណា សម្រាប់ BTS WORLD TOUS ARIRANG! '
-    'មកបង្ហាញភាពគាំទ្រក្នុងនាមអ្នកជា ARMY 🥰💜\n\n'
-    'ដោយសារតែការគាំទ្រខ្លាំងក្លាក្នុងការទន្ទឹងរង់ចាំមើលជាយូរ '
-    'Live Stream <BTS WORLD TOUR AIRANG> នឹងត្រូវបានបញ្ចាំងនៅផ្សារទំនើបជីបម៉ុង ម៉ល 271 '
-    'នៅថ្ងៃទី 11 មេសា 2026\n\n'
-    '⏰ មើលព័ត៌មានលម្អិតបន្ថែម https://bit.ly/42VKAlz\n'
-    '🍿 ទិញតាម Tiktok: សម្រាប់ព័ត៌មានបន្ថែម https://tinyurl.com/nu26cc4c';
+const _chipmongMallDetailFromDesign =
+    'ARMY! ARE YOU READY? 🔥 The live viewing is almost here 😱\n\n'
+    'Get ready to secure your tickets for BTS WORLD TOUR ARIRANG! '
+    'Show your support as ARMY 🥰💜\n\n'
+    'Because of strong fan support and anticipation, '
+    'the Live Stream <BTS WORLD TOUR ARIRANG> will be screened at Chip Mong Mall 271 '
+    'on April 11, 2026.\n\n'
+    '⏰ More details: https://bit.ly/42VKAlz\n'
+    '🍿 Buy via TikTok: https://tinyurl.com/nu26cc4c';
 
 final chipmongMallPromotions = <ChipmongMallPromotion>[
   const ChipmongMallPromotion(
@@ -106,25 +106,25 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
         'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
     imageUrls: [
       'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
-      'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+      'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
       'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
     ],
     brandName: 'The Pizza Company',
     title: 'BITE BOX SET! 🍕',
     date: 'Jan 28, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
   const ChipmongMallPromotion(
     imageUrl:
-        'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+        'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
     imageUrls: [
-      'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+      'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
       'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
     ],
     brandName: "LEVI'S",
     title: 'MID SEASON SALE ✨',
     date: 'Mar 20, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -132,7 +132,7 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: 'FILA',
     title: 'New Collection',
     date: 'Mar 10, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -140,7 +140,7 @@ final chipmongMallPromotions = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Retail',
     title: 'Weekend Deals 🛒',
     date: 'Mar 15, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
 ];
 
@@ -155,7 +155,7 @@ final chipmongMallPrograms = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Mall',
     title: 'Loyalty Rewards Program',
     date: 'Feb 01, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -163,18 +163,18 @@ final chipmongMallPrograms = <ChipmongMallPromotion>[
     brandName: 'Chip Mong Mall',
     title: 'Members Exclusive Benefits',
     date: 'Mar 01, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
 ];
 
 final chipmongMallNews = <ChipmongMallPromotion>[
   const ChipmongMallPromotion(
     imageUrl:
-        'https://www.apacoutlookmag.com/media/chip-mong-retail-1-1597331139.profileImage.2x-1536x884.webp',
+        'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
     brandName: 'Chip Mong',
     title: 'Grand Reopening 2026',
     date: 'Mar 21, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
   const ChipmongMallPromotion(
     imageUrl:
@@ -182,6 +182,6 @@ final chipmongMallNews = <ChipmongMallPromotion>[
     brandName: 'Chip Mong',
     title: 'New Outlet Opening',
     date: 'Mar 25, 2026',
-    description: _chipmongMallKhmerDetailFromDesign,
+    description: _chipmongMallDetailFromDesign,
   ),
 ];

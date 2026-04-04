@@ -13,9 +13,9 @@ class MallTabBarHeader extends StatefulWidget {
 
 class _MallTabBarHeaderState extends State<MallTabBarHeader> {
   static const _tabs = [
-    (icon: Icons.local_offer_outlined, label: 'ប្រូម៉ូសិន'),
-    (icon: Icons.calendar_today_outlined, label: 'កម្មវិធី'),
-    (icon: Icons.campaign_outlined, label: 'ព័ត៌មាន'),
+    (icon: Icons.local_offer_outlined, label: 'Promotions'),
+    (icon: Icons.calendar_today_outlined, label: 'Events'),
+    (icon: Icons.campaign_outlined, label: 'News'),
   ];
 
   @override
@@ -49,7 +49,10 @@ class _MallTabBarHeaderState extends State<MallTabBarHeader> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(24),

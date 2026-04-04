@@ -1,6 +1,8 @@
+import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserInfoRepository {
@@ -61,6 +63,18 @@ class UserInfoRepository {
                 ? (data['address'] ?? '').toString().trim()
                 : cached.address,
             profileImagePath: cached.profileImagePath,
+            profileImageUrl: _normalizePublicUrl(
+              _firstNonEmpty([
+                data['profileImageUrl'],
+                response['profileImageUrl'],
+              ]),
+            ),
+            clearProfileImagePath: _normalizePublicUrl(
+              _firstNonEmpty([
+                data['profileImageUrl'],
+                response['profileImageUrl'],
+              ]),
+            ).isNotEmpty,
             languageCode: cached.languageCode,
           );
 
@@ -125,6 +139,18 @@ class UserInfoRepository {
                 ? (data['address'] ?? '').toString().trim()
                 : draft.address,
             profileImagePath: draft.profileImagePath,
+            profileImageUrl: _normalizePublicUrl(
+              _firstNonEmpty([
+                data['profileImageUrl'],
+                response['profileImageUrl'],
+              ]),
+            ),
+            clearProfileImagePath: _normalizePublicUrl(
+              _firstNonEmpty([
+                data['profileImageUrl'],
+                response['profileImageUrl'],
+              ]),
+            ).isNotEmpty,
             languageCode: draft.languageCode,
           );
 
@@ -148,14 +174,16 @@ class UserInfoRepository {
       final errorCode = (response['errorCode'] ?? '').toString().trim();
       final success = response['success'] == true;
       if (errorCode.isNotEmpty || !success) {
+        debugPrint(
+          '[UserInfoRepository] uploadProfileImage failed: errorCode=$errorCode, errorMsg=${response['errorMsg']}',
+        );
         return draft;
       }
 
       final data = _extractDataMap(response);
-      final profileImageUrl = _firstNonEmpty([
-        data['profileImageUrl'],
-        response['profileImageUrl'],
-      ]);
+      final profileImageUrl = _normalizePublicUrl(
+        _firstNonEmpty([data['profileImageUrl'], response['profileImageUrl']]),
+      );
 
       final remote = draft.copyWith(
         profileImageUrl: profileImageUrl,
@@ -163,7 +191,8 @@ class UserInfoRepository {
       );
       await cacheUserInfo(remote);
       return remote;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[UserInfoRepository] uploadProfileImage exception: $e');
       return draft;
     }
   }
@@ -253,7 +282,7 @@ class UserInfoRepository {
       address: address,
       phoneNumber: phone.isEmpty ? sessionModel.phoneNumber : phone,
       profileImagePath: imagePath.isEmpty ? null : imagePath,
-      profileImageUrl: imageUrl,
+      profileImageUrl: _normalizePublicUrl(imageUrl),
       languageCode: language.isEmpty ? fallbackLanguageCode : language,
       points: points,
       isVerified: verified,
@@ -290,6 +319,38 @@ class UserInfoRepository {
       }
     }
     return '';
+  }
+
+  String _normalizePublicUrl(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return '';
+
+    final baseUri = Uri.tryParse(ApiUrl.baseUrl);
+    if (baseUri == null || !baseUri.hasScheme || baseUri.host.isEmpty) {
+      return value;
+    }
+
+    final imageUri = Uri.tryParse(value);
+    if (imageUri == null) {
+      return baseUri.resolve(value).toString();
+    }
+
+    if (!imageUri.hasScheme) {
+      return baseUri.resolveUri(imageUri).toString();
+    }
+
+    final host = imageUri.host.toLowerCase();
+    if (host == 'localhost' || host == '127.0.0.1') {
+      return imageUri
+          .replace(
+            scheme: baseUri.scheme,
+            host: baseUri.host,
+            port: baseUri.hasPort ? baseUri.port : null,
+          )
+          .toString();
+    }
+
+    return imageUri.toString();
   }
 
   String _formatDateOnly(DateTime? date) {

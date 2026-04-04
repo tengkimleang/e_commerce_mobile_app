@@ -19,7 +19,6 @@ class TierCard extends StatelessWidget {
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          
           gradient: LinearGradient(
             colors: outerGradient,
             begin: Alignment.topLeft,
@@ -30,7 +29,7 @@ class TierCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
-           borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(20),
@@ -40,7 +39,9 @@ class TierCard extends StatelessWidget {
             ],
           ),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: tier.locked ? _LockedContent(tier: tier, info: info) : _ActiveContent(tier: tier, info: info),
+          child: tier.locked
+              ? _LockedContent(tier: tier, info: info)
+              : _ActiveContent(tier: tier, info: info),
         ),
       ),
     );
@@ -87,7 +88,7 @@ class _ActiveContent extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          'ពិន្ទុដែលទទួលបាន',
+          'Available points',
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey[500],
@@ -115,7 +116,7 @@ class _ActiveContent extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'អស់កំណត់ : ${info.expiryDate}',
+              'Expire : ${info.expiryDate}',
               style: const TextStyle(
                 fontSize: 12,
                 fontFamily: 'Battambang',
@@ -160,11 +161,14 @@ class _LockedContent extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.lock_outline,
-                          size: 14, color: Colors.grey[500]),
+                      Icon(
+                        Icons.lock_outline,
+                        size: 14,
+                        color: Colors.grey[500],
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        'ចាក់សោ',
+                        'Locked',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[500],
@@ -181,7 +185,7 @@ class _LockedContent extends StatelessWidget {
         ),
         const Spacer(),
         const Text(
-          'របៀបឈានដល់កម្រិត?',
+          'How to reach level?',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -191,7 +195,7 @@ class _LockedContent extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          'ទទួលបានពិន្ទុច្រើនទៀតដើម្បីឈានដល់កម្រិតនេះ',
+          'Earn more points to unlock level',
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey[600],

@@ -367,7 +367,9 @@ class _QrCodeBodyState extends State<QrCodeBody> {
     _isRefreshing = true;
     final nextFuture = _repository.loadMembershipQr();
     nextFuture.whenComplete(() => _isRefreshing = false);
-    setState(() => _membershipFuture = nextFuture);
+    setState(() {
+      _membershipFuture = nextFuture;
+    });
   }
 
   @override
@@ -529,7 +531,7 @@ class _MallPointsBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'ពិន្ទុដែលទទួលបាន',
+                'Available points',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13,
@@ -804,13 +806,13 @@ class _MallMemberInfoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         children: [
-          _MallInfoRow(label: 'ឈ្មោះអ្នកប្រើប្រាស់ :', value: name),
+          _MallInfoRow(label: 'Username:', value: name),
           const _MallDashedDivider(),
-          _MallInfoRow(label: 'កម្រិតសមាជិក :', value: level),
+          _MallInfoRow(label: 'Tier Level:', value: level),
           const _MallDashedDivider(),
-          _MallInfoRow(label: 'លេខសម្គាល់សមាជិកភាព :', value: id),
+          _MallInfoRow(label: 'Membership ID:', value: id),
           const _MallDashedDivider(),
-          _MallInfoRow(label: 'ប្រភេទសមាជិកភាព :', value: type),
+          _MallInfoRow(label: 'Membership Type:', value: type),
         ],
       ),
     );

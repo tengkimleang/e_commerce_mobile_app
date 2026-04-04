@@ -10,7 +10,7 @@ import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dar
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
-import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/views/pin_login_view.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
@@ -96,6 +96,78 @@ class LoginView extends StatelessWidget {
     );
   }
 
+  static Future<void> _showNotRegisteredDialog(
+    BuildContext context,
+    LoginPhoneNotRegistered state,
+  ) async {
+    final shouldGoSignup = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_add_alt_1_rounded,
+                color: Color(0xFFEC407A),
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Account Not Found',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${state.message}\nPlease sign up first.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFEC407A),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('Go to Sign Up'),
+          ),
+        ],
+      ),
+    );
+
+    if (!context.mounted || shouldGoSignup != true) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SignupView(initialPhoneNumber: state.phoneNumber),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -105,16 +177,19 @@ class LoginView extends StatelessWidget {
           debugPrint(
             '[LoginView] BlocListener received state: ${state.runtimeType}',
           );
-          if (state is LoginOtpSent) {
+          if (state is LoginPinRequired) {
             debugPrint(
-              '[LoginView] Navigating to OtpView with phone: ${state.phoneNumber}',
+              '[LoginView] Navigating to PinLoginView with phone: ${state.phoneNumber}',
             );
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => OtpView(phoneNumber: state.phoneNumber),
+                builder: (context) =>
+                    PinLoginView(phoneNumber: state.phoneNumber),
               ),
             );
+          } else if (state is LoginPhoneNotRegistered) {
+            _showNotRegisteredDialog(context, state);
           } else if (state is LoginError) {
             _showErrorDialog(context, state);
           }
@@ -165,6 +240,7 @@ class _LoginContentState extends State<_LoginContent> {
       fullName: 'Test User',
       phoneNumber: '012345678',
       token: 'dev-mock-token',
+      refreshToken: '',
     );
     if (!mounted) return;
 

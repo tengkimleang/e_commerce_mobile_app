@@ -10,6 +10,7 @@ import '../widget/chipmong_widget/mall_bottom_nav.dart';
 import '../widget/chipmong_widget/mall_category_row.dart';
 import '../widget/chipmong_widget/mall_loyalty_card.dart';
 import '../widget/chipmong_widget/mall_promotion_section.dart';
+import '../widget/chipmong_widget/mall_promotion_tab_content.dart';
 import '../widget/chipmong_widget/mall_tab_bar_header.dart';
 import '../widget/chipmong_widget/mall_top_bar.dart';
 import '../models/chipmong_mall_model.dart';
@@ -46,10 +47,10 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
   late final TabController _tabController;
 
   static const _navItems = <MallNavItem>[
-    MallNavItem(icon: Icons.home, label: 'ទំព័រដើម'),
-    MallNavItem(icon: Icons.qr_code_scanner, label: 'QR កូដ'),
-    MallNavItem(icon: Icons.local_offer_outlined, label: 'ប្រូម៉ូសិន'),
-    MallNavItem(icon: Icons.emoji_events_outlined, label: 'កម្មវិធីសមាជិក'),
+    MallNavItem(icon: Icons.home, label: 'Home'),
+    MallNavItem(icon: Icons.qr_code_scanner, label: 'My QR'),
+    MallNavItem(icon: Icons.local_offer_outlined, label: 'Promotions'),
+    MallNavItem(icon: Icons.emoji_events_outlined, label: 'Loyalty'),
   ];
 
   @override
@@ -84,13 +85,14 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
         }
 
         final isQrTab = state.bottomNavIndex == 1;
+        final isPromotionTab = state.bottomNavIndex == 2;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF5F5F5),
           appBar: isQrTab
               ? AppBar(
                   title: const Text(
-                    'QR កូដ',
+                    'My QR',
                     style: TextStyle(
                       color: Colors.black87,
                       fontWeight: FontWeight.w600,
@@ -105,6 +107,13 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
               : null,
           body: isQrTab
               ? const QrCodeBody()
+              : isPromotionTab
+              ? MallPromotionTabContent(
+                  controller: _tabController,
+                  promotions: state.promotions,
+                  events: state.programs,
+                  news: state.news,
+                )
               : SafeArea(
                   bottom: false,
                   child: SingleChildScrollView(
@@ -115,18 +124,34 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                         MallCategoryRow(categories: chipmongMallCategories),
                         GestureDetector(
                           onTap: () async {
-                            final updatedInfo = await Navigator.of(context)
-                                .push<ChipmongMallLoyaltyInfo>(
-                                  MaterialPageRoute(
-                                    builder: (_) => LoyaltyCardDetailScreen(
-                                      info: state.loyaltyInfo,
+                            try {
+                              final updatedInfo = await Navigator.of(context)
+                                  .push<ChipmongMallLoyaltyInfo>(
+                                    MaterialPageRoute(
+                                      builder: (_) => LoyaltyCardDetailScreen(
+                                        info: state.loyaltyInfo,
+                                      ),
                                     ),
+                                  );
+                              if (!context.mounted || updatedInfo == null) {
+                                return;
+                              }
+                              context.read<ChipmongMallBloc>().add(
+                                ChipmongMallLoyaltyInfoUpdated(updatedInfo),
+                              );
+                            } catch (e) {
+                              debugPrint(
+                                '[ChipmongMallScreen] failed to open loyalty detail: $e',
+                              );
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Unable to open loyalty card detail right now.',
                                   ),
-                                );
-                            if (!context.mounted || updatedInfo == null) return;
-                            context.read<ChipmongMallBloc>().add(
-                              ChipmongMallLoyaltyInfoUpdated(updatedInfo),
-                            );
+                                ),
+                              );
+                            }
                           },
                           child: MallLoyaltyCard(info: state.loyaltyInfo),
                         ),

@@ -26,7 +26,7 @@ class MallBottomCta extends StatelessWidget {
         ),
         icon: const Icon(Icons.edit_outlined, size: 18),
         label: const Text(
-          'ចូលរួមបំណងប្រាថ្នាបន្ត',
+          'Customize Theme',
           style: TextStyle(
             fontSize: 14,
             fontFamily: 'Battambang',

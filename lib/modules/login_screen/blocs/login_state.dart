@@ -22,10 +22,19 @@ class LoginSuccess extends LoginState {
   const LoginSuccess(this.message);
 }
 
-// When OTP has been sent / requested for verification
-class LoginOtpSent extends LoginState {
+// When phone was accepted and user should enter PIN.
+class LoginPinRequired extends LoginState {
   final String phoneNumber;
-  const LoginOtpSent(this.phoneNumber);
+  const LoginPinRequired(this.phoneNumber);
+}
+
+class LoginPhoneNotRegistered extends LoginState {
+  final String phoneNumber;
+  final String message;
+  const LoginPhoneNotRegistered({
+    required this.phoneNumber,
+    required this.message,
+  });
 }
 
 enum LoginErrorType { network, server, validation, unknown }
