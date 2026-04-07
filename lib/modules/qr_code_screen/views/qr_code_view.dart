@@ -1,7 +1,11 @@
-import 'dart:async';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
@@ -330,13 +334,13 @@ class QrCodeBody extends StatefulWidget {
 }
 
 class _QrCodeBodyState extends State<QrCodeBody> {
-  static const _autoRefreshInterval = Duration(seconds: 90);
+  static const _savedQrFileName = 'chipmong_mall_member_qr.png';
 
   late final MallMembershipQrRepository _repository;
   late final MallMembershipQrModel _fallback;
   late Future<MallMembershipQrModel> _membershipFuture;
-  Timer? _autoRefreshTimer;
-  bool _isRefreshing = false;
+  String? _savedQrPath;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -344,32 +348,101 @@ class _QrCodeBodyState extends State<QrCodeBody> {
     _repository = widget.repository ?? MallMembershipQrRepository();
     _fallback = _repository.buildLocalFallback();
     _membershipFuture = _repository.loadMembershipQr();
-    _isRefreshing = true;
-    _membershipFuture.whenComplete(() => _isRefreshing = false);
-    _startAutoRefresh();
+    _restoreSavedQr();
   }
 
-  @override
-  void dispose() {
-    _autoRefreshTimer?.cancel();
-    super.dispose();
+  Future<File> _savedQrFile() async {
+    final directory = await getApplicationDocumentsDirectory();
+    return File('${directory.path}/$_savedQrFileName');
   }
 
-  void _startAutoRefresh() {
-    _autoRefreshTimer?.cancel();
-    _autoRefreshTimer = Timer.periodic(_autoRefreshInterval, (_) {
-      _refreshMembershipData();
-    });
+  Future<void> _restoreSavedQr() async {
+    final file = await _savedQrFile();
+    if (!await file.exists() || !mounted) return;
+    setState(() => _savedQrPath = file.path);
   }
 
-  void _refreshMembershipData() {
-    if (!mounted || _isRefreshing) return;
-    _isRefreshing = true;
-    final nextFuture = _repository.loadMembershipQr();
-    nextFuture.whenComplete(() => _isRefreshing = false);
-    setState(() {
-      _membershipFuture = nextFuture;
-    });
+  Future<void> _saveQrImage(String qrUrl) async {
+    if (_isSaving) return;
+
+    setState(() => _isSaving = true);
+    var localSaved = false;
+
+    try {
+      final response = await Dio().get<List<int>>(
+        qrUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        throw Exception('Missing QR image bytes');
+      }
+
+      final file = await _savedQrFile();
+      await file.writeAsBytes(bytes, flush: true);
+      localSaved = true;
+
+      setState(() => _savedQrPath = file.path);
+      await _ensureLegacyAndroidStoragePermission();
+      final galleryResult = await ImageGallerySaverPlus.saveFile(
+        file.path,
+        name: 'chipmong_mall_qr_${DateTime.now().millisecondsSinceEpoch}',
+      );
+      if (!_gallerySaveSucceeded(galleryResult)) {
+        throw Exception('Gallery save failed');
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('QR saved to Gallery/Photos.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      final message = localSaved
+          ? 'QR saved in app only. Please allow photo/storage access and try again.'
+          : 'Unable to save QR right now. Please try again.';
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  Future<void> _ensureLegacyAndroidStoragePermission() async {
+    if (!Platform.isAndroid) return;
+    final sdkInt = _androidSdkInt();
+    if (sdkInt == null || sdkInt > 28) return;
+
+    final status = await Permission.storage.request();
+    if (!status.isGranted) {
+      throw Exception('Storage permission denied');
+    }
+  }
+
+  int? _androidSdkInt() {
+    final match = RegExp(
+      r'SDK (\d+)',
+    ).firstMatch(Platform.operatingSystemVersion);
+    return int.tryParse(match?.group(1) ?? '');
+  }
+
+  bool _gallerySaveSucceeded(dynamic result) {
+    if (result is bool) return result;
+    if (result is Map) {
+      final raw = result['isSuccess'] ?? result['success'];
+      if (raw is bool) return raw;
+      if (raw is num) return raw != 0;
+      if (raw is String) {
+        final normalized = raw.trim().toLowerCase();
+        return normalized == 'true' ||
+            normalized == '1' ||
+            normalized == 'success';
+      }
+    }
+    return false;
   }
 
   @override
@@ -396,24 +469,14 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                         child: _MallStatusNotice(message: data.statusMessage!),
                       ),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          const Text(
-                            'Auto refresh: 90s',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF8E8E8E),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Spacer(),
                           TextButton.icon(
-                            onPressed:
-                                snapshot.connectionState ==
-                                    ConnectionState.waiting
+                            onPressed: _isSaving
                                 ? null
-                                : _refreshMembershipData,
+                                : () => _saveQrImage(qrUrl),
                             style: TextButton.styleFrom(
                               foregroundColor: const Color(0xFFEC407A),
                               minimumSize: const Size(0, 34),
@@ -421,16 +484,26 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                                 horizontal: 10,
                               ),
                             ),
-                            icon: const Icon(Icons.refresh_rounded, size: 16),
-                            label: const Text(
-                              'Refresh QR',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                            icon: _isSaving
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(Icons.download_rounded, size: 16),
+                            label: Text(
+                              _isSaving ? 'Saving...' : 'Save QR',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    _MallQrFrame(qrUrl: qrUrl),
+                    _MallQrFrame(qrUrl: qrUrl, savedQrPath: _savedQrPath),
                     if (snapshot.connectionState == ConnectionState.waiting)
                       const Padding(
                         padding: EdgeInsets.only(top: 20),
@@ -438,6 +511,19 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    if ((_savedQrPath ?? '').isNotEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: Text(
+                          'Saved on this device for offline display.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF8E8E8E),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     const SizedBox(height: 32),
@@ -608,8 +694,9 @@ class _MallPointsBanner extends StatelessWidget {
 // ---------------------------------------------------------------------------
 class _MallQrFrame extends StatefulWidget {
   final String qrUrl;
+  final String? savedQrPath;
 
-  const _MallQrFrame({required this.qrUrl});
+  const _MallQrFrame({required this.qrUrl, this.savedQrPath});
 
   @override
   State<_MallQrFrame> createState() => _MallQrFrameState();
@@ -653,17 +740,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Image.network(
-            widget.qrUrl,
-            width: qrSize,
-            height: qrSize,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const SizedBox(
-              width: qrSize,
-              height: qrSize,
-              child: Icon(Icons.qr_code_2, size: qrSize * 0.8),
-            ),
-          ),
+          _buildQrImage(qrSize),
           ScaleTransition(
             scale: _scale,
             child: Stack(
@@ -713,6 +790,35 @@ class _MallQrFrameState extends State<_MallQrFrame>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQrImage(double qrSize) {
+    final localPath = (widget.savedQrPath ?? '').trim();
+    if (localPath.isNotEmpty) {
+      return Image.file(
+        File(localPath),
+        width: qrSize,
+        height: qrSize,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => SizedBox(
+          width: qrSize,
+          height: qrSize,
+          child: Icon(Icons.qr_code_2, size: qrSize * 0.8),
+        ),
+      );
+    }
+
+    return Image.network(
+      widget.qrUrl,
+      width: qrSize,
+      height: qrSize,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => SizedBox(
+        width: qrSize,
+        height: qrSize,
+        child: Icon(Icons.qr_code_2, size: qrSize * 0.8),
       ),
     );
   }

@@ -15,10 +15,28 @@ import '../widget/loyalty_widget/tier_progress_header.dart';
 import 'loyalty_item_exchanged_detail_screen.dart';
 import 'loyalty_reward_detail_screen.dart';
 
+class LoyaltyCardDetailResult {
+  const LoyaltyCardDetailResult({
+    required this.loyaltyInfo,
+    this.targetBottomNavIndex,
+  });
+
+  final ChipmongMallLoyaltyInfo loyaltyInfo;
+  final int? targetBottomNavIndex;
+}
+
 class LoyaltyCardDetailScreen extends StatefulWidget {
-  const LoyaltyCardDetailScreen({super.key, required this.info});
+  const LoyaltyCardDetailScreen({
+    super.key,
+    required this.info,
+    /// Called with the target bottom-nav index immediately when the user taps a
+    /// non-Loyalty item in the bottom bar, BEFORE the pop animation starts.
+    /// Use this to pre-update the parent screen so there is no Home flash.
+    this.onBottomNavTap,
+  });
 
   final ChipmongMallLoyaltyInfo info;
+  final void Function(int index)? onBottomNavTap;
 
   @override
   State<LoyaltyCardDetailScreen> createState() =>
@@ -120,6 +138,13 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     expiryDate: widget.info.expiryDate,
   );
 
+  LoyaltyCardDetailResult _buildCloseResult({int? targetBottomNavIndex}) {
+    return LoyaltyCardDetailResult(
+      loyaltyInfo: _currentInfo,
+      targetBottomNavIndex: targetBottomNavIndex,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -149,11 +174,15 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
+    return PopScope<LoyaltyCardDetailResult>(
       canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        Navigator.of(context).pop(_currentInfo);
+        // Preserve requested bottom-tab destination when a custom pop result
+        // is blocked by PopScope and re-issued here.
+        Navigator.of(context).pop(
+          _buildCloseResult(targetBottomNavIndex: result?.targetBottomNavIndex),
+        );
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
@@ -179,7 +208,13 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
           items: _navItems,
           selectedIndex: 3,
           onTap: (i) {
-            if (i != 3) Navigator.of(context).pop(_currentInfo);
+            if (i == 3) return;
+            // Fire BEFORE pop so the underlying screen already shows the
+            // correct tab during the slide-back animation.
+            widget.onBottomNavTap?.call(i);
+            Navigator.of(
+              context,
+            ).pop(_buildCloseResult(targetBottomNavIndex: i));
           },
         ),
       ),
@@ -811,7 +846,10 @@ class _HistoryItemCard extends StatelessWidget {
       final date = _safeDate();
       final status = _safeStatus();
       final statusCode = _safeStatusCode();
-      final statusMeta = _resolveStatusMeta(status: status, statusCode: statusCode);
+      final statusMeta = _resolveStatusMeta(
+        status: status,
+        statusCode: statusCode,
+      );
       final isPositive = pointsDelta >= 0;
       final pointsColor = isPositive
           ? const Color(0xFF2E7D32)

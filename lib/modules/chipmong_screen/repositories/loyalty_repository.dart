@@ -138,6 +138,16 @@ class LoyaltyRepository {
       if (deliveryAddress != null) {
         payload['deliveryAddress'] = deliveryAddress;
       }
+      if (request.deliveryLatitude != null) {
+        payload['deliveryLatitude'] = request.deliveryLatitude;
+      }
+      if (request.deliveryLongitude != null) {
+        payload['deliveryLongitude'] = request.deliveryLongitude;
+      }
+      final deliveryPlaceId = _emptyToNull(request.deliveryPlaceId);
+      if (deliveryPlaceId != null) {
+        payload['deliveryPlaceId'] = deliveryPlaceId;
+      }
     }
 
     final response = await _authService.createLoyaltyExchange(

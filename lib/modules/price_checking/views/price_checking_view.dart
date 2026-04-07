@@ -1,4 +1,5 @@
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
@@ -17,16 +18,40 @@ class PriceCheckingView extends StatefulWidget {
   State<PriceCheckingView> createState() => _PriceCheckingViewState();
 }
 
-class _PriceCheckingViewState extends State<PriceCheckingView> {
+class _PriceCheckingViewState extends State<PriceCheckingView>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   late List<ProductItem> _displayedProducts;
   final Set<String> _selectedIds = {};
+  bool _searchActive = false;
+
+  late final AnimationController _animController;
+  late final Animation<Offset> _titleSlideAnim;
+  late final Animation<Offset> _searchBarSlideAnim;
 
   @override
   void initState() {
     super.initState();
     _displayedProducts = List<ProductItem>.from(widget.products);
     _searchController.addListener(_onSearchChanged);
+
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+
+    _titleSlideAnim = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(-1.5, 0.0),
+    ).animate(
+        CurvedAnimation(parent: _animController, curve: Curves.easeInOut));
+
+    _searchBarSlideAnim = Tween<Offset>(
+      begin: const Offset(0.5, 0.0),
+      end: Offset.zero,
+    ).animate(
+        CurvedAnimation(parent: _animController, curve: Curves.easeInOut));
   }
 
   void _onSearchChanged() {
@@ -42,62 +67,178 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
     });
   }
 
+  void _activateSearch() {
+    setState(() => _searchActive = true);
+    _animController.forward();
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  void _deactivateSearch() {
+    _focusNode.unfocus();
+    _animController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          _searchActive = false;
+          _searchController.clear();
+          _displayedProducts = List<ProductItem>.from(widget.products);
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _focusNode.dispose();
+    _animController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFEC407A),
-        elevation: 0,
-        actions: [
-          IconButton(
-            tooltip: 'Scan barcode',
-            icon: const Icon(Icons.qr_code_scanner),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Barcode scan tapped')),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12),
-        child: Column(
-          children: [
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search products',
-                    border: InputBorder.none,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () => _searchController.clear(),
-                          )
-                        : null,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: 56,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Back button
+                SizedBox(
+                  width: 48,
+                  child: IconButton(
+                    icon: const Icon(Icons.chevron_left,
+                        color: Colors.black, size: 28),
+                    onPressed: () => Navigator.of(context).maybePop(),
                   ),
                 ),
-              ),
+
+                // Middle: title ↔ search bar animation
+                Expanded(
+                  child: ClipRect(
+                    child: SizedBox(
+                      height: 56,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // "Search" title — slides out to the left
+                          SlideTransition(
+                            position: _titleSlideAnim,
+                            child: const Center(
+                              child: Text(
+                                'Search',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // Search bar — slides in from the right
+                          if (_searchActive)
+                            SlideTransition(
+                              position: _searchBarSlideAnim,
+                              child: Center(
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: const Color(0xFFEC407A),
+                                        width: 1.5),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(width: 10),
+                                      const Icon(Icons.search,
+                                          color: Color(0xFFEC407A), size: 20),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _searchController,
+                                          focusNode: _focusNode,
+                                          style:
+                                              const TextStyle(fontSize: 14),
+                                          decoration: const InputDecoration(
+                                            hintText: 'Search prod...',
+                                            hintStyle: TextStyle(
+                                                color: Colors.grey,
+                                                fontSize: 14),
+                                            border: InputBorder.none,
+                                            isDense: true,
+                                            contentPadding: EdgeInsets.zero,
+                                          ),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: _deactivateSearch,
+                                        child: const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: Icon(Icons.close,
+                                              color: Colors.grey, size: 20),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Search icon — hidden when active
+                SizedBox(
+                  width: 40,
+                  child: _searchActive
+                      ? const SizedBox.shrink()
+                      : IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(Icons.search,
+                              color: Color(0xFFEC407A), size: 24),
+                          onPressed: _activateSearch,
+                        ),
+                ),
+
+                // QR icon — always visible
+                Container(
+                  width: 40,
+                  margin: const EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: const Icon(Icons.qr_code_scanner,
+                        color: Color(0xFFEC407A), size: 22),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Barcode scan tapped')),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: GridView.builder(
+          ),
+        ),
+      ),
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        child: _displayedProducts.isEmpty
+            ? const Center(child: Text('No products found'))
+            : GridView.builder(
                 itemCount: _displayedProducts.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
@@ -109,37 +250,55 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
                   final product = _displayedProducts[index];
                   final isSelected = _selectedIds.contains(product.id);
 
-                  return _ProductCard(
-                    product: product,
-                    isSelected: isSelected,
-                    onTap: () {
-                      if (widget.selectionMode) {
-                        setState(() {
-                          if (isSelected) {
-                            _selectedIds.remove(product.id);
-                          } else {
-                            _selectedIds.add(product.id);
+                  return Stack(
+                    children: [
+                      ProductCard(
+                        product: product,
+                        onTap: () {
+                          if (widget.selectionMode) {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedIds.remove(product.id);
+                              } else {
+                                _selectedIds.add(product.id);
+                              }
+                            });
+                            return;
                           }
-                        });
-                        return;
-                      }
 
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailView(
-                            product: product,
-                            relatedProducts: widget.products,
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ProductDetailView(
+                                product: product,
+                                relatedProducts: widget.products,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (isSelected)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Material(
+                            color: Colors.white,
+                            shape: const CircleBorder(),
+                            elevation: 2,
+                            child: const Padding(
+                              padding: EdgeInsets.all(6),
+                              child: Icon(
+                                Icons.check_circle,
+                                color: Color(0xFFEC407A),
+                                size: 20,
+                              ),
+                            ),
                           ),
                         ),
-                      );
-                    },
+                    ],
                   );
                 },
               ),
             ),
-          ],
-        ),
-      ),
       // Selection bottom bar (only when in selection mode)
       bottomNavigationBar: widget.selectionMode
           ? SafeArea(
@@ -213,100 +372,4 @@ class _PriceCheckingViewState extends State<PriceCheckingView> {
   }
 }
 
-class _ProductCard extends StatelessWidget {
-  final ProductItem product;
-  final bool isSelected;
-  final VoidCallback onTap;
 
-  const _ProductCard({
-    required this.product,
-    required this.onTap,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: Image.network(
-                    product.imageUrl,
-                    height: 110,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '\$ ${product.price.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              color: Color(0xFFE91E63),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Icon(
-                            Icons.favorite_border,
-                            color: Colors.pink,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (isSelected)
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Material(
-              color: Colors.white,
-              shape: const CircleBorder(),
-              elevation: 2,
-              child: const Padding(
-                padding: EdgeInsets.all(6),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Color(0xFFEC407A),
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}

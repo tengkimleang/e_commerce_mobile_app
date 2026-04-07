@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/services/user_session.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../location_screen/views/map_receiving_address_view.dart';
 import '../repositories/loyalty_repository.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
 
@@ -185,6 +186,8 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
           representativeName: exchangeForm.representativeName,
           representativePhone: exchangeForm.representativePhone,
           deliveryAddress: exchangeForm.deliveryAddress,
+          deliveryLatitude: exchangeForm.deliveryLatitude,
+          deliveryLongitude: exchangeForm.deliveryLongitude,
           note: exchangeForm.note,
         ),
         fallbackAvailablePoints: widget.availablePoints,
@@ -349,10 +352,11 @@ class _RewardSummaryCard extends StatelessWidget {
                     height: _imageHeight,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) =>
-                        Container(height: _imageHeight, color: Colors.grey[200]),
-                    errorWidget: (context, url, error) =>
-                        _buildImageFallback(),
+                    placeholder: (context, url) => Container(
+                      height: _imageHeight,
+                      color: Colors.grey[200],
+                    ),
+                    errorWidget: (context, url, error) => _buildImageFallback(),
                   )
                 : _buildImageFallback(),
           ),
@@ -529,6 +533,8 @@ class _ExchangeFormData {
     this.representativeName,
     this.representativePhone,
     this.deliveryAddress,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
     this.note,
   });
 
@@ -539,6 +545,8 @@ class _ExchangeFormData {
   final String? representativeName;
   final String? representativePhone;
   final String? deliveryAddress;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
   final String? note;
 }
 
@@ -561,6 +569,8 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
   final _receiverNameController = TextEditingController();
   final _receiverPhoneController = TextEditingController();
   final _deliveryAddressController = TextEditingController();
+  double? _deliveryLatitude;
+  double? _deliveryLongitude;
   final _representativeNameController = TextEditingController();
   final _representativePhoneController = TextEditingController();
   final _noteController = TextEditingController();
@@ -690,6 +700,27 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
     _formKey.currentState?.validate();
   }
 
+  Future<void> _openDeliveryAddressPicker() async {
+    final selectedAddress = await Navigator.of(context)
+        .push<MapReceivingAddressResult>(
+          MaterialPageRoute(
+            builder: (_) => MapReceivingAddressView(
+              initialAddress: _deliveryAddressController.text.trim(),
+            ),
+          ),
+        );
+    if (!mounted || selectedAddress == null) return;
+
+    final trimmed = selectedAddress.address.trim();
+    if (trimmed.isEmpty) return;
+    setState(() {
+      _deliveryAddressController.text = trimmed;
+      _deliveryLatitude = selectedAddress.latitude;
+      _deliveryLongitude = selectedAddress.longitude;
+    });
+    _formKey.currentState?.validate();
+  }
+
   void _submitForm() {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
@@ -710,6 +741,8 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
       deliveryAddress: !_isPickup
           ? _deliveryAddressController.text.trim()
           : null,
+      deliveryLatitude: !_isPickup ? _deliveryLatitude : null,
+      deliveryLongitude: !_isPickup ? _deliveryLongitude : null,
       note: _noteController.text.trim().isEmpty
           ? null
           : _noteController.text.trim(),
@@ -1040,16 +1073,24 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _deliveryAddressController,
-                            keyboardType: TextInputType.streetAddress,
-                            maxLines: 3,
-                            textInputAction: TextInputAction.newline,
+                            readOnly: true,
+                            onTap: _openDeliveryAddressPicker,
                             decoration: const InputDecoration(
                               labelText: 'Delivery address',
-                              hintText: 'House No, Street, Khan, City',
-                              alignLabelWithHint: true,
+                              hintText: 'Pin your delivery address on map',
+                              suffixIcon: Icon(Icons.map_outlined),
                             ),
                             validator: (value) =>
                                 _validateRequired(value, 'Delivery address'),
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: _openDeliveryAddressPicker,
+                              icon: const Icon(Icons.my_location_rounded),
+                              label: const Text('Use current location'),
+                            ),
                           ),
                         ],
                         const SizedBox(height: 10),

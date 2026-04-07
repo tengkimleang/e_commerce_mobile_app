@@ -74,6 +74,40 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
     super.dispose();
   }
 
+  Future<void> _openLoyaltyDetail(ChipmongMallLoyaltyInfo loyaltyInfo) async {
+    try {
+      final result = await Navigator.of(context).push<LoyaltyCardDetailResult>(
+        PageRouteBuilder<LoyaltyCardDetailResult>(
+          // Zero duration = instant switch, identical to the other tabs.
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+          pageBuilder: (_, __, ___) => LoyaltyCardDetailScreen(
+            info: loyaltyInfo,
+            onBottomNavTap: (i) {
+              if (!mounted) return;
+              context.read<ChipmongMallBloc>().add(
+                ChipmongMallBottomNavChanged(i),
+              );
+            },
+          ),
+        ),
+      );
+      if (!mounted || result == null) return;
+      // Tab switch was already handled by onBottomNavTap; only sync loyalty info.
+      context.read<ChipmongMallBloc>().add(
+        ChipmongMallLoyaltyInfoUpdated(result.loyaltyInfo),
+      );
+    } catch (e) {
+      debugPrint('[ChipmongMallScreen] failed to open loyalty detail: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open loyalty card detail right now.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChipmongMallBloc, ChipmongMallState>(
@@ -123,36 +157,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                         MallBannerCarousel(images: state.bannerImages),
                         MallCategoryRow(categories: chipmongMallCategories),
                         GestureDetector(
-                          onTap: () async {
-                            try {
-                              final updatedInfo = await Navigator.of(context)
-                                  .push<ChipmongMallLoyaltyInfo>(
-                                    MaterialPageRoute(
-                                      builder: (_) => LoyaltyCardDetailScreen(
-                                        info: state.loyaltyInfo,
-                                      ),
-                                    ),
-                                  );
-                              if (!context.mounted || updatedInfo == null) {
-                                return;
-                              }
-                              context.read<ChipmongMallBloc>().add(
-                                ChipmongMallLoyaltyInfoUpdated(updatedInfo),
-                              );
-                            } catch (e) {
-                              debugPrint(
-                                '[ChipmongMallScreen] failed to open loyalty detail: $e',
-                              );
-                              if (!context.mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Unable to open loyalty card detail right now.',
-                                  ),
-                                ),
-                              );
-                            }
-                          },
+                          onTap: () => _openLoyaltyDetail(state.loyaltyInfo),
                           child: MallLoyaltyCard(info: state.loyaltyInfo),
                         ),
                         MallTabBarHeader(controller: _tabController),
@@ -188,9 +193,15 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
               child: MallBottomNav(
                 items: _navItems,
                 selectedIndex: state.bottomNavIndex,
-                onTap: (i) => context.read<ChipmongMallBloc>().add(
-                  ChipmongMallBottomNavChanged(i),
-                ),
+                onTap: (i) {
+                  if (i == 3) {
+                    _openLoyaltyDetail(state.loyaltyInfo);
+                    return;
+                  }
+                  context.read<ChipmongMallBloc>().add(
+                    ChipmongMallBottomNavChanged(i),
+                  );
+                },
               ),
             ),
           ),

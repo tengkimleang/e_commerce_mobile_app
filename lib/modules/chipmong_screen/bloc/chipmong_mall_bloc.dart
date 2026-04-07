@@ -15,6 +15,7 @@ class ChipmongMallBloc extends Bloc<ChipmongMallEvent, ChipmongMallState> {
     on<ChipmongMallTabChanged>(_onTabChanged);
     on<ChipmongMallBottomNavChanged>(_onBottomNavChanged);
     on<ChipmongMallLoyaltyInfoUpdated>(_onLoyaltyInfoUpdated);
+    on<ChipmongMallReturnedFromLoyalty>(_onReturnedFromLoyalty);
   }
 
   final MallMembershipQrRepository _membershipRepository;
@@ -76,6 +77,19 @@ class ChipmongMallBloc extends Bloc<ChipmongMallEvent, ChipmongMallState> {
     Emitter<ChipmongMallState> emit,
   ) {
     emit(state.copyWith(loyaltyInfo: event.loyaltyInfo));
+  }
+
+  void _onReturnedFromLoyalty(
+    ChipmongMallReturnedFromLoyalty event,
+    Emitter<ChipmongMallState> emit,
+  ) {
+    // Single atomic emit — no intermediate Home-tab flash.
+    emit(
+      state.copyWith(
+        loyaltyInfo: event.loyaltyInfo,
+        bottomNavIndex: event.targetBottomNavIndex,
+      ),
+    );
   }
 
   ChipmongMallLoyaltyInfo _toLoyaltyInfo(

@@ -28,10 +28,14 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to let you update your profile photo.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to pin your delivery address on the map.</string>
+	<key>GMSApiKey</key>
+	<string>$(MAPS_API_KEY)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photo library access to choose your profile photo.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs photo access to save captured profile photos.</string>
+	<string>This app needs photo access to save QR codes and profile photos.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -195,6 +195,9 @@ class LoyaltyExchangeRequest {
   final String? representativeName;
   final String? representativePhone;
   final String? deliveryAddress;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final String? deliveryPlaceId;
   final String? note;
 
   const LoyaltyExchangeRequest({
@@ -205,6 +208,9 @@ class LoyaltyExchangeRequest {
     this.representativeName,
     this.representativePhone,
     this.deliveryAddress,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.deliveryPlaceId,
     this.note,
   });
 }
