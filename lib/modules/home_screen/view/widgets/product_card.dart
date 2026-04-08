@@ -13,12 +13,14 @@ class ProductCard extends StatefulWidget {
   final ProductModel product;
   final VoidCallback? onFavoriteTap;
   final VoidCallback? onTap;
+  final String? countryLabel; // e.g. 'Cambodia 🇰🇭'
 
   const ProductCard({
     super.key,
     required this.product,
     this.onFavoriteTap,
     this.onTap,
+    this.countryLabel,
   });
 
   @override
@@ -146,29 +148,45 @@ class _ProductCardState extends State<ProductCard> {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
+                  if (widget.countryLabel != null) ...
+                    [
+                      const SizedBox(height: 3),
                       Text(
-                        '\$ ${widget.product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFEC407A),
+                        widget.countryLabel!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
                         ),
                       ),
-                      if (widget.product.originalPrice != null) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          '\$ ${widget.product.originalPrice!.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                            decoration: TextDecoration.lineThrough,
-                          ),
+                    ],
+                  const SizedBox(height: 6),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '\$ ${widget.product.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFEC407A),
+                              ),
+                            ),
+                            if (widget.product.originalPrice != null)
+                              Text(
+                                '\$ ${widget.product.originalPrice!.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[500],
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                          ],
                         ),
-                      ],
-                      const Spacer(),
+                      ),
                       BlocBuilder<CartBloc, CartState>(
                         builder: (context, cartState) {
                           final quantity = cartState.quantityFor(

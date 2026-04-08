@@ -24,4 +24,9 @@ class ApiUrl {
   static const newsGetById = "/news/";
   static const requestOtp = "/auth/login/request-otp";
   static const verifyOtp = "/auth/login/verify-otp";
+
+  // ── Categories & Products ──
+  static const categories = '/categories';
+  static String categoryProducts(int id) => '/categories/$id/products';
+  static String productDetail(int id) => '/products/$id';
 }

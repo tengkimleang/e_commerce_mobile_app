@@ -38,6 +38,19 @@ class ProductModel {
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
+
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final rawOriginalPrice = (json['originalPrice'] as num?)?.toDouble();
+    final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
+    return ProductModel(
+      id: (json['id'] ?? '').toString(),
+      name: (json['name'] as String?) ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0) ? rawOriginalPrice : null,
+      imageUrl: (json['imageUrl'] as String?) ?? '',
+      discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0) ? rawDiscountPercent : null,
+    );
+  }
 }
 
 /// Backward-compatible alias — remove usages over time.

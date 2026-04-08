@@ -7,6 +7,7 @@ import '../blocs/customer_loyalty_state.dart';
 import '../../price_checking/views/price_checking_view.dart';
 import 'widgets/loyalty_action_cards.dart';
 import 'widgets/partner_qr_sheet.dart';
+import 'widgets/shop_by_country_section.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
   final List<ProductItem> products;
@@ -34,23 +35,8 @@ class CustomerLoyaltySection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Customer Loyalty',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(state.promoPeriodText),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
+              ShopByCountrySection(allProducts: products),
+              const SizedBox(height: 24),
               LoyaltyActionCards(
                 exchangePointsImageUrl: state.exchangePointsImageUrl,
                 priceCheckingImageUrl: state.priceCheckingImageUrl,

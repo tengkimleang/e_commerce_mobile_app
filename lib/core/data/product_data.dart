@@ -4,7 +4,7 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 /// Replace with API calls when the backend is ready.
 abstract final class ProductData {
   static const List<String> sectionTitles = [
-    'Fresh Milk',
+    'ដឹកជញ្ជូនឥតគិតថ្លៃពេញមួយខែ 🗓️',
     'Fresh Orange',
     'Bakery & Pastry',
     'Snacks & Chips',
@@ -17,7 +17,7 @@ abstract final class ProductData {
   ];
 
   static const List<String> sectionImages = [
-    'https://cdn.vectorstock.com/i/500p/66/59/cute-cartoon-cow-vector-1146659.jpg',
+    'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcThxysu6Ll2xNQDH-3bhYnyYu75uzsCzF2QWQ&s',
     'https://thumbs.dreamstime.com/b/adorable-bakery-scene-featuring-whimsical-storefront-adorned-adorable-bakery-scene-featuring-whimsical-storefront-adorned-370748772.jpg',
     'https://img.freepik.com/free-vector/hand-drawn-food-elements-collection_23-2148903178.jpg',

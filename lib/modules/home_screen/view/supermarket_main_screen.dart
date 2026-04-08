@@ -4,6 +4,9 @@ import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_state.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -615,7 +618,28 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             ),
 
             const SizedBox(height: 16),
-            ..._buildReusableProductRows(),
+            BlocBuilder<SupermarketCategoryBloc, SupermarketCategoryState>(
+              builder: (context, state) {
+                if (state is CategoriesLoaded) {
+                  return Column(
+                    children: _buildCategoryRows(state.categories),
+                  );
+                }
+                if (state is CategoriesError) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      state.message,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
             //Customer Loyalty Section
             SizedBox(height: 20),
@@ -901,34 +925,38 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     setState(() => _selectedShop = selected);
   }
 
-  List<Widget> _buildReusableProductRows() {
-    return List<Widget>.generate(ProductData.sectionTitles.length, (index) {
-      final sectionTitle = ProductData.sectionTitles[index];
-      final sectionProducts = ProductData.sectionAt(index);
-      final sectionImage = ProductData.sectionImages[index];
-
+  List<Widget> _buildCategoryRows(List<CategoryModel> categories) {
+    return List<Widget>.generate(categories.length, (index) {
+      final category = categories[index];
       return Padding(
         padding: EdgeInsets.only(
-          bottom: index == ProductData.sectionTitles.length - 1 ? 0 : 20,
+          bottom: index == categories.length - 1 ? 0 : 20,
         ),
         child: ProductCarouselSection(
-          title: sectionTitle,
-          products: sectionProducts,
-          categoryImageUrl: sectionImage,
+          title: category.displayTitle,
+          products: category.previewProducts,
+          categoryImageUrl: category.bannerImageUrl,
           height: index.isEven ? 160 : 180,
           onViewAllTap: () => _openCategoryProducts(
-            title: sectionTitle,
-            categoryImageUrl: sectionImage,
-            products: sectionProducts,
+            title: category.displayTitle,
+            categoryImageUrl: category.bannerImageUrl,
+            products: category.previewProducts,
+            promoDateText: category.promoLabel,
           ),
           onCategoryTap: () => _openCategoryProducts(
-            title: sectionTitle,
-            categoryImageUrl: sectionImage,
-            products: sectionProducts,
+            title: category.displayTitle,
+            categoryImageUrl: category.bannerImageUrl,
+            products: category.previewProducts,
+            promoDateText: category.promoLabel,
           ),
           onFavoriteTap: (_) {},
-          productCardBuilder: (context, product) =>
-              _buildCustomProductCard(product: product, rowIndex: index),
+          productCardBuilder: (context, product) => ProductCard(
+            product: product,
+            onTap: () => _openProductDetails(
+              product: product,
+              relatedProducts: category.previewProducts,
+            ),
+          ),
         ),
       );
     });
@@ -936,23 +964,11 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   List<ProductModel> _getAllProducts() => ProductData.allProducts;
 
-  Widget _buildCustomProductCard({
-    required ProductModel product,
-    required int rowIndex,
-  }) {
-    return ProductCard(
-      product: product,
-      onTap: () => _openProductDetails(
-        product: product,
-        relatedProducts: ProductData.sectionAt(rowIndex),
-      ),
-    );
-  }
-
   void _openCategoryProducts({
     required String title,
     required String categoryImageUrl,
     required List<ProductModel> products,
+    String? promoDateText,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -960,6 +976,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           title: title,
           categoryImageUrl: categoryImageUrl,
           products: products,
+          promoDateText: promoDateText,
         ),
       ),
     );

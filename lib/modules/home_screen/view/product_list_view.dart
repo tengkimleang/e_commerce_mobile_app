@@ -9,6 +9,7 @@ class ProductListView extends StatelessWidget {
   final String categoryImageUrl;
   final List<ProductModel> products;
   final String? subtitle;
+  final String? promoDateText;
 
   const ProductListView({
     super.key,
@@ -16,6 +17,7 @@ class ProductListView extends StatelessWidget {
     required this.categoryImageUrl,
     required this.products,
     this.subtitle,
+    this.promoDateText,
   });
 
   @override
@@ -30,10 +32,56 @@ class ProductListView extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(
             child: SizedBox(
-                  height: 360,
-                  width: double.infinity,
-                  child: CategoryImageCard(imageUrl: categoryImageUrl),
-                ),
+              height: 360,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CategoryImageCard(imageUrl: categoryImageUrl),
+                  if (promoDateText != null)
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              color: Color(0xFFEC407A),
+                              size: 16,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              promoDateText!,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -49,11 +97,7 @@ class ProductListView extends StatelessWidget {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    subtitle ?? '$title (${products.length} products)',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                  ),
+                
                 ],
               ),
             ),

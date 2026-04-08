@@ -1,8 +1,11 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,8 +23,15 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CartBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => CartBloc()),
+        BlocProvider(
+          create: (_) =>
+              SupermarketCategoryBloc(di<CategoriesRepository>())
+                ..add(LoadCategories()),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Chipmong Retail',
