@@ -34,7 +34,7 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
       'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា',
       'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ',
     ];
-    return '1-${promoEndAt!.day} ${khmerMonths[promoEndAt!.month - 1]}';
+    return '${promoStartAt!.day}-${promoEndAt!.day} ${khmerMonths[promoEndAt!.month - 1]}';
   }
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -46,10 +46,10 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
       displayOrder: (json['displayOrder'] as int?) ?? 0,
       isActive: (json['isActive'] as bool?) ?? true,
       promoStartAt: json['promoStartAt'] != null      
-          ? DateTime.tryParse(json['promoStartAt'] as String)
+          ? DateTime.tryParse(json['promoStartAt'] as String)?.toLocal()
           : null,
       promoEndAt: json['promoEndAt'] != null
-          ? DateTime.tryParse(json['promoEndAt'] as String)
+          ? DateTime.tryParse(json['promoEndAt'] as String)?.toLocal()
           : null,
       previewProducts: (json['previewProducts'] as List<dynamic>?)
               ?.map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
