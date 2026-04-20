@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_model.dart';
 
 // ─────────────────────────────────────────────────────────────
 // Abstract interface
@@ -19,6 +20,17 @@ abstract class CategoriesRepository {
   /// Result is a record of (products, totalCount).
   Future<(List<ProductModel>, int)> fetchCategoryProducts(
     int categoryId, {
+    int page = 1,
+    int pageSize = 20,
+  });
+
+  /// Returns sub-categories under [categoryId].
+  Future<List<SubCategoryModel>> fetchSubCategories(int categoryId);
+
+  /// Returns paginated products belonging to [subCategoryId].
+  /// Result is a record of (products, totalCount).
+  Future<(List<ProductModel>, int)> fetchSubCategoryProducts(
+    int subCategoryId, {
     int page = 1,
     int pageSize = 20,
   });
@@ -58,6 +70,17 @@ class MockCategoriesRepository implements CategoriesRepository {
     final products = ProductData.sectionAt(categoryId - 1);
     return (products, products.length);
   }
+
+  @override
+  Future<List<SubCategoryModel>> fetchSubCategories(int categoryId) async =>
+      const [];
+
+  @override
+  Future<(List<ProductModel>, int)> fetchSubCategoryProducts(
+    int subCategoryId, {
+    int page = 1,
+    int pageSize = 20,
+  }) async => (const <ProductModel>[], 0);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -113,6 +136,38 @@ class HttpCategoriesRepository implements CategoriesRepository {
   }) async {
     final response = await _dio.get(
       ApiUrl.categoryProducts(categoryId),
+      queryParameters: {'page': page, 'pageSize': pageSize},
+    );
+    final body = _parseBody(response);
+    _checkApiError(body);
+    final data = body['data'] as Map<String, dynamic>? ?? {};
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final total = data['total'] as int? ?? 0;
+    return (items, total);
+  }
+
+  @override
+  Future<List<SubCategoryModel>> fetchSubCategories(int categoryId) async {
+    final response = await _dio.get(ApiUrl.categorySubCategories(categoryId));
+    final body = _parseBody(response);
+    _checkApiError(body);
+    final data = body['data'] as Map<String, dynamic>? ?? {};
+    final items = data['items'] as List<dynamic>? ?? [];
+    return items
+        .map((e) => SubCategoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<(List<ProductModel>, int)> fetchSubCategoryProducts(
+    int subCategoryId, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _dio.get(
+      ApiUrl.subCategoryProducts(subCategoryId),
       queryParameters: {'page': page, 'pageSize': pageSize},
     );
     final body = _parseBody(response);

@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
@@ -10,7 +12,7 @@ import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
-class ProductDetailView extends StatelessWidget {
+class ProductDetailView extends StatefulWidget {
   final ProductModel product;
   final List<ProductModel> relatedProducts;
 
@@ -21,12 +23,48 @@ class ProductDetailView extends StatelessWidget {
   });
 
   @override
+  State<ProductDetailView> createState() => _ProductDetailViewState();
+}
+
+class _ProductDetailViewState extends State<ProductDetailView> {
+  List<ProductModel> _suggestions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSuggestions();
+  }
+
+  Future<void> _loadSuggestions() async {
+    final subCategoryId = widget.product.subCategoryId;
+    if (subCategoryId != null) {
+      try {
+        final (items, _) = await di<CategoriesRepository>()
+            .fetchSubCategoryProducts(subCategoryId, pageSize: 20);
+        if (!mounted) return;
+        setState(() {
+          _suggestions =
+              items.where((p) => p.id != widget.product.id).take(6).toList();
+        });
+        return;
+      } catch (_) {
+        // fall through to relatedProducts fallback
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _suggestions = widget.relatedProducts
+            .where((p) => p.id != widget.product.id)
+            .take(6)
+            .toList();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
-    final suggestions = relatedProducts
-        .where((item) => item.id != product.id)
-        .take(6)
-        .toList();
+    final product = widget.product;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
@@ -276,7 +314,7 @@ class ProductDetailView extends StatelessWidget {
                   ),
                 ),
               ),
-              if (suggestions.isEmpty)
+              if (_suggestions.isEmpty)
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 24),
                   child: Text(
@@ -291,14 +329,14 @@ class ProductDetailView extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (context, index) {
-                      final item = suggestions[index];
+                      final item = _suggestions[index];
                       return _RelatedProductCard(
                         product: item,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => ProductDetailView(
                               product: item,
-                              relatedProducts: relatedProducts,
+                              relatedProducts: _suggestions,
                             ),
                           ),
                         ),
@@ -306,7 +344,7 @@ class ProductDetailView extends StatelessWidget {
                     },
                     separatorBuilder: (context, index) =>
                         const SizedBox(width: 12),
-                    itemCount: suggestions.length,
+                    itemCount: _suggestions.length,
                   ),
                 ),
             ],

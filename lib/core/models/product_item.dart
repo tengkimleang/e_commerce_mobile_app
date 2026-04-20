@@ -8,6 +8,8 @@ class ProductModel {
   final String imageUrl;
   final int? discountPercent;
   final bool isFavorite;
+  final int? subCategoryId;
+  final String? subCategoryName;
 
   const ProductModel({
     required this.id,
@@ -17,6 +19,8 @@ class ProductModel {
     required this.imageUrl,
     this.discountPercent,
     this.isFavorite = false,
+    this.subCategoryId,
+    this.subCategoryName,
   });
 
   ProductModel copyWith({
@@ -27,6 +31,8 @@ class ProductModel {
     String? imageUrl,
     int? discountPercent,
     bool? isFavorite,
+    int? subCategoryId,
+    String? subCategoryName,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -36,12 +42,16 @@ class ProductModel {
       imageUrl: imageUrl ?? this.imageUrl,
       discountPercent: discountPercent ?? this.discountPercent,
       isFavorite: isFavorite ?? this.isFavorite,
+      subCategoryId: subCategoryId ?? this.subCategoryId,
+      subCategoryName: subCategoryName ?? this.subCategoryName,
     );
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final rawOriginalPrice = (json['originalPrice'] as num?)?.toDouble();
     final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
+    final rawSubCategoryId = (json['subCategoryId'] as num?)?.toInt();
+    final rawSubCategoryName = (json['subCategoryName'] as String? ?? '').trim();
     return ProductModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] as String?) ?? '',
@@ -49,6 +59,8 @@ class ProductModel {
       originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0) ? rawOriginalPrice : null,
       imageUrl: (json['imageUrl'] as String?) ?? '',
       discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0) ? rawDiscountPercent : null,
+      subCategoryId: rawSubCategoryId,
+      subCategoryName: rawSubCategoryName.isNotEmpty ? rawSubCategoryName : null,
     );
   }
 }
