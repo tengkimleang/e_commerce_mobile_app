@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/utils/country_flag_utils.dart';
 
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
@@ -145,13 +146,46 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text(
-                  '\$ ${product.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFEC407A),
-                  ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '\$ ${product.price.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFEC407A),
+                      ),
+                    ),
+                    if (product.originalPrice != null) ...
+                      [
+                        const SizedBox(width: 8),
+                        Text(
+                          '\$ ${product.originalPrice!.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey[500],
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${product.discountPercent}% OFF',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1D1B24),
+                          ),
+                        ),
+                      ],
+                    const Spacer(),
+                    if (product.countryOfOrigin != null)
+                      CountryFlagBadge(
+                        countryOfOrigin: product.countryOfOrigin!,
+                        size: 32,
+                      ),
+                  ],
                 ),
               ),
               Padding(
@@ -468,6 +502,38 @@ class _RelatedProductCard extends StatelessWidget {
                           Container(color: Colors.grey[200]),
                     ),
                   ),
+                  if (product.discountPercent != null)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEC407A),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '${product.discountPercent}% OFF',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (product.countryOfOrigin != null)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: CountryFlagBadge(
+                        countryOfOrigin: product.countryOfOrigin!,
+                        size: 24,
+                      ),
+                    ),
                   const Positioned(
                     top: 8,
                     right: 8,
@@ -495,13 +561,27 @@ class _RelatedProductCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-              child: Text(
-                '\$ ${product.price.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFEC407A),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '\$ ${product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFEC407A),
+                    ),
+                  ),
+                  if (product.originalPrice != null)
+                    Text(
+                      '\$ ${product.originalPrice!.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],

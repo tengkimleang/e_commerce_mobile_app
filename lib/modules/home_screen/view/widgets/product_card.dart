@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/utils/country_flag_utils.dart';
 
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
@@ -96,6 +97,16 @@ class _ProductCardState extends State<ProductCard> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                      ),
+                    ),
+                  // Country Flag Badge
+                  if (widget.product.countryOfOrigin != null)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: CountryFlagBadge(
+                        countryOfOrigin: widget.product.countryOfOrigin!,
+                        size: 26,
                       ),
                     ),
                   // Favorite Button

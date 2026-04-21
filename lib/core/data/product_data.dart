@@ -50,18 +50,18 @@ abstract final class ProductData {
 
   // ── Fresh Milk ──
   static const milkProducts = <ProductModel>[
-    ProductModel(id: '1', name: 'PHKA CHHOUK STERILISE MILK', price: 0.60, imageUrl: 'https://www.waangoo.com/cdn/shop/files/WhatsAppImage2025-02-17at4.14.38PM_15930882-ceb7-436e-9131-6bd97d63499f.jpg?v=1755173771'),
-    ProductModel(id: '2', name: 'Milk PHKA CHHOUK', price: 1.10, imageUrl: 'https://media.makrocambodiaclick.com/PRODUCT_1768386378570.jpeg'),
-    ProductModel(id: '3', name: 'Condensed Milk', price: 0.85, imageUrl: 'https://megastorecambodia.com/files/products/442_cow-head-pure-milk-1l.gif'),
+    ProductModel(id: '1', name: 'PHKA CHHOUK STERILISE MILK', price: 0.60, imageUrl: 'https://www.waangoo.com/cdn/shop/files/WhatsAppImage2025-02-17at4.14.38PM_15930882-ceb7-436e-9131-6bd97d63499f.jpg?v=1755173771', countryOfOrigin: 'Cambodia'),
+    ProductModel(id: '2', name: 'Milk PHKA CHHOUK', price: 1.10, imageUrl: 'https://media.makrocambodiaclick.com/PRODUCT_1768386378570.jpeg', countryOfOrigin: 'Cambodia'),
+    ProductModel(id: '3', name: 'Condensed Milk', price: 0.85, imageUrl: 'https://megastorecambodia.com/files/products/442_cow-head-pure-milk-1l.gif', countryOfOrigin: 'Malaysia'),
     ProductModel(id: '4', name: 'Yogurt Plain', price: 1.25, imageUrl: 'https://foodpanda.dhmedia.io/image/darkstores/nv-global-catalog/kh/de56639d-e599-46d1-97cb-3cf102b2e7f3.jpg?height=176'),
   ];
 
   // ── Fresh Orange ──
   static const orangeProducts = <ProductModel>[
-    ProductModel(id: '5', name: 'PAPA MANDARIN PRC 1XKG', price: 2.45, originalPrice: 4.98, discountPercent: 51, imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg'),
-    ProductModel(id: '6', name: 'FUJI APPLE PRC', price: 2.99, originalPrice: 3.99, discountPercent: 25, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg'),
-    ProductModel(id: '7', name: 'Fresh Orange', price: 1.99, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg'),
-    ProductModel(id: '8', name: 'Banana Bunch', price: 0.99, originalPrice: 1.49, discountPercent: 33, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg'),
+    ProductModel(id: '5', name: 'PAPA MANDARIN PRC 1XKG', price: 2.45, originalPrice: 4.98, discountPercent: 51, imageUrl: 'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg', countryOfOrigin: 'China'),
+    ProductModel(id: '6', name: 'FUJI APPLE PRC', price: 2.99, originalPrice: 3.99, discountPercent: 25, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg', countryOfOrigin: 'Japan'),
+    ProductModel(id: '7', name: 'Fresh Orange', price: 1.99, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Orange-Fruit-Pieces.jpg', countryOfOrigin: 'United States'),
+    ProductModel(id: '8', name: 'Banana Bunch', price: 0.99, originalPrice: 1.49, discountPercent: 33, imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg', countryOfOrigin: 'Philippines'),
   ];
 
   // ── Bakery & Pastry ──
@@ -74,10 +74,10 @@ abstract final class ProductData {
 
   // ── Snacks & Chips ──
   static const snackProducts = <ProductModel>[
-    ProductModel(id: '13', name: 'Potato Chips', price: 1.99, imageUrl: 'https://images-na.ssl-images-amazon.com/images/I/517Pa8vUG0L.jpg'),
-    ProductModel(id: '14', name: 'Chocolate Bar', price: 0.99, imageUrl: 'https://frontierbiscuit.com/cdn/shop/products/Potato_chips.webp?v=1692429566'),
+    ProductModel(id: '13', name: 'Potato Chips', price: 1.99, imageUrl: 'https://images-na.ssl-images-amazon.com/images/I/517Pa8vUG0L.jpg', countryOfOrigin: 'United States'),
+    ProductModel(id: '14', name: 'Chocolate Bar', price: 0.99, imageUrl: 'https://frontierbiscuit.com/cdn/shop/products/Potato_chips.webp?v=1692429566', countryOfOrigin: 'Indonesia'),
     ProductModel(id: '15', name: 'Mixed Nuts', price: 3.50, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOJA-6dmtS-xNlx1kUX25V48MTz9QAc3I_qA&s'),
-    ProductModel(id: '16', name: 'Granola Bar', price: 1.25, imageUrl: 'https://caribshopper.com/cdn/shop/products/sunshine-snacks-potato-chips-6-or-12-pack-caribshopper-940101_1080x.jpg?v=1663023573'),
+    ProductModel(id: '16', name: 'Granola Bar', price: 1.25, imageUrl: 'https://caribshopper.com/cdn/shop/products/sunshine-snacks-potato-chips-6-or-12-pack-caribshopper-940101_1080x.jpg?v=1663023573', countryOfOrigin: 'Australia'),
   ];
 
   // ── Soft Drinks ──
@@ -90,10 +90,10 @@ abstract final class ProductData {
 
   // ── Instant Noodles ──
   static const noodleProducts = <ProductModel>[
-    ProductModel(id: '21', name: 'Instant Ramen', price: 0.75, imageUrl: 'https://m.media-amazon.com/images/I/710yLnSkQgL._SL1200_.jpg'),
-    ProductModel(id: '22', name: 'Rice Noodles', price: 1.50, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ742i14MS2X5sGAWjpgiDFj3GmWfPmuQ1Wbg&s'),
-    ProductModel(id: '23', name: 'Egg Noodles', price: 1.25, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb-WQMWCruEHVvvOPT-w6CIgsKkU5-k4wRKA&s'),
-    ProductModel(id: '24', name: 'Soba Noodles', price: 2.00, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTa6B-JmTnu6MAnnUuh-PVdraga0Mt7zFZ9zw&s'),
+    ProductModel(id: '21', name: 'Instant Ramen', price: 0.75, imageUrl: 'https://m.media-amazon.com/images/I/710yLnSkQgL._SL1200_.jpg', countryOfOrigin: 'Japan'),
+    ProductModel(id: '22', name: 'Rice Noodles', price: 1.50, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ742i14MS2X5sGAWjpgiDFj3GmWfPmuQ1Wbg&s', countryOfOrigin: 'Thailand'),
+    ProductModel(id: '23', name: 'Egg Noodles', price: 1.25, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQb-WQMWCruEHVvvOPT-w6CIgsKkU5-k4wRKA&s', countryOfOrigin: 'China'),
+    ProductModel(id: '24', name: 'Soba Noodles', price: 2.00, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTa6B-JmTnu6MAnnUuh-PVdraga0Mt7zFZ9zw&s', countryOfOrigin: 'South Korea'),
   ];
 
   // ── Frozen Foods ──
@@ -114,10 +114,10 @@ abstract final class ProductData {
 
   // ── Personal Care ──
   static const personalCareProducts = <ProductModel>[
-    ProductModel(id: '33', name: 'Shampoo Bottle', price: 6.99, imageUrl: 'https://t4.ftcdn.net/jpg/00/47/30/15/360_F_47301594_mLvjoHeB4UvNvZ0zOotvrhPfqLQlIDRv.jpg'),
-    ProductModel(id: '34', name: 'Body Wash', price: 5.50, imageUrl: 'https://acmarca.com/en/wp-content/uploads/sites/2/2025/02/areas_personal_care_higiene_bdg_internacional_03.png'),
-    ProductModel(id: '36', name: 'Toothpaste Tube', price: 3.25, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPnlafGFZRIvGcqzU4hbYNl87wM4cKpBZjxQ&s'),
-    ProductModel(id: '37', name: 'Deodorant Stick', price: 4.00, imageUrl: 'https://i5.walmartimages.com/seo/Dove-Men-Care-Extra-Fresh-72H-Men-s-Antiperspirant-Deodorant-Stick-2-7-oz_d855a43f-f964-49f0-bff4-851f3b0ebe72.ac132ca29b5044d8184e96410526bbdd.jpeg'),
+    ProductModel(id: '33', name: 'Shampoo Bottle', price: 6.99, imageUrl: 'https://t4.ftcdn.net/jpg/00/47/30/15/360_F_47301594_mLvjoHeB4UvNvZ0zOotvrhPfqLQlIDRv.jpg', countryOfOrigin: 'France'),
+    ProductModel(id: '34', name: 'Body Wash', price: 5.50, imageUrl: 'https://acmarca.com/en/wp-content/uploads/sites/2/2025/02/areas_personal_care_higiene_bdg_internacional_03.png', countryOfOrigin: 'USA'),
+    ProductModel(id: '36', name: 'Toothpaste Tube', price: 3.25, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPnlafGFZRIvGcqzU4hbYNl87wM4cKpBZjxQ&s', countryOfOrigin: 'Germany'),
+    ProductModel(id: '37', name: 'Deodorant Stick', price: 4.00, imageUrl: 'https://i5.walmartimages.com/seo/Dove-Men-Care-Extra-Fresh-72H-Men-s-Antiperspirant-Deodorant-Stick-2-7-oz_d855a43f-f964-49f0-bff4-851f3b0ebe72.ac132ca29b5044d8184e96410526bbdd.jpeg', countryOfOrigin: 'United States'),
   ];
 
   // ── Baby & Kids ──

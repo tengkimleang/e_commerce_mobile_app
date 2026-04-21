@@ -10,6 +10,10 @@ class ProductModel {
   final bool isFavorite;
   final int? subCategoryId;
   final String? subCategoryName;
+  /// Optional country of origin (e.g. "Cambodia", "USA", "Japan").
+  /// When set, a country flag badge is shown on product cards and the detail view.
+  /// BE contract: returned as nullable string field `countryOfOrigin` in the product JSON.
+  final String? countryOfOrigin;
 
   const ProductModel({
     required this.id,
@@ -21,6 +25,7 @@ class ProductModel {
     this.isFavorite = false,
     this.subCategoryId,
     this.subCategoryName,
+    this.countryOfOrigin,
   });
 
   ProductModel copyWith({
@@ -33,6 +38,7 @@ class ProductModel {
     bool? isFavorite,
     int? subCategoryId,
     String? subCategoryName,
+    String? countryOfOrigin,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -44,6 +50,7 @@ class ProductModel {
       isFavorite: isFavorite ?? this.isFavorite,
       subCategoryId: subCategoryId ?? this.subCategoryId,
       subCategoryName: subCategoryName ?? this.subCategoryName,
+      countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
     );
   }
 
@@ -52,6 +59,7 @@ class ProductModel {
     final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
     final rawSubCategoryId = (json['subCategoryId'] as num?)?.toInt();
     final rawSubCategoryName = (json['subCategoryName'] as String? ?? '').trim();
+    final rawCountryOfOrigin = (json['countryOfOrigin'] as String? ?? '').trim();
     return ProductModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] as String?) ?? '',
@@ -61,6 +69,7 @@ class ProductModel {
       discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0) ? rawDiscountPercent : null,
       subCategoryId: rawSubCategoryId,
       subCategoryName: rawSubCategoryName.isNotEmpty ? rawSubCategoryName : null,
+      countryOfOrigin: rawCountryOfOrigin.isNotEmpty ? rawCountryOfOrigin : null,
     );
   }
 }

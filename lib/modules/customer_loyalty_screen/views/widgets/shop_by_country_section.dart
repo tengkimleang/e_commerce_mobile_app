@@ -11,22 +11,7 @@ class _Country {
   const _Country({required this.name, required this.flag});
 }
 
-// Static per-country product ID sets (maps to ProductData ids)
-const _countryProductIds = {
-  'Cambodia':     ['1', '2', '3', '4'],
-  'Canada':       ['25', '26', '27', '28'],
-  'Egypt':        ['29', '30', '31', '32'],
-  'South Korea':  ['21', '22', '23', '24'],
-  'Japan':        ['9', '10', '11', '12'],
-  'China':        ['13', '14', '15', '16'],
-  'Singapore':    ['17', '18', '19', '20'],
-  'Italy':        ['5', '6', '7', '8'],
-  'Spain':        ['33', '34', '36', '37'],
-  'Indonesia':    ['1', '5', '13', '17'],
-  'Argentina':    ['2', '6', '10', '18'],
-  'United States':['25', '29', '33', '9'],
-  'France':       ['3', '7', '11', '15'],
-};
+// Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
 
 const _countries = [
   _Country(name: 'Cambodia',      flag: '🇰🇭'),
@@ -58,9 +43,9 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
 
   List<ProductModel> get _filtered {
     if (_selected == null) return widget.allProducts;
-    final ids = _countryProductIds[_selected] ?? [];
     return widget.allProducts
-        .where((p) => ids.contains(p.id))
+        .where((p) =>
+            p.countryOfOrigin?.toLowerCase() == _selected!.toLowerCase())
         .toList();
   }
 
