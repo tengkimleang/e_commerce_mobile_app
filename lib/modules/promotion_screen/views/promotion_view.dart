@@ -478,8 +478,8 @@ class _PromotionProductCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
                   color: Color(0xFF1D1B24),
                 ),
               ),
@@ -487,31 +487,36 @@ class _PromotionProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    '\$ ${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFEC407A),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
                   Expanded(
-                    child: Text(
-                      '\$ ${(product.originalPrice ?? product.price).toStringAsFixed(2)}',
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.black45,
-                        decoration: TextDecoration.lineThrough,
-                      ),
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          '\$ ${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEC407A),
+                          ),
+                        ),
+                        if (product.originalPrice != null)
+                          Text(
+                            '\$ ${product.originalPrice!.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.black45,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 6),
                   const Icon(
                     Icons.add_shopping_cart,
-                    size: 20,
+                    size: 24,
                     color: Color(0xFFEC407A),
                   ),
                 ],

@@ -79,7 +79,7 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.product.discountPercent != null)
                     Positioned(
                       top: 8,
-                      right: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -112,7 +112,7 @@ class _ProductCardState extends State<ProductCard> {
                   // Favorite Button
                   Positioned(
                     top: 8,
-                    left: 8,
+                    right: 8,
                     child: GestureDetector(
                       onTap: () {
                         setState(() => _isFavorite = !_isFavorite);
@@ -151,11 +151,11 @@ class _ProductCardState extends State<ProductCard> {
                 children: [
                   Text(
                     widget.product.name,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                       color: Colors.black87,
                     ),
                   ),
@@ -172,16 +172,17 @@ class _ProductCardState extends State<ProductCard> {
                     ],
                   const SizedBox(height: 6),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 4,
                           children: [
                             Text(
                               '\$ ${widget.product.price.toStringAsFixed(2)}',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFEC407A),
                               ),
@@ -227,7 +228,7 @@ class _ProductCardState extends State<ProductCard> {
                                       ? Icons.shopping_cart
                                       : Icons.add_shopping_cart,
                                   color: const Color(0xFFEC407A),
-                                  size: 18,
+                                  size: 24,
                                 ),
                               ),
                               if (quantity > 0)

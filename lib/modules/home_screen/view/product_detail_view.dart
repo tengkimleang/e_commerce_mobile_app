@@ -550,37 +550,86 @@ class _RelatedProductCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
               child: Text(
                 product.name,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
                   color: Color(0xFF1D1B24),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    '\$ ${product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFEC407A),
+                  Expanded(
+                    child: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 4,
+                      children: [
+                        Text(
+                          '\$ ${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFEC407A),
+                          ),
+                        ),
+                        if (product.originalPrice != null)
+                          Text(
+                            '\$ ${product.originalPrice!.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  if (product.originalPrice != null)
-                    Text(
-                      '\$ ${product.originalPrice!.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[500],
-                        decoration: TextDecoration.lineThrough,
-                      ),
-                    ),
+                  BlocBuilder<CartBloc, CartState>(
+                    builder: (context, cartState) {
+                      final quantity = cartState.quantityFor(product.id);
+                      return Row(
+                        children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minHeight: 24,
+                              minWidth: 24,
+                            ),
+                            onPressed: () async {
+                              if (UserSession.isGuest) {
+                                await showAuthRequiredDialog(context);
+                                return;
+                              }
+                              if (!context.mounted) return;
+                              context.read<CartBloc>().add(AddToCart(product));
+                            },
+                            icon: Icon(
+                              quantity > 0
+                                  ? Icons.shopping_cart
+                                  : Icons.add_shopping_cart,
+                              color: const Color(0xFFEC407A),
+                              size: 24,
+                            ),
+                          ),
+                          if (quantity > 0)
+                            Text(
+                              '$quantity',
+                              style: const TextStyle(
+                                color: Color(0xFFEC407A),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
