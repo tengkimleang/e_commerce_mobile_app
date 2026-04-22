@@ -34,6 +34,15 @@ abstract class CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   });
+
+  /// Searches products across all categories by [keyword].
+  /// Empty [keyword] returns all active products.
+  /// Result is a record of (products, totalCount).
+  Future<(List<ProductModel>, int)> searchProducts(
+    String keyword, {
+    int page = 1,
+    int pageSize = 20,
+  });
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -81,6 +90,22 @@ class MockCategoriesRepository implements CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   }) async => (const <ProductModel>[], 0);
+
+  @override
+  Future<(List<ProductModel>, int)> searchProducts(
+    String keyword, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final q = keyword.trim().toLowerCase();
+    final all = ProductData.allProducts;
+    final filtered = q.isEmpty
+        ? all
+        : all.where((p) => p.name.toLowerCase().contains(q)).toList();
+    final start = ((page - 1) * pageSize).clamp(0, filtered.length);
+    final end = (start + pageSize).clamp(0, filtered.length);
+    return (filtered.sublist(start, end), filtered.length);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -169,6 +194,26 @@ class HttpCategoriesRepository implements CategoriesRepository {
     final response = await _dio.get(
       ApiUrl.subCategoryProducts(subCategoryId),
       queryParameters: {'page': page, 'pageSize': pageSize},
+    );
+    final body = _parseBody(response);
+    _checkApiError(body);
+    final data = body['data'] as Map<String, dynamic>? ?? {};
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final total = data['total'] as int? ?? 0;
+    return (items, total);
+  }
+
+  @override
+  Future<(List<ProductModel>, int)> searchProducts(
+    String keyword, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final response = await _dio.get(
+      ApiUrl.products,
+      queryParameters: {'keyword': keyword, 'page': page, 'pageSize': pageSize},
     );
     final body = _parseBody(response);
     _checkApiError(body);

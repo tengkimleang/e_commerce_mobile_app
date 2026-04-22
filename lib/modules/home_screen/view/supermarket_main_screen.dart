@@ -525,10 +525,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        final all = _getAllProducts();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => SearchProducts(products: all),
+                            builder: (_) => const SearchProducts(),
                           ),
                         );
                       },
@@ -942,12 +941,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             categoryImageUrl: category.bannerImageUrl,
             products: category.previewProducts,
             promoDateText: category.promoLabel,
+            categoryId: category.id,
           ),
           onCategoryTap: () => _openCategoryProducts(
             title: category.displayTitle,
             categoryImageUrl: category.bannerImageUrl,
             products: category.previewProducts,
             promoDateText: category.promoLabel,
+            categoryId: category.id,
           ),
           onFavoriteTap: (_) {},
           productCardBuilder: (context, product) => ProductCard(
@@ -969,6 +970,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     required String categoryImageUrl,
     required List<ProductModel> products,
     String? promoDateText,
+    int? categoryId,
   }) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -977,6 +979,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           categoryImageUrl: categoryImageUrl,
           products: products,
           promoDateText: promoDateText,
+          categoryId: categoryId,
         ),
       ),
     );

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
-class ProductListView extends StatelessWidget {
+class ProductListView extends StatefulWidget {
   final String title;
   final String categoryImageUrl;
+  /// Preview products shown immediately while the full list loads.
   final List<ProductModel> products;
   final String? subtitle;
   final String? promoDateText;
+  /// When provided, all products are fetched from the API on open.
+  final int? categoryId;
 
   const ProductListView({
     super.key,
@@ -18,11 +23,44 @@ class ProductListView extends StatelessWidget {
     required this.products,
     this.subtitle,
     this.promoDateText,
+    this.categoryId,
   });
+
+  @override
+  State<ProductListView> createState() => _ProductListViewState();
+}
+
+class _ProductListViewState extends State<ProductListView> {
+  late List<ProductModel> _products;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _products = widget.products;
+    if (widget.categoryId != null) {
+      _fetchAll();
+    }
+  }
+
+  Future<void> _fetchAll() async {
+    setState(() => _loading = true);
+    try {
+      // Fetch up to 200 products — adjust if categories can exceed this.
+      final (items, _) = await di<CategoriesRepository>()
+          .fetchCategoryProducts(widget.categoryId!, pageSize: 200);
+      if (mounted) setState(() => _products = items);
+    } catch (_) {
+      // Keep showing preview products on failure.
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final products = _products;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -37,8 +75,8 @@ class ProductListView extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CategoryImageCard(imageUrl: categoryImageUrl),
-                  if (promoDateText != null)
+                  CategoryImageCard(imageUrl: widget.categoryImageUrl),
+                  if (widget.promoDateText != null)
                     Positioned(
                       bottom: 16,
                       left: 16,
@@ -68,7 +106,7 @@ class ProductListView extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              promoDateText!,
+                              widget.promoDateText!,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
@@ -90,7 +128,7 @@ class ProductListView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    widget.title,
                     style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w700,
@@ -102,7 +140,16 @@ class ProductListView extends StatelessWidget {
               ),
             ),
           ),
-          if (products.isEmpty)
+          if (_loading)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFEC407A),
+                ),
+              ),
+            )
+          else if (products.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
               child: Center(child: Text('No products found')),

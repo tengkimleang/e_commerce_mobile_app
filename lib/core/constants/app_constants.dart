@@ -27,6 +27,7 @@ class ApiUrl {
 
   // ── Categories & Products ──
   static const categories = '/categories';
+  static const products = '/products';
   static String categoryProducts(int id) => '/categories/$id/products';
   static String categorySubCategories(int categoryId) => '/categories/$categoryId/subcategories';
   static String subCategoryProducts(int subCategoryId) => '/subcategories/$subCategoryId/products';

@@ -1,12 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
 class SearchProducts extends StatefulWidget {
-  final List<ProductModel> products;
-
-  const SearchProducts({super.key, required this.products});
+  const SearchProducts({super.key});
 
   @override
   State<SearchProducts> createState() => _SearchProductsState();
@@ -16,8 +18,10 @@ class _SearchProductsState extends State<SearchProducts>
     with SingleTickerProviderStateMixin {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
-  late List<ProductModel> _filtered;
+  List<ProductModel> _results = [];
+  bool _loading = false;
   bool _searchActive = false;
+  Timer? _debounce;
 
   late final AnimationController _animController;
   // Title slides out to the left
@@ -28,8 +32,8 @@ class _SearchProductsState extends State<SearchProducts>
   @override
   void initState() {
     super.initState();
-    _filtered = List.from(widget.products);
     _controller.addListener(_onSearchChanged);
+    _fetchProducts('');
 
     _animController = AnimationController(
       vsync: this,
@@ -48,16 +52,23 @@ class _SearchProductsState extends State<SearchProducts>
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeInOut));
   }
 
+  Future<void> _fetchProducts(String keyword) async {
+    setState(() => _loading = true);
+    try {
+      final (items, _) = await di<CategoriesRepository>()
+          .searchProducts(keyword, pageSize: 50);
+      if (mounted) setState(() => _results = items);
+    } catch (_) {
+      if (mounted) setState(() => _results = []);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   void _onSearchChanged() {
-    final q = _controller.text.trim().toLowerCase();
-    setState(() {
-      if (q.isEmpty) {
-        _filtered = List.from(widget.products);
-      } else {
-        _filtered = widget.products
-            .where((p) => p.name.toLowerCase().contains(q))
-            .toList();
-      }
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      _fetchProducts(_controller.text.trim());
     });
   }
 
@@ -76,14 +87,15 @@ class _SearchProductsState extends State<SearchProducts>
         setState(() {
           _searchActive = false;
           _controller.clear();
-          _filtered = List.from(widget.products);
         });
+        _fetchProducts('');
       }
     });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.removeListener(_onSearchChanged);
     _controller.dispose();
     _focusNode.dispose();
@@ -229,32 +241,38 @@ class _SearchProductsState extends State<SearchProducts>
       backgroundColor: const Color(0xFFF6F6F6),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: _filtered.isEmpty
-            ? const Center(child: Text('No products found'))
-            : GridView.builder(
-                itemCount: _filtered.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.80,
-                ),
-                itemBuilder: (context, index) {
-                  final product = _filtered[index];
-                  return ProductCard(
-                    product: product,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => ProductDetailView(
-                          product: product,
-                          relatedProducts: widget.products,
-                        ),
-                      ),
+        child: _loading
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFFEC407A)),
+              )
+            : _results.isEmpty
+                ? const Center(child: Text('No products found'))
+                : GridView.builder(
+                    itemCount: _results.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 0.80,
                     ),
-                  );
-                },
-              ),
+                    itemBuilder: (context, index) {
+                      final product = _results[index];
+                      return ProductCard(
+                        product: product,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailView(
+                              product: product,
+                              relatedProducts: _results,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
       ),
     );
   }
 }
+
