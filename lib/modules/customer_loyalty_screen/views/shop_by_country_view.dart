@@ -1,3 +1,5 @@
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -32,12 +34,10 @@ const kCountries = [
 // ── Screen ───────────────────────────────────────────────────────────────────
 
 class ShopByCountryView extends StatefulWidget {
-  final List<ProductModel> allProducts;
   final String? initialCountry;
 
   const ShopByCountryView({
     super.key,
-    required this.allProducts,
     this.initialCountry,
   });
 
@@ -47,19 +47,39 @@ class ShopByCountryView extends StatefulWidget {
 
 class _ShopByCountryViewState extends State<ShopByCountryView> {
   late String _selectedCountry;
+  List<ProductModel> _products = [];
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     _selectedCountry = widget.initialCountry ?? kCountries.first.name;
+    _loadProducts();
   }
 
-  List<ProductModel> get _products {
-    return widget.allProducts
-        .where((p) =>
-            p.countryOfOrigin?.toLowerCase() ==
-            _selectedCountry.toLowerCase())
-        .toList();
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final (products, _) = await di<CategoriesRepository>()
+          .fetchProductsByCountry(_selectedCountry, pageSize: 100);
+      if (mounted) {
+        setState(() {
+          _products = products;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -94,8 +114,10 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                 final country = kCountries[index];
                 final isSelected = country.name == _selectedCountry;
                 return GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedCountry = country.name),
+                  onTap: () {
+                    setState(() => _selectedCountry = country.name);
+                    _loadProducts();
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     margin: const EdgeInsets.symmetric(
@@ -137,37 +159,59 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
 
           // ── Right: product grid ─────────────────────────────────────────
           Expanded(
-            child: _products.isEmpty
-                ? const Center(child: Text('No products'))
-                : GridView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: _products.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 0.72,
-                    ),
-                    itemBuilder: (context, index) {
-                      final product = _products[index];
-                      final country = kCountries.firstWhere(
-                        (c) => c.name == _selectedCountry,
-                      );
-                      return ProductCard(
-                        product: product,
-                        countryLabel: '${country.name} ${country.flag}',
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailView(
-                              product: product,
-                              relatedProducts: widget.allProducts,
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _error != null
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: Colors.grey, size: 40),
+                            const SizedBox(height: 8),
+                            Text('Failed to load products',
+                                style:
+                                    TextStyle(color: Colors.grey[600])),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: _loadProducts,
+                              child: const Text('Retry'),
                             ),
-                          ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : _products.isEmpty
+                        ? const Center(child: Text('No products'))
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: _products.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 0.72,
+                            ),
+                            itemBuilder: (context, index) {
+                              final product = _products[index];
+                              final country = kCountries.firstWhere(
+                                (c) => c.name == _selectedCountry,
+                              );
+                              return ProductCard(
+                                product: product,
+                                countryLabel:
+                                    '${country.name} ${country.flag}',
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ProductDetailView(
+                                      product: product,
+                                      relatedProducts: _products,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
           ),
         ],
       ),

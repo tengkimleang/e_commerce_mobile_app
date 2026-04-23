@@ -1,3 +1,5 @@
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_by_country_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
@@ -30,9 +32,7 @@ const _countries = [
 ];
 
 class ShopByCountrySection extends StatefulWidget {
-  final List<ProductModel> allProducts;
-
-  const ShopByCountrySection({super.key, required this.allProducts});
+  const ShopByCountrySection({super.key});
 
   @override
   State<ShopByCountrySection> createState() => _ShopByCountrySectionState();
@@ -40,14 +40,36 @@ class ShopByCountrySection extends StatefulWidget {
 
 class _ShopByCountrySectionState extends State<ShopByCountrySection> {
   String? _selected; // null = All
+  List<ProductModel> _products = [];
+  bool _isLoading = false;
 
-  List<ProductModel> get _filtered {
-    if (_selected == null) return widget.allProducts;
-    return widget.allProducts
-        .where((p) =>
-            p.countryOfOrigin?.toLowerCase() == _selected!.toLowerCase())
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
   }
+
+  Future<void> _loadProducts() async {
+    setState(() => _isLoading = true);
+    try {
+      final List<ProductModel> result;
+      if (_selected == null) {
+        // "All" — use search with empty keyword to get all products
+        final (products, _) = await di<CategoriesRepository>()
+            .searchProducts('', pageSize: 100);
+        result = products;
+      } else {
+        final (products, _) = await di<CategoriesRepository>()
+            .fetchProductsByCountry(_selected!, pageSize: 50);
+        result = products;
+      }
+      if (mounted) setState(() { _products = result; _isLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  List<ProductModel> get _filtered => _products;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +96,6 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => ShopByCountryView(
-                      allProducts: widget.allProducts,
                       initialCountry: _selected,
                     ),
                   ),
@@ -109,7 +130,10 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
               _Chip(
                 label: 'All',
                 selected: _selected == null,
-                onTap: () => setState(() => _selected = null),
+                onTap: () {
+                  setState(() => _selected = null);
+                  _loadProducts();
+                },
               ),
               ..._countries.map((c) => Padding(
                     padding: const EdgeInsets.only(left: 8),
@@ -117,7 +141,10 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                       flag: c.flag,
                       label: c.name.toUpperCase(),
                       selected: _selected == c.name,
-                      onTap: () => setState(() => _selected = c.name),
+                      onTap: () {
+                        setState(() => _selected = c.name);
+                        _loadProducts();
+                      },
                     ),
                   )),
             ],
@@ -128,31 +155,33 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
         // Product cards
         SizedBox(
           height: 260,
-          child: _filtered.isEmpty
-              ? const Center(child: Text('No products'))
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final product = _filtered[index];
-                    return SizedBox(
-                      width: 160,
-                      child: ProductCard(
-                        product: product,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailView(
-                              product: product,
-                              relatedProducts: widget.allProducts,
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _filtered.isEmpty
+                  ? const Center(child: Text('No products'))
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      itemBuilder: (context, index) {
+                        final product = _filtered[index];
+                        return SizedBox(
+                          width: 160,
+                          child: ProductCard(
+                            product: product,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailView(
+                                  product: product,
+                                  relatedProducts: _products,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
         ),
       ],
     );

@@ -35,7 +35,7 @@ class CustomerLoyaltySection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ShopByCountrySection(allProducts: products),
+              ShopByCountrySection(),
               const SizedBox(height: 24),
               LoyaltyActionCards(
                 exchangePointsImageUrl: state.exchangePointsImageUrl,
