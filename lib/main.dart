@@ -4,11 +4,14 @@ import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +29,11 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => CartBloc()),
+        BlocProvider(
+          create: (_) =>
+              FavoriteBloc(di<SharedPreferences>())
+                ..add(const FavoriteLoadRequested()),
+        ),
         BlocProvider(
           create: (_) =>
               SupermarketCategoryBloc(di<CategoriesRepository>())

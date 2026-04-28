@@ -1,7 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_list_view.dart';
@@ -462,10 +466,39 @@ class _PromotionProductCard extends StatelessWidget {
                   Positioned(
                     right: 8,
                     top: 8,
-                    child: Icon(
-                      Icons.favorite,
-                      size: 18,
-                      color: const Color(0xFFEC407A).withValues(alpha: 0.45),
+                    child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                      builder: (context, favoriteState) {
+                        final isFavorite = favoriteState.contains(product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<FavoriteBloc>().add(
+                              FavoriteToggled(product),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: 18,
+                              color: isFavorite
+                                  ? const Color(0xFFEC407A)
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

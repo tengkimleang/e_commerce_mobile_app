@@ -10,6 +10,7 @@ class ProductModel {
   final bool isFavorite;
   final int? subCategoryId;
   final String? subCategoryName;
+
   /// Optional country of origin (e.g. "Cambodia", "USA", "Japan").
   /// When set, a country flag badge is shown on product cards and the detail view.
   /// BE contract: returned as nullable string field `countryOfOrigin` in the product JSON.
@@ -58,19 +59,49 @@ class ProductModel {
     final rawOriginalPrice = (json['originalPrice'] as num?)?.toDouble();
     final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
     final rawSubCategoryId = (json['subCategoryId'] as num?)?.toInt();
-    final rawSubCategoryName = (json['subCategoryName'] as String? ?? '').trim();
-    final rawCountryOfOrigin = (json['countryOfOrigin'] as String? ?? '').trim();
+    final rawSubCategoryName = (json['subCategoryName'] as String? ?? '')
+        .trim();
+    final rawCountryOfOrigin = (json['countryOfOrigin'] as String? ?? '')
+        .trim();
+    final rawIsFavorite = json['isFavorite'];
+    final isFavorite = rawIsFavorite is bool
+        ? rawIsFavorite
+        : (rawIsFavorite is num ? rawIsFavorite != 0 : false);
     return ProductModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] as String?) ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0) ? rawOriginalPrice : null,
+      originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0)
+          ? rawOriginalPrice
+          : null,
       imageUrl: (json['imageUrl'] as String?) ?? '',
-      discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0) ? rawDiscountPercent : null,
+      discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0)
+          ? rawDiscountPercent
+          : null,
+      isFavorite: isFavorite,
       subCategoryId: rawSubCategoryId,
-      subCategoryName: rawSubCategoryName.isNotEmpty ? rawSubCategoryName : null,
-      countryOfOrigin: rawCountryOfOrigin.isNotEmpty ? rawCountryOfOrigin : null,
+      subCategoryName: rawSubCategoryName.isNotEmpty
+          ? rawSubCategoryName
+          : null,
+      countryOfOrigin: rawCountryOfOrigin.isNotEmpty
+          ? rawCountryOfOrigin
+          : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'price': price,
+      'originalPrice': originalPrice,
+      'imageUrl': imageUrl,
+      'discountPercent': discountPercent,
+      'isFavorite': isFavorite,
+      'subCategoryId': subCategoryId,
+      'subCategoryName': subCategoryName,
+      'countryOfOrigin': countryOfOrigin,
+    };
   }
 }
 

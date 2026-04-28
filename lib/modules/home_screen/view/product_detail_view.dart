@@ -11,6 +11,9 @@ import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
 class ProductDetailView extends StatefulWidget {
@@ -44,8 +47,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             .fetchSubCategoryProducts(subCategoryId, pageSize: 20);
         if (!mounted) return;
         setState(() {
-          _suggestions =
-              items.where((p) => p.id != widget.product.id).take(6).toList();
+          _suggestions = items
+              .where((p) => p.id != widget.product.id)
+              .take(6)
+              .toList();
         });
         return;
       } catch (_) {
@@ -157,28 +162,27 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         color: Color(0xFFEC407A),
                       ),
                     ),
-                    if (product.originalPrice != null) ...
-                      [
-                        const SizedBox(width: 8),
-                        Text(
-                          '\$ ${product.originalPrice!.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.grey[500],
-                            decoration: TextDecoration.lineThrough,
-                          ),
+                    if (product.originalPrice != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '\$ ${product.originalPrice!.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey[500],
+                          decoration: TextDecoration.lineThrough,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${product.discountPercent}% OFF',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1D1B24),
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${product.discountPercent}% OFF',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1D1B24),
                         ),
-                      ],
+                      ),
+                    ],
                     const Spacer(),
                     if (product.countryOfOrigin != null)
                       CountryFlagBadge(
@@ -534,13 +538,42 @@ class _RelatedProductCard extends StatelessWidget {
                         size: 24,
                       ),
                     ),
-                  const Positioned(
+                  Positioned(
                     top: 8,
                     right: 8,
-                    child: Icon(
-                      Icons.favorite,
-                      size: 18,
-                      color: Color(0xFFF59BC2),
+                    child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                      builder: (context, favoriteState) {
+                        final isFavorite = favoriteState.contains(product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<FavoriteBloc>().add(
+                              FavoriteToggled(product),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              size: 18,
+                              color: isFavorite
+                                  ? const Color(0xFFEC407A)
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],

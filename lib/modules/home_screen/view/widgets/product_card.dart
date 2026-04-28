@@ -8,9 +8,12 @@ import 'package:e_commerce_mobile_app/core/utils/country_flag_utils.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 
-class ProductCard extends StatefulWidget {
+class ProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback? onFavoriteTap;
   final VoidCallback? onTap;
@@ -25,22 +28,9 @@ class ProductCard extends StatefulWidget {
   });
 
   @override
-  State<ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<ProductCard> {
-  late bool _isFavorite;
-
-  @override
-  void initState() {
-    super.initState();
-    _isFavorite = widget.product.isFavorite;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -65,7 +55,7 @@ class _ProductCardState extends State<ProductCard> {
                       top: Radius.circular(12),
                     ),
                     child: CachedNetworkImage(
-                      imageUrl: widget.product.imageUrl,
+                      imageUrl: product.imageUrl,
                       height: double.infinity,
                       width: double.infinity,
                       fit: BoxFit.fill,
@@ -76,7 +66,7 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                   ),
                   // Discount Badge
-                  if (widget.product.discountPercent != null)
+                  if (product.discountPercent != null)
                     Positioned(
                       top: 8,
                       left: 8,
@@ -90,7 +80,7 @@ class _ProductCardState extends State<ProductCard> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          '${widget.product.discountPercent}% OFF',
+                          '${product.discountPercent}% OFF',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -100,12 +90,12 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                   // Country Flag Badge
-                  if (widget.product.countryOfOrigin != null)
+                  if (product.countryOfOrigin != null)
                     Positioned(
                       bottom: 8,
                       right: 8,
                       child: CountryFlagBadge(
-                        countryOfOrigin: widget.product.countryOfOrigin!,
+                        countryOfOrigin: product.countryOfOrigin!,
                         size: 26,
                       ),
                     ),
@@ -113,31 +103,40 @@ class _ProductCardState extends State<ProductCard> {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() => _isFavorite = !_isFavorite);
-                        widget.onFavoriteTap?.call();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
+                    child: BlocBuilder<FavoriteBloc, FavoriteState>(
+                      builder: (context, favoriteState) {
+                        final isFavorite = favoriteState.contains(product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<FavoriteBloc>().add(
+                              FavoriteToggled(product),
+                            );
+                            onFavoriteTap?.call();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite
-                              ? const Color(0xFFEC407A)
-                              : Colors.grey[600],
-                          size: 18,
-                        ),
-                      ),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite
+                                  ? const Color(0xFFEC407A)
+                                  : Colors.grey[600],
+                              size: 18,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -150,7 +149,7 @@ class _ProductCardState extends State<ProductCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.product.name,
+                    product.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -159,17 +158,13 @@ class _ProductCardState extends State<ProductCard> {
                       color: Colors.black87,
                     ),
                   ),
-                  if (widget.countryLabel != null) ...
-                    [
-                      const SizedBox(height: 3),
-                      Text(
-                        widget.countryLabel!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                  if (countryLabel != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      countryLabel!,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ],
                   const SizedBox(height: 6),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -180,16 +175,16 @@ class _ProductCardState extends State<ProductCard> {
                           spacing: 4,
                           children: [
                             Text(
-                              '\$ ${widget.product.price.toStringAsFixed(2)}',
+                              '\$ ${product.price.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFEC407A),
                               ),
                             ),
-                            if (widget.product.originalPrice != null)
+                            if (product.originalPrice != null)
                               Text(
-                                '\$ ${widget.product.originalPrice!.toStringAsFixed(2)}',
+                                '\$ ${product.originalPrice!.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey[500],
@@ -201,9 +196,7 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                       BlocBuilder<CartBloc, CartState>(
                         builder: (context, cartState) {
-                          final quantity = cartState.quantityFor(
-                            widget.product.id,
-                          );
+                          final quantity = cartState.quantityFor(product.id);
                           return Row(
                             children: [
                               IconButton(
@@ -220,7 +213,7 @@ class _ProductCardState extends State<ProductCard> {
                                   }
                                   if (!context.mounted) return;
                                   context.read<CartBloc>().add(
-                                    AddToCart(widget.product),
+                                    AddToCart(product),
                                   );
                                 },
                                 icon: Icon(
