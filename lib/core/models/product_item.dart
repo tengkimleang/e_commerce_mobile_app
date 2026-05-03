@@ -16,6 +16,15 @@ class ProductModel {
   /// BE contract: returned as nullable string field `countryOfOrigin` in the product JSON.
   final String? countryOfOrigin;
 
+  /// True when the selected branch has zero stock for this product.
+  /// BE contract: `isOutOfStock` bool field in product JSON, resolved per `shopId`.
+  /// Falls back to `!isAvailable` for backward-compat. Defaults to false when no shopId supplied.
+  final bool isOutOfStock;
+
+  /// Raw stock quantity for the selected branch. Null when shopId is omitted.
+  /// BE contract: optional `stockQty` int field in product JSON.
+  final int? stockQty;
+
   const ProductModel({
     required this.id,
     required this.name,
@@ -27,6 +36,8 @@ class ProductModel {
     this.subCategoryId,
     this.subCategoryName,
     this.countryOfOrigin,
+    this.isOutOfStock = false,
+    this.stockQty,
   });
 
   ProductModel copyWith({
@@ -40,6 +51,8 @@ class ProductModel {
     int? subCategoryId,
     String? subCategoryName,
     String? countryOfOrigin,
+    bool? isOutOfStock,
+    int? stockQty,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -52,6 +65,8 @@ class ProductModel {
       subCategoryId: subCategoryId ?? this.subCategoryId,
       subCategoryName: subCategoryName ?? this.subCategoryName,
       countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
+      isOutOfStock: isOutOfStock ?? this.isOutOfStock,
+      stockQty: stockQty ?? this.stockQty,
     );
   }
 
@@ -67,6 +82,26 @@ class ProductModel {
     final isFavorite = rawIsFavorite is bool
         ? rawIsFavorite
         : (rawIsFavorite is num ? rawIsFavorite != 0 : false);
+
+    // isOutOfStock: prefer explicit field; fall back to !isAvailable for
+    // backward-compat while both fields coexist in the BE response.
+    final rawIsOutOfStock = json['isOutOfStock'];
+    final rawIsAvailable = json['isAvailable'];
+    final bool isOutOfStock;
+    if (rawIsOutOfStock != null) {
+      isOutOfStock = rawIsOutOfStock is bool
+          ? rawIsOutOfStock
+          : (rawIsOutOfStock is num ? rawIsOutOfStock != 0 : false);
+    } else if (rawIsAvailable != null) {
+      final isAvailable = rawIsAvailable is bool
+          ? rawIsAvailable
+          : (rawIsAvailable is num ? rawIsAvailable != 0 : true);
+      isOutOfStock = !isAvailable;
+    } else {
+      isOutOfStock = false;
+    }
+    final rawStockQty = (json['stockQty'] as num?)?.toInt();
+
     return ProductModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] as String?) ?? '',
@@ -86,6 +121,8 @@ class ProductModel {
       countryOfOrigin: rawCountryOfOrigin.isNotEmpty
           ? rawCountryOfOrigin
           : null,
+      isOutOfStock: isOutOfStock,
+      stockQty: rawStockQty,
     );
   }
 
@@ -101,6 +138,8 @@ class ProductModel {
       'subCategoryId': subCategoryId,
       'subCategoryName': subCategoryName,
       'countryOfOrigin': countryOfOrigin,
+      'isOutOfStock': isOutOfStock,
+      'stockQty': stockQty,
     };
   }
 }

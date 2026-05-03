@@ -99,6 +99,29 @@ class ProductCard extends StatelessWidget {
                         size: 26,
                       ),
                     ),
+                  // Out of Stock overlay
+                  if (product.isOutOfStock)
+                    Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(12),
+                        ),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.50),
+                          child: const Center(
+                            child: Text(
+                              'OUT OF STOCK',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   // Favorite Button
                   Positioned(
                     top: 8,
@@ -206,21 +229,25 @@ class ProductCard extends StatelessWidget {
                                   minHeight: 24,
                                   minWidth: 24,
                                 ),
-                                onPressed: () async {
-                                  if (UserSession.isGuest) {
-                                    await showAuthRequiredDialog(context);
-                                    return;
-                                  }
-                                  if (!context.mounted) return;
-                                  context.read<CartBloc>().add(
-                                    AddToCart(product),
-                                  );
-                                },
+                                onPressed: product.isOutOfStock
+                                    ? null
+                                    : () async {
+                                        if (UserSession.isGuest) {
+                                          await showAuthRequiredDialog(context);
+                                          return;
+                                        }
+                                        if (!context.mounted) return;
+                                        context.read<CartBloc>().add(
+                                          AddToCart(product),
+                                        );
+                                      },
                                 icon: Icon(
                                   quantity > 0
                                       ? Icons.shopping_cart
                                       : Icons.add_shopping_cart,
-                                  color: const Color(0xFFEC407A),
+                                  color: product.isOutOfStock
+                                      ? Colors.grey[400]
+                                      : const Color(0xFFEC407A),
                                   size: 24,
                                 ),
                               ),

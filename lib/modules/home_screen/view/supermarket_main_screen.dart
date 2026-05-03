@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
@@ -352,6 +353,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           final first = state.shops.first;
           UserSession.setSelectedShop(first.shopId);
           setState(() => _selectedShop = first);
+          context.read<SupermarketCategoryBloc>().add(LoadCategories());
         }
       },
       child: _buildContent(context),
@@ -901,6 +903,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     }
     UserSession.setSelectedShop(selected.shopId);
     setState(() => _selectedShop = selected);
+    context.read<SupermarketCategoryBloc>().add(LoadCategories());
   }
 
   List<Widget> _buildCategoryRows(List<CategoryModel> categories) {

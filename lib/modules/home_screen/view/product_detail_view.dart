@@ -203,24 +203,27 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         width: double.infinity,
                         height: 44,
                         child: ElevatedButton(
-                          onPressed: () async {
-                            if (UserSession.isGuest) {
-                              await showAuthRequiredDialog(context);
-                              return;
-                            }
-                            if (!context.mounted) return;
-                            context.read<CartBloc>().add(AddToCart(product));
-                          },
+                          onPressed: product.isOutOfStock
+                              ? null
+                              : () async {
+                                  if (UserSession.isGuest) {
+                                    await showAuthRequiredDialog(context);
+                                    return;
+                                  }
+                                  if (!context.mounted) return;
+                                  context.read<CartBloc>().add(AddToCart(product));
+                                },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: accent,
+                            backgroundColor:
+                                product.isOutOfStock ? Colors.grey[400] : accent,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32),
                             ),
                           ),
-                          child: const Text(
-                            'Add to cart',
-                            style: TextStyle(
+                          child: Text(
+                            product.isOutOfStock ? 'Out of Stock' : 'Add to cart',
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -634,19 +637,23 @@ class _RelatedProductCard extends StatelessWidget {
                               minHeight: 24,
                               minWidth: 24,
                             ),
-                            onPressed: () async {
-                              if (UserSession.isGuest) {
-                                await showAuthRequiredDialog(context);
-                                return;
-                              }
-                              if (!context.mounted) return;
-                              context.read<CartBloc>().add(AddToCart(product));
-                            },
+                            onPressed: product.isOutOfStock
+                                ? null
+                                : () async {
+                                    if (UserSession.isGuest) {
+                                      await showAuthRequiredDialog(context);
+                                      return;
+                                    }
+                                    if (!context.mounted) return;
+                                    context.read<CartBloc>().add(AddToCart(product));
+                                  },
                             icon: Icon(
                               quantity > 0
                                   ? Icons.shopping_cart
                                   : Icons.add_shopping_cart,
-                              color: const Color(0xFFEC407A),
+                              color: product.isOutOfStock
+                                  ? Colors.grey[400]
+                                  : const Color(0xFFEC407A),
                               size: 24,
                             ),
                           ),
