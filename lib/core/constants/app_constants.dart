@@ -25,6 +25,9 @@ class ApiUrl {
   static const requestOtp = "/auth/login/request-otp";
   static const verifyOtp = "/auth/login/verify-otp";
 
+  // ── Stores ──
+  static const stores = '/stores';
+
   // ── Categories & Products ──
   static const categories = '/categories';
   static const products = '/products';

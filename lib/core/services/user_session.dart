@@ -26,6 +26,7 @@ class UserSession {
   static int? _refreshTokenExpiryEpochMs;
   static String _lastKnownFullName = '';
   static String _lastKnownPhone = '';
+  static String _selectedShopId = '';
 
   static UserRole get role => _role;
   static bool get isGuest => _role == UserRole.guest;
@@ -41,6 +42,11 @@ class UserSession {
   static DateTime? get refreshTokenExpiresAt =>
       _toDateTime(_refreshTokenExpiryEpochMs);
   static bool get hasRefreshToken => (_refreshToken ?? '').trim().isNotEmpty;
+  static String get selectedShopId => _selectedShopId;
+
+  static void setSelectedShop(String shopId) {
+    _selectedShopId = shopId;
+  }
 
   static DateTime? _toDateTime(int? epochMs) {
     if (epochMs == null || epochMs <= 0) return null;

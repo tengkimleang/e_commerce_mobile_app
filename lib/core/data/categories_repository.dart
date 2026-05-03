@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_model.dart';
 
@@ -183,9 +184,14 @@ class HttpCategoriesRepository implements CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    final shopId = UserSession.selectedShopId;
     final response = await _dio.get(
       ApiUrl.categoryProducts(categoryId),
-      queryParameters: {'page': page, 'pageSize': pageSize},
+      queryParameters: {
+        'page': page,
+        'pageSize': pageSize,
+        if (shopId.isNotEmpty) 'shopId': shopId,
+      },
     );
     final body = _parseBody(response);
     _checkApiError(body);
@@ -215,9 +221,14 @@ class HttpCategoriesRepository implements CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    final shopId = UserSession.selectedShopId;
     final response = await _dio.get(
       ApiUrl.subCategoryProducts(subCategoryId),
-      queryParameters: {'page': page, 'pageSize': pageSize},
+      queryParameters: {
+        'page': page,
+        'pageSize': pageSize,
+        if (shopId.isNotEmpty) 'shopId': shopId,
+      },
     );
     final body = _parseBody(response);
     _checkApiError(body);
@@ -235,9 +246,15 @@ class HttpCategoriesRepository implements CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    final shopId = UserSession.selectedShopId;
     final response = await _dio.get(
       ApiUrl.products,
-      queryParameters: {'keyword': keyword, 'page': page, 'pageSize': pageSize},
+      queryParameters: {
+        'keyword': keyword,
+        'page': page,
+        'pageSize': pageSize,
+        if (shopId.isNotEmpty) 'shopId': shopId,
+      },
     );
     final body = _parseBody(response);
     _checkApiError(body);
@@ -255,12 +272,14 @@ class HttpCategoriesRepository implements CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    final shopId = UserSession.selectedShopId;
     final response = await _dio.get(
       ApiUrl.products,
       queryParameters: {
         'countryOfOrigin': country,
         'page': page,
         'pageSize': pageSize,
+        if (shopId.isNotEmpty) 'shopId': shopId,
       },
     );
     final body = _parseBody(response);

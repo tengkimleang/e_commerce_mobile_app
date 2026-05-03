@@ -8,6 +8,8 @@ import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_cate
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_state.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/views/become_partner_screen.dart';
+import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_state.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
@@ -40,7 +42,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   int _current = 0;
   late final Timer _timer;
   late final PageController _partnerController;
-  late ShopOption _selectedShop;
+  ShopOption? _selectedShop;
   int _partnerCurrent = 0;
   int _selectedIndex = 0;
   bool _showLaunchPopup = false;
@@ -61,52 +63,12 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     'https://www.chipmong.com/wp-content/uploads/2020/12/DSC_7842-1-585x391.jpg',
     'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
   ];
-  final List<ShopOption> _shops = const [
-    ShopOption(
-      storeName: 'CHIP MONG SUPERMARKET SORLA',
-      branchLabel: 'EDEN GARDEN',
-      imageUrl:
-          'https://www.chipmong.com/wp-content/uploads/2020/12/DSC_7842-1-585x391.jpg',
-    ),
-    ShopOption(
-      storeName: 'CHIP MONG SUPERMARKET NORO',
-      branchLabel: 'NORO SUPERMARKET',
-      imageUrl:
-          'https://www.chipmong.com/wp-content/uploads/2022/02/1-585x391.jpg',
-    ),
-    ShopOption(
-      storeName: 'CHIP MONG EXPRESS BAK TOUK',
-      branchLabel: 'EXPRESS BAK TOUK',
-      imageUrl:
-          'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
-    ),
-    ShopOption(
-      storeName: 'CHIP MONG SEN SOK SUPERMARKET',
-      branchLabel: 'SEN SOK SUPERMARKET',
-      imageUrl:
-          'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
-    ),
-    ShopOption(
-      storeName: 'CHIP MONG 271 MEGA MALL',
-      branchLabel: '271 MEGA MALL',
-      imageUrl:
-          'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
-      guestAllowed: false,
-    ),
-    ShopOption(
-      storeName: 'CHIP MONG RETAIL OUTLET',
-      branchLabel: 'RETAIL OUTLET',
-      imageUrl:
-          'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
-    ),
-  ];
 
   bool get _isGuest => UserSession.isGuest;
 
   @override
   void initState() {
     _partnerController = PageController(viewportFraction: 0.95);
-    _selectedShop = _shops.first;
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || _selectedIndex != 0 || !_controller.hasClients) return;
@@ -384,6 +346,19 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<ShopBloc, ShopState>(
+      listener: (context, state) {
+        if (state is ShopsLoaded && state.shops.isNotEmpty && _selectedShop == null) {
+          final first = state.shops.first;
+          UserSession.setSelectedShop(first.shopId);
+          setState(() => _selectedShop = first);
+        }
+      },
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     if (_selectedIndex != 0) {
       return Scaffold(
         body: _buildSecondaryTabBody(),
@@ -436,7 +411,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  _selectedShop.storeName,
+                                  _selectedShop?.storeName ?? 'Select Shop',
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -905,10 +880,13 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   }
 
   Future<void> _showShopSelectorBottomSheet() async {
+    final shopState = context.read<ShopBloc>().state;
+    if (shopState is! ShopsLoaded || shopState.shops.isEmpty) return;
+
     final selected = await showShopSelectorBottomSheet(
       context,
-      shops: _shops,
-      selectedShop: _selectedShop,
+      shops: shopState.shops,
+      selectedShop: _selectedShop ?? shopState.shops.first,
       isGuest: _isGuest,
     );
 
@@ -921,6 +899,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       );
       return;
     }
+    UserSession.setSelectedShop(selected.shopId);
     setState(() => _selectedShop = selected);
   }
 
