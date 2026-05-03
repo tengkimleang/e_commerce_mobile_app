@@ -350,9 +350,15 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     return BlocListener<ShopBloc, ShopState>(
       listener: (context, state) {
         if (state is ShopsLoaded && state.shops.isNotEmpty && _selectedShop == null) {
-          final first = state.shops.first;
-          UserSession.setSelectedShop(first.shopId);
-          setState(() => _selectedShop = first);
+          final savedId = UserSession.selectedShopId;
+          final shop = savedId.isNotEmpty
+              ? state.shops.firstWhere(
+                  (s) => s.shopId == savedId,
+                  orElse: () => state.shops.first,
+                )
+              : state.shops.first;
+          UserSession.setSelectedShop(shop.shopId, name: shop.storeName);
+          setState(() => _selectedShop = shop);
           context.read<SupermarketCategoryBloc>().add(LoadCategories());
         }
       },
@@ -413,7 +419,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  _selectedShop?.storeName ?? 'Select Shop',
+                                  _selectedShop?.storeName ??
+                                      (UserSession.selectedShopName.isNotEmpty
+                                          ? UserSession.selectedShopName
+                                          : 'Select Shop'),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -901,7 +910,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       );
       return;
     }
-    UserSession.setSelectedShop(selected.shopId);
+    UserSession.setSelectedShop(selected.shopId, name: selected.storeName);
     setState(() => _selectedShop = selected);
     context.read<SupermarketCategoryBloc>().add(LoadCategories());
   }

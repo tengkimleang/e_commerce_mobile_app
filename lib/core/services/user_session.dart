@@ -16,6 +16,8 @@ class UserSession {
       'refresh_token_expiry_epoch_ms';
   static const String _lastKnownFullNameKey = 'last_known_full_name';
   static const String _lastKnownPhoneKey = 'last_known_phone';
+  static const String _selectedShopIdKey = 'selected_shop_id';
+  static const String _selectedShopNameKey = 'selected_shop_name';
 
   static UserRole _role = UserRole.guest;
   static String _fullName = '';
@@ -27,6 +29,7 @@ class UserSession {
   static String _lastKnownFullName = '';
   static String _lastKnownPhone = '';
   static String _selectedShopId = '';
+  static String _selectedShopName = '';
 
   static UserRole get role => _role;
   static bool get isGuest => _role == UserRole.guest;
@@ -43,9 +46,15 @@ class UserSession {
       _toDateTime(_refreshTokenExpiryEpochMs);
   static bool get hasRefreshToken => (_refreshToken ?? '').trim().isNotEmpty;
   static String get selectedShopId => _selectedShopId;
+  static String get selectedShopName => _selectedShopName;
 
-  static void setSelectedShop(String shopId) {
+  static void setSelectedShop(String shopId, {String name = ''}) {
     _selectedShopId = shopId;
+    _selectedShopName = name;
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString(_selectedShopIdKey, shopId);
+      prefs.setString(_selectedShopNameKey, name);
+    });
   }
 
   static DateTime? _toDateTime(int? epochMs) {
@@ -74,6 +83,8 @@ class UserSession {
     _refreshTokenExpiryEpochMs = prefs.getInt(_refreshTokenExpiryEpochMsKey);
     _lastKnownFullName = prefs.getString(_lastKnownFullNameKey) ?? '';
     _lastKnownPhone = prefs.getString(_lastKnownPhoneKey) ?? '';
+    _selectedShopId = prefs.getString(_selectedShopIdKey) ?? '';
+    _selectedShopName = prefs.getString(_selectedShopNameKey) ?? '';
   }
 
   static Future<void> markGuest() async {
