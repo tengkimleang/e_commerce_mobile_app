@@ -146,7 +146,11 @@ class HttpCategoriesRepository implements CategoriesRepository {
 
   @override
   Future<List<CategoryModel>> fetchCategories() async {
-    final response = await _dio.get(ApiUrl.categories);
+    final shopId = UserSession.selectedShopId;
+    final response = await _dio.get(
+      ApiUrl.categories,
+      queryParameters: {if (shopId.isNotEmpty) 'shopId': shopId},
+    );
     final body = _parseBody(response);
     _checkApiError(body);
     final data = body['data'] as Map<String, dynamic>? ?? {};

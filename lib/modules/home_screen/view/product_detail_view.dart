@@ -270,23 +270,27 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             ),
                           ),
                           const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: GestureDetector(
-                              onTap: () => context.read<CartBloc>().add(
-                                IncreaseQuantity(product.id),
-                              ),
-                              child: Container(
-                                width: 36,
-                                height: 36,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
+                          if (product.stockQty == null ||
+                              quantity < product.stockQty!)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: GestureDetector(
+                                onTap: () => context.read<CartBloc>().add(
+                                  IncreaseQuantity(product.id),
                                 ),
-                                child: const Icon(Icons.add, size: 24),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.add, size: 24),
+                                ),
                               ),
-                            ),
-                          ),
+                            )
+                          else
+                            const SizedBox(width: 46),
                         ],
                       ),
                     );

@@ -16,6 +16,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     final updated = Map<String, CartLine>.from(state.lines);
     final existing = updated[event.product.id];
     if (existing != null) {
+      final maxQty = existing.product.stockQty;
+      if (maxQty != null && existing.quantity >= maxQty) return;
       updated[event.product.id] =
           existing.copyWith(quantity: existing.quantity + 1);
     } else {
@@ -28,6 +30,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   void _onIncrease(IncreaseQuantity event, Emitter<CartState> emit) {
     final existing = state.lines[event.productId];
     if (existing == null) return;
+    final maxQty = existing.product.stockQty;
+    if (maxQty != null && existing.quantity >= maxQty) return;
     final updated = Map<String, CartLine>.from(state.lines);
     updated[event.productId] =
         existing.copyWith(quantity: existing.quantity + 1);
