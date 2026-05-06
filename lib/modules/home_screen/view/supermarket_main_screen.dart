@@ -53,11 +53,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   final double _popupMaxWidth = 320; // max popup width in px
   final double _popupAspectRatio = 16 / 16; // width / height
 
-  final List<String> _images = [
-    'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
-    'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
-    'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
-  ];
+  List<String> _sliderImages = [];
 
   final List<String> _partnerImages = [
     'https://cdn.kiripost.com/static/images/_WC19073.2e16d0ba.fill-960x540.jpg',
@@ -73,7 +69,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || _selectedIndex != 0 || !_controller.hasClients) return;
-      final next = (_current + 1) % _images.length;
+      if (_sliderImages.isEmpty) return;
+      final next = (_current + 1) % _sliderImages.length;
       _controller.animateToPage(
         next,
         duration: const Duration(milliseconds: 400),
@@ -197,7 +194,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: PageView.builder(
                           controller: pageCtrl,
-                          itemCount: _images.length,
+                          itemCount: _sliderImages.length,
                           onPageChanged: (i) =>
                               setPopupState(() => currentPage = i),
                           itemBuilder: (_, i) => Padding(
@@ -205,7 +202,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(5),
                               child: CachedNetworkImage(
-                                imageUrl: _images[i],
+                                imageUrl: _sliderImages[i],
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Container(
                                   color: Colors.grey[200],
@@ -234,7 +231,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       bottom: 10,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_images.length, (i) {
+                        children: List.generate(_sliderImages.length, (i) {
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
                             margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -347,21 +344,42 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ShopBloc, ShopState>(
-      listener: (context, state) {
-        if (state is ShopsLoaded && state.shops.isNotEmpty && _selectedShop == null) {
-          final savedId = UserSession.selectedShopId;
-          final shop = savedId.isNotEmpty
-              ? state.shops.firstWhere(
-                  (s) => s.shopId == savedId,
-                  orElse: () => state.shops.first,
-                )
-              : state.shops.first;
-          UserSession.setSelectedShop(shop.shopId, name: shop.storeName);
-          setState(() => _selectedShop = shop);
-          context.read<SupermarketCategoryBloc>().add(LoadCategories());
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ShopBloc, ShopState>(
+          listener: (context, state) {
+            if (state is ShopsLoaded && state.shops.isNotEmpty && _selectedShop == null) {
+              final savedId = UserSession.selectedShopId;
+              final shop = savedId.isNotEmpty
+                  ? state.shops.firstWhere(
+                      (s) => s.shopId == savedId,
+                      orElse: () => state.shops.first,
+                    )
+                  : state.shops.first;
+              UserSession.setSelectedShop(shop.shopId, name: shop.storeName);
+              setState(() => _selectedShop = shop);
+              context.read<SupermarketCategoryBloc>().add(LoadCategories());
+            }
+          },
+        ),
+        BlocListener<SupermarketCategoryBloc, SupermarketCategoryState>(
+          listener: (context, state) {
+            if (state is CategoriesLoaded) {
+              final images = state.categories
+                  .map((c) => c.bannerImageUrl)
+                  .where((url) => url.isNotEmpty)
+                  .toList();
+              setState(() {
+                _sliderImages = images;
+                _current = 0;
+              });
+              if (_controller.hasClients && images.isNotEmpty) {
+                _controller.jumpToPage(0);
+              }
+            }
+          },
+        ),
+      ],
       child: _buildContent(context),
     );
   }
@@ -550,55 +568,48 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
               child: SizedBox(
                 height: 300,
-                child: Stack(
-                  children: [
-                    PageView.builder(
-                      controller: _controller,
-                      itemCount: _images.length,
-                      onPageChanged: (i) => setState(() => _current = i),
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () => _showBannerImagePopup(context, index),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(5),
-                              ),
-                              child: Image.network(
-                                _images[index],
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
-                            ),
+                child: _sliderImages.isEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(5)),
+                        child: Container(color: Colors.grey[200]),
+                      )
+                    : Stack(
+                        children: [
+                          PageView.builder(
+                            controller: _controller,
+                            itemCount: _sliderImages.length,
+                            onPageChanged: (i) => setState(() => _current = i),
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () => _showBannerImagePopup(context, index),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(5),
+                                    ),
+                                    child: CachedNetworkImage(
+                                      imageUrl: _sliderImages[index],
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      placeholder: (_, __) =>
+                                          Container(color: Colors.grey[200]),
+                                      errorWidget: (_, __, ___) => Container(
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 12,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(_images.length, (i) {
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _current == i ? 12 : 8,
-                            height: _current == i ? 12 : 8,
-                            decoration: BoxDecoration(
-                              color: _current == i
-                                  ? Colors.white
-                                  : Colors.white54,
-                              shape: BoxShape.circle,
-                            ),
-                          );
-                        }),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
 
