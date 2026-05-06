@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
@@ -16,6 +19,8 @@ class PinLoginView extends StatefulWidget {
 }
 
 class _PinLoginViewState extends State<PinLoginView> {
+  static const _lockUntilPrefKey = 'pin_lock_until_utc';
+
   final AuthService _authService = AuthService();
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
@@ -23,6 +28,12 @@ class _PinLoginViewState extends State<PinLoginView> {
   bool _showPin = false;
   bool _isSubmitting = false;
   bool _isSendingForgotOtp = false;
+
+  bool _isPinLocked = false;
+  int _lockSecondsRemaining = 0;
+  Timer? _lockTimer;
+  // Guards _submit() from firing before the async startup lock check completes.
+  bool _lockCheckComplete = false;
 
   bool get _isComplete =>
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
@@ -34,10 +45,12 @@ class _PinLoginViewState extends State<PinLoginView> {
     super.initState();
     _controllers = List.generate(4, (_) => TextEditingController());
     _focusNodes = List.generate(4, (_) => FocusNode());
+    _checkPersistedLock();
   }
 
   @override
   void dispose() {
+    _lockTimer?.cancel();
     for (final controller in _controllers) {
       controller.dispose();
     }
@@ -58,6 +71,85 @@ class _PinLoginViewState extends State<PinLoginView> {
       _focusNodes[index - 1].requestFocus();
     }
     setState(() {});
+  }
+
+  /// On startup, check if a lock was previously stored and is still active.
+  Future<void> _checkPersistedLock() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_lockUntilPrefKey);
+    if (stored == null) {
+      if (mounted) setState(() => _lockCheckComplete = true);
+      return;
+    }
+    final lockUntil = DateTime.tryParse(stored)?.toUtc();
+    if (lockUntil == null) {
+      await prefs.remove(_lockUntilPrefKey);
+      if (mounted) setState(() => _lockCheckComplete = true);
+      return;
+    }
+    final remaining =
+        lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    if (remaining > 0) {
+      _startLockCountdown(remaining);
+    } else {
+      await prefs.remove(_lockUntilPrefKey);
+    }
+    if (mounted) setState(() => _lockCheckComplete = true);
+  }
+
+  /// Removes the persisted lock (called when the countdown expires).
+  Future<void> _clearPersistedLock() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_lockUntilPrefKey);
+  }
+
+  String _formatCountdown(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startLockCountdown(int seconds) {
+    _lockTimer?.cancel();
+    if (seconds <= 0) return;
+    setState(() {
+      _isPinLocked = true;
+      _lockSecondsRemaining = seconds;
+    });
+    _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_lockSecondsRemaining <= 1) {
+        timer.cancel();
+        _clearPersistedLock();
+        for (final c in _controllers) {
+          c.clear();
+        }
+        if (_focusNodes.isNotEmpty) {
+          _focusNodes.first.requestFocus();
+        }
+        setState(() {
+          _isPinLocked = false;
+          _lockSecondsRemaining = 0;
+        });
+        return;
+      }
+      setState(() => _lockSecondsRemaining -= 1);
+    });
+  }
+
+  /// Reads [lockUntilUtc] from the verify-pin response and returns
+  /// how many seconds remain until the lock expires. Returns 0 if
+  /// the field is absent or the timestamp has already passed.
+  int _computeLockSecondsFromResponse(Map<String, dynamic> response) {
+    final raw = response['lockUntilUtc'];
+    if (raw == null) return 0;
+    final lockUntil = DateTime.tryParse(raw.toString().trim())?.toUtc();
+    if (lockUntil == null) return 0;
+    final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    return diff > 0 ? diff : 0;
   }
 
   String _clean(dynamic value) => value?.toString().trim() ?? '';
@@ -150,7 +242,7 @@ class _PinLoginViewState extends State<PinLoginView> {
   }
 
   Future<void> _submit() async {
-    if (!_isComplete || _isSubmitting) return;
+    if (!_isComplete || _isSubmitting || _isPinLocked || !_lockCheckComplete) return;
 
     setState(() => _isSubmitting = true);
 
@@ -181,6 +273,42 @@ class _PinLoginViewState extends State<PinLoginView> {
                 ? 'PIN is not set yet. Please verify OTP and create a PIN first.'
                 : errorMsg,
           );
+          return;
+        }
+
+        if (errorCode == 'PIN_LOCKED') {
+          // Never overwrite an existing valid stored lock — the backend may
+          // return a fresh lockUntilUtc (now + 15 min) on every pre-check call,
+          // which would reset the countdown on every app restart.
+          final prefs = await SharedPreferences.getInstance();
+          final existingStored = prefs.getString(_lockUntilPrefKey);
+          final existingLockUntil =
+              existingStored != null
+                  ? DateTime.tryParse(existingStored)?.toUtc()
+                  : null;
+          final now = DateTime.now().toUtc();
+
+          int remaining;
+          if (existingLockUntil != null && existingLockUntil.isAfter(now)) {
+            // Valid lock already on disk — honour the original expiry time.
+            remaining = existingLockUntil.difference(now).inSeconds;
+          } else {
+            // No valid stored lock — use backend's lockUntilUtc and persist it.
+            remaining = _computeLockSecondsFromResponse(response);
+            final rawLockUntil =
+                response['lockUntilUtc']?.toString().trim() ?? '';
+            if (rawLockUntil.isNotEmpty) {
+              await prefs.setString(_lockUntilPrefKey, rawLockUntil);
+            } else {
+              final synthetic = now
+                  .add(Duration(seconds: remaining > 0 ? remaining : 15 * 60))
+                  .toIso8601String();
+              await prefs.setString(_lockUntilPrefKey, synthetic);
+            }
+            if (remaining <= 0) remaining = 15 * 60;
+          }
+          if (!mounted) return;
+          _startLockCountdown(remaining);
           return;
         }
 
@@ -543,7 +671,9 @@ class _PinLoginViewState extends State<PinLoginView> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F7FB),
+                      color: _isPinLocked
+                          ? Colors.grey[200]
+                          : const Color(0xFFF5F7FB),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
@@ -561,6 +691,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                         ],
                         obscureText: !_showPin,
                         maxLength: 1,
+                        enabled: !_isPinLocked,
                         decoration: const InputDecoration(
                           counterText: '',
                           border: InputBorder.none,
@@ -572,12 +703,83 @@ class _PinLoginViewState extends State<PinLoginView> {
                 ),
               ),
               const SizedBox(height: 24),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1,
+                    child: child,
+                  ),
+                ),
+                child: _isPinLocked
+                    ? Padding(
+                        key: const ValueKey('lock_banner'),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEC407A).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFFEC407A).withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.lock_clock_rounded,
+                                color: Color(0xFFEC407A),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'PIN Temporarily Locked',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFFEC407A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Too many incorrect attempts.\nTry again in ${_formatCountdown(_lockSecondsRemaining)}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(key: ValueKey('no_banner')),
+              ),
               Center(
                 child: GestureDetector(
-                  onTap: () => setState(() => _showPin = !_showPin),
-                  child: const Text(
+                  onTap: _isPinLocked
+                      ? null
+                      : () => setState(() => _showPin = !_showPin),
+                  child: Text(
                     'Show PIN',
-                    style: TextStyle(color: Color(0xFFEC407A), fontSize: 16),
+                    style: TextStyle(
+                      color: _isPinLocked
+                          ? Colors.grey[400]
+                          : const Color(0xFFEC407A),
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
@@ -606,7 +808,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                 child: SizedBox(
                   height: 58,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting
+                    onPressed: _isSubmitting || _isPinLocked
                         ? null
                         : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
