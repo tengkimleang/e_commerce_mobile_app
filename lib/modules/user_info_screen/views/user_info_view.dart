@@ -465,9 +465,12 @@ class UserInfoView extends StatelessWidget {
   }
 
   Future<void> _openChangePin(BuildContext context) async {
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const ChangePinOldPinView()));
+    final phone = UserSession.phoneNumber.trim();
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChangePinOldPinView(phoneNumber: phone),
+      ),
+    );
   }
 
   Future<void> _pickProfileImage(BuildContext context) async {

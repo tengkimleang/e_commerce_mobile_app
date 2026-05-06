@@ -11,6 +11,7 @@ class AuthService {
   static const _logoutEndpoint = '/auth/logout';
   static const _setPinEndpoint = '/auth/pin/set';
   static const _resetPinEndpoint = '/auth/pin/reset';
+  static const _changePinEndpoint = '/auth/pin/change';
   static const _forgotPinRequestOtpEndpoint = '/auth/pin/forgot/request-otp';
   static const _forgotPinVerifyOtpEndpoint = '/auth/pin/forgot/verify-otp';
   static const _verifyPinEndpoint = '/auth/login/verify-pin';
@@ -845,6 +846,51 @@ class AuthService {
     );
 
     return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> changePin({
+    required String phoneNumber,
+    required String oldPinCode,
+    required String newPinCode,
+  }) async {
+    debugPrint('[AuthService] changePin → $_baseUrl$_changePinEndpoint');
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: false,
+      send: (headers) => _dio
+          .post(
+            _changePinEndpoint,
+            data: {'oldPinCode': oldPinCode, 'newPinCode': newPinCode},
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () => throw TimeoutException('Change PIN timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] changePin response: ${response.statusCode} → ${response.data}',
+    );
+
+    final normalized = _normalizeProfileResponseWithStatus(response);
+
+    // Fallback: if endpoint is not yet deployed, verify old PIN then set new PIN.
+    if (_isMissingEndpoint(normalized)) {
+      debugPrint('[AuthService] changePin endpoint missing, using fallback');
+      final verifyResult = await verifyPin(
+        phoneNumber: phoneNumber,
+        pinCode: oldPinCode,
+      );
+      final verifyCode = _asCleanString(verifyResult['errorCode']).toUpperCase();
+      if (verifyCode.isNotEmpty) return verifyResult;
+      final verifySuccess = _readBoolField(verifyResult, ['success', 'Success']);
+      if (!verifySuccess) return verifyResult;
+
+      return setPin(pinCode: newPinCode, confirmPinCode: newPinCode);
+    }
+
+    return normalized;
   }
 
   Future<Map<String, dynamic>> getSignupUser({required int userId}) async {
