@@ -880,10 +880,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   Widget _buildSecondaryTabBody() {
     switch (_selectedIndex) {
       case 1:
-        return PromotionView(
-          products: _getAllProducts(),
-          showBottomNavigation: false,
-        );
+        return const PromotionView(showBottomNavigation: false);
       case 2:
         return QrCodeView(showBottomNavigation: false, isGuest: _isGuest);
       case 3:

@@ -52,6 +52,11 @@ abstract class CategoriesRepository {
     int page = 1,
     int pageSize = 20,
   });
+
+  /// Returns categories marked showInPromotion=true for the given [shopId],
+  /// sorted by promotionDisplayOrder ?? displayOrder (ascending).
+  /// Each category will have [previewProducts] populated.
+  Future<List<CategoryModel>> fetchPromotionCategories(String shopId);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -131,6 +136,31 @@ class MockCategoriesRepository implements CategoriesRepository {
     final end = (start + pageSize).clamp(0, filtered.length);
     return (filtered.sublist(start, end), filtered.length);
   }
+
+  @override
+  Future<List<CategoryModel>> fetchPromotionCategories(String shopId) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final all = await fetchCategories();
+    // In mock mode all categories are treated as promotion-visible.
+    // promotionDisplayOrder falls back to displayOrder for sorting.
+    final sorted = [...all]..sort(
+        (a, b) => (a.promotionDisplayOrder ?? a.displayOrder)
+            .compareTo(b.promotionDisplayOrder ?? b.displayOrder),
+      );
+    return sorted.map((c) => CategoryModel(
+      id: c.id,
+      nameEn: c.nameEn,
+      nameKm: c.nameKm,
+      bannerImageUrl: c.bannerImageUrl,
+      displayOrder: c.displayOrder,
+      isActive: c.isActive,
+      promoStartAt: c.promoStartAt,
+      promoEndAt: c.promoEndAt,
+      previewProducts: c.previewProducts,
+      showInPromotion: true,
+      promotionDisplayOrder: c.promotionDisplayOrder,
+    )).toList();
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -178,8 +208,57 @@ class HttpCategoriesRepository implements CategoriesRepository {
         promoStartAt: categories[i].promoStartAt,
         promoEndAt: categories[i].promoEndAt,
         previewProducts: products,
+        showInPromotion: categories[i].showInPromotion,
+        promotionDisplayOrder: categories[i].promotionDisplayOrder,
       );
     });
+  }
+
+  @override
+  Future<List<CategoryModel>> fetchPromotionCategories(String shopId) async {
+    final response = await _dio.get(
+      ApiUrl.categories,
+      queryParameters: {
+        if (shopId.isNotEmpty) 'shopId': shopId,
+        'showInPromotion': true,
+      },
+    );
+    final body = _parseBody(response);
+    _checkApiError(body);
+    final data = body['data'] as Map<String, dynamic>? ?? {};
+    final items = data['items'] as List<dynamic>? ?? [];
+    final categories = items
+        .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    // previewProducts are not embedded — parallel-fetch per category.
+    final previews = await Future.wait(
+      categories.map((c) => fetchCategoryProducts(c.id, pageSize: 10)),
+    );
+
+    final result = List.generate(categories.length, (i) {
+      final (products, _) = previews[i];
+      return CategoryModel(
+        id: categories[i].id,
+        nameEn: categories[i].nameEn,
+        nameKm: categories[i].nameKm,
+        bannerImageUrl: categories[i].bannerImageUrl,
+        displayOrder: categories[i].displayOrder,
+        isActive: categories[i].isActive,
+        promoStartAt: categories[i].promoStartAt,
+        promoEndAt: categories[i].promoEndAt,
+        previewProducts: products,
+        showInPromotion: categories[i].showInPromotion,
+        promotionDisplayOrder: categories[i].promotionDisplayOrder,
+      );
+    });
+
+    // Defensive client-side sort: BE sorts, but guard against inconsistency.
+    result.sort(
+      (a, b) => (a.promotionDisplayOrder ?? a.displayOrder)
+          .compareTo(b.promotionDisplayOrder ?? b.displayOrder),
+    );
+    return result;
   }
 
   @override

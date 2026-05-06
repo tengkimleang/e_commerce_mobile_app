@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
-   class CategoryModel extends Equatable {
+class CategoryModel extends Equatable {
   final int id;
   final String nameEn;
   final String nameKm;
@@ -11,6 +11,8 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
   final DateTime? promoStartAt;
   final DateTime? promoEndAt;
   final List<ProductModel> previewProducts;
+  final bool showInPromotion;
+  final int? promotionDisplayOrder;
 
   const CategoryModel({
     required this.id,
@@ -22,6 +24,8 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
     this.promoStartAt,
     this.promoEndAt,
     this.previewProducts = const [],
+    this.showInPromotion = false,
+    this.promotionDisplayOrder,
   });
 
   /// Shows Khmer name when available, falls back to English.
@@ -55,13 +59,15 @@ import 'package:e_commerce_mobile_app/core/models/product_item.dart';
               ?.map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      showInPromotion: (json['showInPromotion'] as bool?) ?? false,
+      promotionDisplayOrder: json['promotionDisplayOrder'] as int?,
     );
   }
 
   @override
   List<Object?> get props => [
         id, nameEn, nameKm, bannerImageUrl, displayOrder, isActive,
-        promoStartAt, promoEndAt,
+        promoStartAt, promoEndAt, showInPromotion, promotionDisplayOrder,
       ];
 }
 

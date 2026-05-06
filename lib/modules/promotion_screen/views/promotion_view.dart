@@ -2,6 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -10,25 +13,38 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.da
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_list_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
+import 'package:e_commerce_mobile_app/modules/promotion_screen/blocs/promotion_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/promotion_screen/blocs/promotion_event.dart';
+import 'package:e_commerce_mobile_app/modules/promotion_screen/blocs/promotion_state.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
 class PromotionView extends StatelessWidget {
-  final List<ProductModel> products;
   final bool showBottomNavigation;
 
   const PromotionView({
     super.key,
-    this.products = const [],
     this.showBottomNavigation = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    return BlocProvider<PromotionBloc>(
+      create: (_) => PromotionBloc(di<CategoriesRepository>())
+        ..add(LoadPromotionSections(UserSession.selectedShopId)),
+      child: _PromotionScaffold(showBottomNavigation: showBottomNavigation),
+    );
+  }
+}
+
+class _PromotionScaffold extends StatelessWidget {
+  final bool showBottomNavigation;
+
+  const _PromotionScaffold({required this.showBottomNavigation});
+
+  @override
+  Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
-    final baseProducts = products.isEmpty ? _fallbackProducts() : products;
-    final promoProducts = _mapToPromotionProducts(baseProducts);
-    final sections = _buildSections(promoProducts);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
@@ -66,27 +82,72 @@ class PromotionView extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
-              itemBuilder: (context, index) {
-                final section = sections[index];
-                return _PromotionSection(
-                  title: section.title,
-                  bannerImageUrl: section.bannerImageUrl,
-                  products: section.products,
-                  onViewAllTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => ProductListView(
-                        title: section.title,
-                        categoryImageUrl: section.bannerImageUrl,
-                        products: section.products,
-                      ),
+            child: BlocBuilder<PromotionBloc, PromotionState>(
+              builder: (context, state) {
+                if (state is PromotionLoading || state is PromotionInitial) {
+                  return _PromotionLoadingShimmer();
+                }
+                if (state is PromotionError) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Failed to load promotions',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () => context.read<PromotionBloc>().add(
+                            LoadPromotionSections(UserSession.selectedShopId),
+                          ),
+                          child: const Text(
+                            'Retry',
+                            style: TextStyle(color: accent),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                );
+                  );
+                }
+                if (state is PromotionLoaded) {
+                  final sections = state.sections;
+                  if (sections.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No promotions available',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
+                    itemBuilder: (context, index) {
+                      final category = sections[index];
+                      return _PromotionSection(
+                        title: category.displayTitle,
+                        bannerImageUrl: category.bannerImageUrl,
+                        products: category.previewProducts,
+                        onViewAllTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductListView(
+                              title: category.displayTitle,
+                              categoryImageUrl: category.bannerImageUrl,
+                              products: category.previewProducts,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 24),
+                    itemCount: sections.length,
+                  );
+                }
+                return const SizedBox.shrink();
               },
-              separatorBuilder: (context, index) => const SizedBox(height: 24),
-              itemCount: sections.length,
             ),
           ),
         ],
@@ -111,9 +172,9 @@ class PromotionView extends StatelessWidget {
     }
 
     if (index == 2) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const QrCodeView()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const QrCodeView()),
+      );
       return;
     }
 
@@ -130,152 +191,48 @@ class PromotionView extends StatelessWidget {
       );
     }
   }
+}
 
-  List<_PromotionSectionData> _buildSections(List<ProductModel> allProducts) {
-    return [
-      _PromotionSectionData(
-        title: 'Happy Khmer New Year 🌸',
-        bannerImageUrl:
-            'https://files.intocambodia.org/wp-content/uploads/2024/08/03152726/Khmer-New-Year-%C2%A9-Angkor-Sangranta-Team-960x640.jpg',
-        products: _takeProducts(allProducts, start: 0, count: 4),
+class _PromotionLoadingShimmer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
+      itemCount: 3,
+      separatorBuilder: (_, __) => const SizedBox(height: 24),
+      itemBuilder: (_, __) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 180,
+              height: 18,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 290,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: 4,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, __) => Container(
+                  width: 164,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      _PromotionSectionData(
-        title: 'Discount Up To 33% 🔥',
-        bannerImageUrl:
-            'https://previews.123rf.com/images/roxanabalint/roxanabalint1410/roxanabalint141000185/32487885-special-discount-red-leather-label-or-price-tag-on-white-background-vector-illustration.jpg',
-        products: _takeProducts(allProducts, start: 4, count: 4),
-      ),
-      _PromotionSectionData(
-        title: 'Special Weekly Promotion 🇰🇭',
-        bannerImageUrl:
-            'https://media.istockphoto.com/id/1010805154/vector/weekly-offers-concept.jpg?s=612x612&w=0&k=20&c=cYM75U52EdVkje7PC7_yYoIVD_f_vixGsyKzDKCBSS0=',
-        products: _takeProducts(allProducts, start: 8, count: 4),
-      ),
-    ];
-  }
-
-  List<ProductModel> _takeProducts(
-    List<ProductModel> products, {
-    required int start,
-    required int count,
-  }) {
-    if (products.isEmpty) return const [];
-
-    return List<ProductModel>.generate(count, (index) {
-      final itemIndex = (start + index) % products.length;
-      return products[itemIndex];
-    });
-  }
-
-  List<ProductModel> _mapToPromotionProducts(List<ProductModel> source) {
-    const syntheticDiscounts = [10, 15, 22, 23, 33];
-    var fallbackIndex = 0;
-
-    return source.take(20).map((product) {
-      final discount =
-          product.discountPercent ??
-          syntheticDiscounts[fallbackIndex++ % syntheticDiscounts.length];
-      final originalPrice =
-          product.originalPrice ??
-          _computeOriginalPrice(product.price, discount);
-
-      return ProductModel(
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        originalPrice: originalPrice,
-        imageUrl: product.imageUrl,
-        discountPercent: discount,
-        isFavorite: product.isFavorite,
-      );
-    }).toList();
-  }
-
-  double _computeOriginalPrice(double price, int discountPercent) {
-    final ratio = 1 - (discountPercent / 100);
-    if (ratio <= 0) return price;
-    return double.parse((price / ratio).toStringAsFixed(2));
-  }
-
-  List<ProductModel> _fallbackProducts() {
-    return const [
-      ProductModel(
-        id: '5',
-        name: 'PAPA MANDARIN PRC 1XKG',
-        price: 2.45,
-        originalPrice: 4.98,
-        discountPercent: 51,
-        imageUrl:
-            'https://cdn.britannica.com/24/174524-050-A851D3F2/Oranges.jpg',
-      ),
-      ProductModel(
-        id: '6',
-        name: 'FUJI APPLE PRC',
-        price: 2.99,
-        originalPrice: 3.99,
-        discountPercent: 25,
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg',
-      ),
-      ProductModel(
-        id: '8',
-        name: 'Banana Bunch',
-        price: 0.99,
-        originalPrice: 1.49,
-        discountPercent: 33,
-        imageUrl:
-            'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
-      ),
-      ProductModel(
-        id: '9',
-        name: 'Baguette Bread',
-        price: 1.50,
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaKirtgDcOcqy_UrduOm6SZ5QT3RNt9z8DNQ&s',
-      ),
-      ProductModel(
-        id: '10',
-        name: 'Chocolate Croissant',
-        price: 2.25,
-        imageUrl:
-            'https://theculinarycollectiveatl.com/wp-content/uploads/2024/03/2148516578.webp',
-      ),
-      ProductModel(
-        id: '13',
-        name: 'Potato Chips',
-        price: 1.99,
-        imageUrl:
-            'https://images-na.ssl-images-amazon.com/images/I/517Pa8vUG0L.jpg',
-      ),
-      ProductModel(
-        id: '17',
-        name: 'Cola Soda',
-        price: 1.50,
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3-gxDPR43rg5voQTtrQ5mBCOMLhWQUpHINg&s',
-      ),
-      ProductModel(
-        id: '21',
-        name: 'Instant Ramen',
-        price: 0.75,
-        imageUrl:
-            'https://m.media-amazon.com/images/I/710yLnSkQgL._SL1200_.jpg',
-      ),
-      ProductModel(
-        id: '26',
-        name: 'Ice Cream Tub',
-        price: 3.50,
-        imageUrl:
-            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl-bR-NeaPgq1GrUR1P5IEiO3JyoUwVkao6w&s',
-      ),
-      ProductModel(
-        id: '29',
-        name: 'Laundry Detergent',
-        price: 5.99,
-        imageUrl:
-            'https://cdn.thewirecutter.com/wp-content/media/2025/12/BEST-LAUNDRY-DETERGENTS-2048px-0210-2x1-1.jpg?width=2048&quality=75&crop=2:1&auto=webp',
-      ),
-    ];
+    );
   }
 }
 
@@ -562,14 +519,4 @@ class _PromotionProductCard extends StatelessWidget {
   }
 }
 
-class _PromotionSectionData {
-  final String title;
-  final String bannerImageUrl;
-  final List<ProductModel> products;
 
-  const _PromotionSectionData({
-    required this.title,
-    required this.bannerImageUrl,
-    required this.products,
-  });
-}
