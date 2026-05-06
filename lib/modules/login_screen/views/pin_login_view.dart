@@ -21,6 +21,9 @@ class PinLoginView extends StatefulWidget {
 class _PinLoginViewState extends State<PinLoginView> {
   static const _lockUntilPrefKey = 'pin_lock_until_utc';
 
+  // Per-phone key so a lock on one number never affects another.
+  String get _phoneLockKey => '${_lockUntilPrefKey}_${widget.phoneNumber}';
+
   final AuthService _authService = AuthService();
   late final List<TextEditingController> _controllers;
   late final List<FocusNode> _focusNodes;
@@ -76,14 +79,14 @@ class _PinLoginViewState extends State<PinLoginView> {
   /// On startup, check if a lock was previously stored and is still active.
   Future<void> _checkPersistedLock() async {
     final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString(_lockUntilPrefKey);
+    final stored = prefs.getString(_phoneLockKey);
     if (stored == null) {
       if (mounted) setState(() => _lockCheckComplete = true);
       return;
     }
     final lockUntil = DateTime.tryParse(stored)?.toUtc();
     if (lockUntil == null) {
-      await prefs.remove(_lockUntilPrefKey);
+      await prefs.remove(_phoneLockKey);
       if (mounted) setState(() => _lockCheckComplete = true);
       return;
     }
@@ -92,7 +95,7 @@ class _PinLoginViewState extends State<PinLoginView> {
     if (remaining > 0) {
       _startLockCountdown(remaining);
     } else {
-      await prefs.remove(_lockUntilPrefKey);
+      await prefs.remove(_phoneLockKey);
     }
     if (mounted) setState(() => _lockCheckComplete = true);
   }
@@ -100,7 +103,7 @@ class _PinLoginViewState extends State<PinLoginView> {
   /// Removes the persisted lock (called when the countdown expires).
   Future<void> _clearPersistedLock() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_lockUntilPrefKey);
+    await prefs.remove(_phoneLockKey);
   }
 
   String _formatCountdown(int totalSeconds) {
@@ -281,7 +284,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           // return a fresh lockUntilUtc (now + 15 min) on every pre-check call,
           // which would reset the countdown on every app restart.
           final prefs = await SharedPreferences.getInstance();
-          final existingStored = prefs.getString(_lockUntilPrefKey);
+          final existingStored = prefs.getString(_phoneLockKey);
           final existingLockUntil =
               existingStored != null
                   ? DateTime.tryParse(existingStored)?.toUtc()
@@ -298,12 +301,12 @@ class _PinLoginViewState extends State<PinLoginView> {
             final rawLockUntil =
                 response['lockUntilUtc']?.toString().trim() ?? '';
             if (rawLockUntil.isNotEmpty) {
-              await prefs.setString(_lockUntilPrefKey, rawLockUntil);
+              await prefs.setString(_phoneLockKey, rawLockUntil);
             } else {
               final synthetic = now
                   .add(Duration(seconds: remaining > 0 ? remaining : 15 * 60))
                   .toIso8601String();
-              await prefs.setString(_lockUntilPrefKey, synthetic);
+              await prefs.setString(_phoneLockKey, synthetic);
             }
             if (remaining <= 0) remaining = 15 * 60;
           }
