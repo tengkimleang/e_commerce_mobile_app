@@ -24,6 +24,7 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
   late final AnimationController _lineController;
   late final Animation<double> _lineAnim;
   bool _processing = false;
+  bool _pickingImage = false;
 
   @override
   void initState() {
@@ -55,18 +56,27 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
   }
 
   Future<void> _pickImageFromGallery() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked == null) return;
-    final capture = await _scanner.analyzeImage(picked.path);
-    if (!mounted) return;
-    final value = capture?.barcodes.firstOrNull?.rawValue;
-    if (value == null || value.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No barcode found in the selected image')),
-      );
-      return;
+    if (_pickingImage) return;
+    setState(() => _pickingImage = true);
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+      final capture = await _scanner.analyzeImage(picked.path);
+      if (!mounted) return;
+      final value = capture?.barcodes.firstOrNull?.rawValue;
+      if (value == null || value.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('No barcode found in the selected image')),
+        );
+        return;
+      }
+      Navigator.of(context).pop(value);
+    } catch (_) {
+      // ignore: already_active or other picker errors
+    } finally {
+      if (mounted) setState(() => _pickingImage = false);
     }
-    Navigator.of(context).pop(value);
   }
 
   @override
@@ -175,7 +185,7 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
                       child: _ActionButton(
                         icon: Icons.image_outlined,
                         label: 'Upload Image',
-                        onTap: _pickImageFromGallery,
+                        onTap: _pickingImage ? null : _pickImageFromGallery,
                       ),
                     ),
                   ],
@@ -269,7 +279,7 @@ class _OverlayPainter extends CustomPainter {
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _ActionButton({
     required this.icon,
@@ -279,28 +289,32 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final disabled = onTap == null;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+      child: Opacity(
+        opacity: disabled ? 0.4 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.black54,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 28),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
