@@ -1,9 +1,10 @@
-import 'dart:async' show TimeoutException;
+import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChangePinOldPinView extends StatefulWidget {
   const ChangePinOldPinView({super.key, required this.phoneNumber});
@@ -15,6 +16,9 @@ class ChangePinOldPinView extends StatefulWidget {
 }
 
 class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
+  static const _lockUntilPrefKey = 'pin_lock_until_utc';
+  String get _phoneLockKey => '${_lockUntilPrefKey}_${widget.phoneNumber}';
+
   final AuthService _authService = AuthService();
 
   late final List<TextEditingController> _oldControllers;
@@ -23,6 +27,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
   late final List<FocusNode> _newFocusNodes;
 
   bool _isSubmitting = false;
+  bool _isPinLocked = false;
+  int _lockSecondsRemaining = 0;
+  Timer? _lockTimer;
+  bool _lockCheckComplete = false;
 
   @override
   void initState() {
@@ -31,15 +39,101 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
     _oldFocusNodes = List.generate(4, (_) => FocusNode());
     _newControllers = List.generate(4, (_) => TextEditingController());
     _newFocusNodes = List.generate(4, (_) => FocusNode());
+    _checkPersistedLock();
   }
 
   @override
   void dispose() {
-    for (final c in _oldControllers) c.dispose();
-    for (final f in _oldFocusNodes) f.dispose();
-    for (final c in _newControllers) c.dispose();
-    for (final f in _newFocusNodes) f.dispose();
+    _lockTimer?.cancel();
+    for (final c in _oldControllers) {
+      c.dispose();
+    }
+    for (final f in _oldFocusNodes) {
+      f.dispose();
+    }
+    for (final c in _newControllers) {
+      c.dispose();
+    }
+    for (final f in _newFocusNodes) {
+      f.dispose();
+    }
     super.dispose();
+  }
+
+  Future<void> _checkPersistedLock() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_phoneLockKey);
+    if (stored == null) {
+      if (mounted) setState(() => _lockCheckComplete = true);
+      return;
+    }
+    final lockUntil = DateTime.tryParse(stored)?.toUtc();
+    if (lockUntil == null) {
+      await prefs.remove(_phoneLockKey);
+      if (mounted) setState(() => _lockCheckComplete = true);
+      return;
+    }
+    final remaining = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    if (remaining > 0) {
+      _startLockCountdown(remaining);
+    } else {
+      await prefs.remove(_phoneLockKey);
+    }
+    if (mounted) setState(() => _lockCheckComplete = true);
+  }
+
+  Future<void> _clearPersistedLock() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_phoneLockKey);
+  }
+
+  String _formatCountdown(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _startLockCountdown(int seconds) {
+    _lockTimer?.cancel();
+    if (seconds <= 0) return;
+    setState(() {
+      _isPinLocked = true;
+      _lockSecondsRemaining = seconds;
+    });
+    _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_lockSecondsRemaining <= 1) {
+        timer.cancel();
+        _clearPersistedLock();
+        for (final c in _oldControllers) {
+          c.clear();
+        }
+        for (final c in _newControllers) {
+          c.clear();
+        }
+        if (_oldFocusNodes.isNotEmpty) {
+          _oldFocusNodes.first.requestFocus();
+        }
+        setState(() {
+          _isPinLocked = false;
+          _lockSecondsRemaining = 0;
+        });
+        return;
+      }
+      setState(() => _lockSecondsRemaining -= 1);
+    });
+  }
+
+  int _computeLockSecondsFromResponse(Map<String, dynamic> response) {
+    final raw = response['lockUntilUtc'];
+    if (raw == null) return 0;
+    final lockUntil = DateTime.tryParse(raw.toString().trim())?.toUtc();
+    if (lockUntil == null) return 0;
+    final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    return diff > 0 ? diff : 0;
   }
 
   bool get _isOldComplete =>
@@ -78,7 +172,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
   }
 
   Future<void> _submit() async {
-    if (!_isFormComplete || _isSubmitting) return;
+    if (!_isFormComplete || _isSubmitting || _isPinLocked) return;
     setState(() => _isSubmitting = true);
 
     try {
@@ -123,14 +217,30 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
           );
           _clearOldPin();
         case 'PIN_LOCKED':
-          _showErrorDialog(
-            title: 'Account Locked',
-            message: errorMsg.isNotEmpty
-                ? errorMsg
-                : 'Your account is temporarily locked due to too many failed attempts. Please try again later.',
-            icon: Icons.lock_rounded,
-            iconColor: Colors.redAccent,
-          );
+          final prefs = await SharedPreferences.getInstance();
+          final existingStored = prefs.getString(_phoneLockKey);
+          final existingLockUntil = existingStored != null
+              ? DateTime.tryParse(existingStored)?.toUtc()
+              : null;
+          final now = DateTime.now().toUtc();
+          int remaining;
+          if (existingLockUntil != null && existingLockUntil.isAfter(now)) {
+            remaining = existingLockUntil.difference(now).inSeconds;
+          } else {
+            remaining = _computeLockSecondsFromResponse(result);
+            final rawLockUntil = result['lockUntilUtc']?.toString().trim() ?? '';
+            if (rawLockUntil.isNotEmpty) {
+              await prefs.setString(_phoneLockKey, rawLockUntil);
+            } else {
+              final synthetic = now
+                  .add(Duration(seconds: remaining > 0 ? remaining : 15 * 60))
+                  .toIso8601String();
+              await prefs.setString(_phoneLockKey, synthetic);
+            }
+            if (remaining <= 0) remaining = 15 * 60;
+          }
+          if (!mounted) return;
+          _startLockCountdown(remaining);
         case 'PIN_REUSED':
           _showErrorDialog(
             title: 'Same PIN',
@@ -193,13 +303,17 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
   }
 
   void _clearOldPin() {
-    for (final c in _oldControllers) c.clear();
+    for (final c in _oldControllers) {
+      c.clear();
+    }
     setState(() {});
     _oldFocusNodes[0].requestFocus();
   }
 
   void _clearNewPin() {
-    for (final c in _newControllers) c.clear();
+    for (final c in _newControllers) {
+      c.clear();
+    }
     setState(() {});
     _newFocusNodes[0].requestFocus();
   }
@@ -279,6 +393,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                   ? TextInputAction.done
                   : TextInputAction.next,
               autofocus: autofocusFirst && index == 0,
+              enabled: !_isPinLocked,
               onChanged: (value) => onChanged(index, value),
             ),
           ),
@@ -356,6 +471,57 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       onChanged: _onNewDigitChanged,
                       autofocusFirst: false,
                     ),
+                    if (_isPinLocked) ...
+                      [
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEC407A).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(0xFFEC407A).withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.lock_clock_rounded,
+                                color: Color(0xFFEC407A),
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'PIN Temporarily Locked',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFFEC407A),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Too many incorrect attempts.\nTry again in ${_formatCountdown(_lockSecondsRemaining)}',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                   ],
                 ),
               ),
@@ -368,7 +534,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
         child: SizedBox(
           height: 48,
           child: ElevatedButton(
-            onPressed: (_isFormComplete && !_isSubmitting) ? _submit : null,
+            onPressed: (_isFormComplete && !_isSubmitting && !_isPinLocked && _lockCheckComplete) ? _submit : null,
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.disabled)) return const Color(0xFFA6A6A8);
@@ -403,6 +569,7 @@ class _PinDigitField extends StatelessWidget {
     required this.focusNode,
     required this.textInputAction,
     required this.autofocus,
+    required this.enabled,
     required this.onChanged,
   });
 
@@ -410,6 +577,7 @@ class _PinDigitField extends StatelessWidget {
   final FocusNode focusNode;
   final TextInputAction textInputAction;
   final bool autofocus;
+  final bool enabled;
   final ValueChanged<String> onChanged;
 
   @override
@@ -417,7 +585,7 @@ class _PinDigitField extends StatelessWidget {
     return Container(
       height: 64,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F0F2),
+        color: enabled ? const Color(0xFFF0F0F2) : Colors.grey[200],
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
@@ -425,6 +593,7 @@ class _PinDigitField extends StatelessWidget {
         controller: controller,
         focusNode: focusNode,
         autofocus: autofocus,
+        enabled: enabled,
         keyboardType: TextInputType.number,
         textInputAction: textInputAction,
         textAlign: TextAlign.center,

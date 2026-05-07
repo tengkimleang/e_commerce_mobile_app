@@ -527,7 +527,7 @@ class _PinLoginViewState extends State<PinLoginView> {
       }
 
       setState(() => _isSendingForgotOtp = false);
-      Navigator.of(context).push(
+      await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => OtpView(
             phoneNumber: widget.phoneNumber,
@@ -535,6 +535,17 @@ class _PinLoginViewState extends State<PinLoginView> {
           ),
         ),
       );
+      // Backend clears the lock on successful OTP verification.
+      // Also clear the client-side SharedPreferences entry so the countdown
+      // banner does not appear when the user returns to this screen.
+      if (mounted) {
+        _lockTimer?.cancel();
+        await _clearPersistedLock();
+        setState(() {
+          _isPinLocked = false;
+          _lockSecondsRemaining = 0;
+        });
+      }
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _isSendingForgotOtp = false);
@@ -811,7 +822,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                 child: SizedBox(
                   height: 58,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting || _isPinLocked
+                    onPressed: _isSubmitting || _isPinLocked || !_lockCheckComplete
                         ? null
                         : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
