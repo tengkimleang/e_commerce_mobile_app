@@ -37,6 +37,8 @@ class _PinLoginViewState extends State<PinLoginView> {
   Timer? _lockTimer;
   // Guards _submit() from firing before the async startup lock check completes.
   bool _lockCheckComplete = false;
+  final ValueNotifier<int> _lockCountdownNotifier = ValueNotifier<int>(0);
+  bool _lockDialogShown = false;
 
   bool get _isComplete =>
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
@@ -54,6 +56,7 @@ class _PinLoginViewState extends State<PinLoginView> {
   @override
   void dispose() {
     _lockTimer?.cancel();
+    _lockCountdownNotifier.dispose();
     for (final controller in _controllers) {
       controller.dispose();
     }
@@ -93,11 +96,38 @@ class _PinLoginViewState extends State<PinLoginView> {
     final remaining =
         lockUntil.difference(DateTime.now().toUtc()).inSeconds;
     if (remaining > 0) {
-      _startLockCountdown(remaining);
+      // Set both flags atomically in ONE setState so there is never a frame
+      // where _lockCheckComplete=true but _isPinLocked=false.
+      _lockCountdownNotifier.value = remaining;
+      setState(() {
+        _isPinLocked = true;
+        _lockSecondsRemaining = remaining;
+        _lockCheckComplete = true;
+      });
+      // Start the actual tick timer (skip the setState inside _startLockCountdown
+      // since we already set state above).
+      _lockTimer?.cancel();
+      _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) { timer.cancel(); return; }
+        if (_lockSecondsRemaining <= 1) {
+          timer.cancel();
+          _clearPersistedLock();
+          for (final c in _controllers) { c.clear(); }
+          if (_focusNodes.isNotEmpty) _focusNodes.first.requestFocus();
+          _lockCountdownNotifier.value = 0;
+          setState(() { _isPinLocked = false; _lockSecondsRemaining = 0; });
+          return;
+        }
+        setState(() => _lockSecondsRemaining -= 1);
+        _lockCountdownNotifier.value = _lockSecondsRemaining;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showLockDialog();
+      });
     } else {
       await prefs.remove(_phoneLockKey);
+      if (mounted) setState(() => _lockCheckComplete = true);
     }
-    if (mounted) setState(() => _lockCheckComplete = true);
   }
 
   /// Removes the persisted lock (called when the countdown expires).
@@ -115,6 +145,7 @@ class _PinLoginViewState extends State<PinLoginView> {
   void _startLockCountdown(int seconds) {
     _lockTimer?.cancel();
     if (seconds <= 0) return;
+    _lockCountdownNotifier.value = seconds;
     setState(() {
       _isPinLocked = true;
       _lockSecondsRemaining = seconds;
@@ -133,6 +164,7 @@ class _PinLoginViewState extends State<PinLoginView> {
         if (_focusNodes.isNotEmpty) {
           _focusNodes.first.requestFocus();
         }
+        _lockCountdownNotifier.value = 0;
         setState(() {
           _isPinLocked = false;
           _lockSecondsRemaining = 0;
@@ -140,16 +172,53 @@ class _PinLoginViewState extends State<PinLoginView> {
         return;
       }
       setState(() => _lockSecondsRemaining -= 1);
+      _lockCountdownNotifier.value = _lockSecondsRemaining;
+    });
+  }
+
+  void _showLockDialog() {
+    if (!mounted || _lockDialogShown) return;
+    _lockDialogShown = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _PinLockAlertDialog(
+        countdownNotifier: _lockCountdownNotifier,
+        formatCountdown: _formatCountdown,
+      ),
+    ).whenComplete(() {
+      if (mounted) _lockDialogShown = false;
     });
   }
 
   /// Reads [lockUntilUtc] from the verify-pin response and returns
   /// how many seconds remain until the lock expires. Returns 0 if
   /// the field is absent or the timestamp has already passed.
+  /// Extracts the raw lockUntilUtc string from the response, checking both
+  /// the top-level payload and the nested 'data' object, with case variants.
+  String _extractRawLockUntil(Map<String, dynamic> response) {
+    const keys = [
+      'lockUntilUtc', 'LockUntilUtc', 'lock_until_utc',
+      'lockedUntil', 'lockedUntilUtc', 'pinLockUntilUtc',
+    ];
+    for (final k in keys) {
+      final v = response[k]?.toString().trim() ?? '';
+      if (v.isNotEmpty) return v;
+    }
+    final nested = response['data'];
+    if (nested is Map) {
+      for (final k in keys) {
+        final v = nested[k]?.toString().trim() ?? '';
+        if (v.isNotEmpty) return v;
+      }
+    }
+    return '';
+  }
+
   int _computeLockSecondsFromResponse(Map<String, dynamic> response) {
-    final raw = response['lockUntilUtc'];
-    if (raw == null) return 0;
-    final lockUntil = DateTime.tryParse(raw.toString().trim())?.toUtc();
+    final raw = _extractRawLockUntil(response);
+    if (raw.isEmpty) return 0;
+    final lockUntil = DateTime.tryParse(raw)?.toUtc();
     if (lockUntil == null) return 0;
     final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
     return diff > 0 ? diff : 0;
@@ -298,8 +367,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           } else {
             // No valid stored lock — use backend's lockUntilUtc and persist it.
             remaining = _computeLockSecondsFromResponse(response);
-            final rawLockUntil =
-                response['lockUntilUtc']?.toString().trim() ?? '';
+            final rawLockUntil = _extractRawLockUntil(response);
             if (rawLockUntil.isNotEmpty) {
               await prefs.setString(_phoneLockKey, rawLockUntil);
             } else {
@@ -312,6 +380,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           }
           if (!mounted) return;
           _startLockCountdown(remaining);
+          _showLockDialog();
           return;
         }
 
@@ -705,7 +774,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                         ],
                         obscureText: !_showPin,
                         maxLength: 1,
-                        enabled: !_isPinLocked,
+                        enabled: _lockCheckComplete && !_isPinLocked,
                         decoration: const InputDecoration(
                           counterText: '',
                           border: InputBorder.none,
@@ -715,71 +784,6 @@ class _PinLoginViewState extends State<PinLoginView> {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SizeTransition(
-                    sizeFactor: animation,
-                    axisAlignment: -1,
-                    child: child,
-                  ),
-                ),
-                child: _isPinLocked
-                    ? Padding(
-                        key: const ValueKey('lock_banner'),
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEC407A).withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: const Color(0xFFEC407A).withValues(alpha: 0.25),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.lock_clock_rounded,
-                                color: Color(0xFFEC407A),
-                                size: 28,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'PIN Temporarily Locked',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFFEC407A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Too many incorrect attempts.\nTry again in ${_formatCountdown(_lockSecondsRemaining)}',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey[700],
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : const SizedBox.shrink(key: ValueKey('no_banner')),
               ),
               Center(
                 child: GestureDetector(
@@ -855,6 +859,96 @@ class _PinLoginViewState extends State<PinLoginView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PinLockAlertDialog extends StatefulWidget {
+  const _PinLockAlertDialog({
+    required this.countdownNotifier,
+    required this.formatCountdown,
+  });
+
+  final ValueNotifier<int> countdownNotifier;
+  final String Function(int) formatCountdown;
+
+  @override
+  State<_PinLockAlertDialog> createState() => _PinLockAlertDialogState();
+}
+
+class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
+  @override
+  void initState() {
+    super.initState();
+    widget.countdownNotifier.addListener(_onCountdownChanged);
+  }
+
+  void _onCountdownChanged() {
+    if (widget.countdownNotifier.value <= 0 && mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.countdownNotifier.removeListener(_onCountdownChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_clock_rounded,
+              color: Color(0xFFEC407A),
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'PIN Temporarily Locked',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Too many incorrect attempts.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const SizedBox(height: 20),
+          ValueListenableBuilder<int>(
+            valueListenable: widget.countdownNotifier,
+            builder: (_, seconds, __) => Text(
+              widget.formatCountdown(seconds),
+              style: const TextStyle(
+                fontSize: 36,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFEC407A),
+                letterSpacing: 4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'remaining',
+            style: TextStyle(fontSize: 13, color: Colors.black45),
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }

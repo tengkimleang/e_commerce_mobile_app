@@ -57,6 +57,10 @@ abstract class CategoriesRepository {
   /// sorted by promotionDisplayOrder ?? displayOrder (ascending).
   /// Each category will have [previewProducts] populated.
   Future<List<CategoryModel>> fetchPromotionCategories(String shopId);
+
+  /// Fetches a single product whose barcode matches [code].
+  /// Returns null when no product is found (HTTP 404 / empty result).
+  Future<ProductModel?> fetchProductByBarcode(String code);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -160,6 +164,19 @@ class MockCategoriesRepository implements CategoriesRepository {
       showInPromotion: true,
       promotionDisplayOrder: c.promotionDisplayOrder,
     )).toList();
+  }
+
+  @override
+  Future<ProductModel?> fetchProductByBarcode(String code) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final trimmed = code.trim();
+    try {
+      return ProductData.allProducts.firstWhere(
+        (p) => p.barcode != null && p.barcode == trimmed,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -394,6 +411,27 @@ class HttpCategoriesRepository implements CategoriesRepository {
     if (code.isNotEmpty) {
       final msg = (body['errorMsg'] as String? ?? code).trim();
       throw Exception(msg);
+    }
+  }
+
+  @override
+  Future<ProductModel?> fetchProductByBarcode(String code) async {
+    try {
+      final shopId = UserSession.selectedShopId;
+      final response = await _dio.get(
+        ApiUrl.productByBarcode(code.trim()),
+        queryParameters: {
+          if (shopId.isNotEmpty) 'shopId': shopId,
+        },
+      );
+      final body = _parseBody(response);
+      _checkApiError(body);
+      final data = body['data'] as Map<String, dynamic>?;
+      if (data == null) return null;
+      return ProductModel.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
     }
   }
 }

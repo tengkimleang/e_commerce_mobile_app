@@ -1,8 +1,11 @@
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 
 class PriceCheckingView extends StatefulWidget {
   final bool selectionMode;
@@ -95,6 +98,36 @@ class _PriceCheckingViewState extends State<PriceCheckingView>
     _focusNode.dispose();
     _animController.dispose();
     super.dispose();
+  }
+
+  Future<void> _onScanBarcode() async {
+    final code = await Navigator.pushNamed<String>(
+      context, AppRoutes.scanBarcode);
+    if (code == null || !mounted) return;
+    try {
+      final product =
+          await di<CategoriesRepository>().fetchProductByBarcode(code);
+      if (!mounted) return;
+      if (product == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product not found for this barcode')),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailView(product: product),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Failed to look up product. Please try again.')),
+        );
+      }
+    }
   }
 
   @override
@@ -221,11 +254,7 @@ class _PriceCheckingViewState extends State<PriceCheckingView>
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.qr_code_scanner,
                         color: Color(0xFFEC407A), size: 22),
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Barcode scan tapped')),
-                      );
-                    },
+                    onPressed: _onScanBarcode,
                   ),
                 ),
               ],

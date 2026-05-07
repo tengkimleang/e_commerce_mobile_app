@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -91,6 +92,39 @@ class _SearchProductsState extends State<SearchProducts>
         _fetchProducts('');
       }
     });
+  }
+
+  Future<void> _onScanBarcode() async {
+    final code = await Navigator.pushNamed<String>(
+      context, AppRoutes.scanBarcode);
+    if (code == null || !mounted) return;
+    setState(() => _loading = true);
+    try {
+      final product =
+          await di<CategoriesRepository>().fetchProductByBarcode(code);
+      if (!mounted) return;
+      if (product == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Product not found for this barcode')),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductDetailView(product: product),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Failed to look up product. Please try again.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -228,9 +262,7 @@ class _SearchProductsState extends State<SearchProducts>
                     padding: EdgeInsets.zero,
                     icon: const Icon(Icons.qr_code_scanner,
                         color: Color(0xFFEC407A), size: 22),
-                    onPressed: () {
-                      // QR scanner action
-                    },
+                    onPressed: _onScanBarcode,
                   ),
                 ),
               ],

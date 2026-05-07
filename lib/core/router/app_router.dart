@@ -11,6 +11,7 @@ import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mal
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
+import 'package:e_commerce_mobile_app/modules/scan_barcode/views/scan_barcode_view.dart';
 
 /// Named routes used throughout the app.
 abstract final class AppRoutes {
@@ -25,6 +26,7 @@ abstract final class AppRoutes {
   static const String priceChecking = '/price-checking';
   static const String chipmongMall = '/chipmong-mall';
   static const String index = '/index';
+  static const String scanBarcode = '/scan-barcode';
 }
 
 /// Generates a [Route] for the given [RouteSettings].
@@ -54,6 +56,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return _page(PriceCheckingView(selectionMode: selectionMode));
     case AppRoutes.chipmongMall:
       return _page(const ChipmongMallScreen());
+    case AppRoutes.scanBarcode:
+      return _page<String>(const ScanBarcodeView());
     default:
       return _page(const LoginView());
   }

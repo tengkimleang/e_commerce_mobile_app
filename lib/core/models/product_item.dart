@@ -25,6 +25,10 @@ class ProductModel {
   /// BE contract: optional `stockQty` int field in product JSON.
   final int? stockQty;
 
+  /// EAN-13 / UPC / QR barcode assigned to this product.
+  /// BE contract: nullable string field `barcode` in the product JSON.
+  final String? barcode;
+
   const ProductModel({
     required this.id,
     required this.name,
@@ -38,6 +42,7 @@ class ProductModel {
     this.countryOfOrigin,
     this.isOutOfStock = false,
     this.stockQty,
+    this.barcode,
   });
 
   ProductModel copyWith({
@@ -53,6 +58,7 @@ class ProductModel {
     String? countryOfOrigin,
     bool? isOutOfStock,
     int? stockQty,
+    String? barcode,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -67,6 +73,7 @@ class ProductModel {
       countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
       isOutOfStock: isOutOfStock ?? this.isOutOfStock,
       stockQty: stockQty ?? this.stockQty,
+      barcode: barcode ?? this.barcode,
     );
   }
 
@@ -123,6 +130,7 @@ class ProductModel {
           : null,
       isOutOfStock: isOutOfStock,
       stockQty: rawStockQty,
+      barcode: json['barcode'] as String?,
     );
   }
 
@@ -140,6 +148,7 @@ class ProductModel {
       'countryOfOrigin': countryOfOrigin,
       'isOutOfStock': isOutOfStock,
       'stockQty': stockQty,
+      'barcode': barcode,
     };
   }
 }
