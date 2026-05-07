@@ -16,7 +16,7 @@ class ChangePinOldPinView extends StatefulWidget {
 }
 
 class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
-  static const _lockUntilPrefKey = 'pin_lock_until_utc';
+  static const _lockUntilPrefKey = 'pin_change_lock_until_utc';
   String get _phoneLockKey => '${_lockUntilPrefKey}_${widget.phoneNumber}';
 
   final AuthService _authService = AuthService();
@@ -206,7 +206,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       switch (errorCode) {
         case 'PIN_INCORRECT':
           final remaining = result['remainingAttempts'];
-          final attemptsMsg = remaining != null
+          final hasRemaining = remaining is int && remaining >= 0;
+          final attemptsMsg = hasRemaining
               ? '\n$remaining attempt${remaining == 1 ? '' : 's'} remaining before lockout.'
               : '';
           _showErrorDialog(
