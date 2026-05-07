@@ -98,11 +98,13 @@ class _SearchProductsState extends State<SearchProducts>
     final code = await Navigator.pushNamed<String>(
       context, AppRoutes.scanBarcode);
     if (code == null || !mounted) return;
+    debugPrint('[BARCODE SEARCH] Received code: "$code"');
     setState(() => _loading = true);
     try {
       final product =
           await di<CategoriesRepository>().fetchProductByBarcode(code);
       if (!mounted) return;
+      debugPrint('[BARCODE SEARCH] Product result: $product');
       if (product == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product not found for this barcode')),
@@ -115,7 +117,8 @@ class _SearchProductsState extends State<SearchProducts>
           ),
         );
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[BARCODE SEARCH] Exception: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

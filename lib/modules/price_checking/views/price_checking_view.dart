@@ -104,10 +104,12 @@ class _PriceCheckingViewState extends State<PriceCheckingView>
     final code = await Navigator.pushNamed<String>(
       context, AppRoutes.scanBarcode);
     if (code == null || !mounted) return;
+    debugPrint('[BARCODE PRICE] Received code: "$code"');
     try {
       final product =
           await di<CategoriesRepository>().fetchProductByBarcode(code);
       if (!mounted) return;
+      debugPrint('[BARCODE PRICE] Product result: $product');
       if (product == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Product not found for this barcode')),
@@ -120,7 +122,8 @@ class _PriceCheckingViewState extends State<PriceCheckingView>
           ),
         );
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[BARCODE PRICE] Exception: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

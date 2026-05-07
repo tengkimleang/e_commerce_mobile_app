@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
@@ -418,18 +419,24 @@ class HttpCategoriesRepository implements CategoriesRepository {
   Future<ProductModel?> fetchProductByBarcode(String code) async {
     try {
       final shopId = UserSession.selectedShopId;
+      final trimmed = code.trim();
+      final url = ApiUrl.productByBarcode(trimmed);
+      debugPrint('[REPO] fetchProductByBarcode → code: "$trimmed" | shopId: "$shopId" | url: $url');
       final response = await _dio.get(
-        ApiUrl.productByBarcode(code.trim()),
+        url,
         queryParameters: {
           if (shopId.isNotEmpty) 'shopId': shopId,
         },
       );
+      debugPrint('[REPO] Response status: ${response.statusCode}');
+      debugPrint('[REPO] Response body: ${response.data}');
       final body = _parseBody(response);
       _checkApiError(body);
       final data = body['data'] as Map<String, dynamic>?;
       if (data == null) return null;
       return ProductModel.fromJson(data);
     } on DioException catch (e) {
+      debugPrint('[REPO] DioException: ${e.response?.statusCode} | ${e.response?.data}');
       if (e.response?.statusCode == 404) return null;
       rethrow;
     }

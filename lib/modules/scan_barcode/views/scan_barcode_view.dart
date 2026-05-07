@@ -47,10 +47,35 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
     super.dispose();
   }
 
+  /// Extracts a clean barcode/GTIN from common GS1 formats:
+  /// - GS1 Digital Link URL:  https://example.com/01/00123456789000
+  /// - GS1 AI with parens:    (01)00123456789000
+  /// - Plain GS1 AI:          0100123456789000  (01 + 14 digits)
+  /// - Plain barcode:         returned unchanged
+  String _parseBarcode(String raw) {
+    // GS1 Digital Link URL — extract digits after /01/
+    final urlMatch = RegExp(r'/01/0*([1-9]\d+|\d)(?:[/?]|$)').firstMatch(raw);
+    if (urlMatch != null) {
+      debugPrint('[SCANNER] GS1 Digital Link detected, extracted: "${urlMatch.group(1)}"');
+      return urlMatch.group(1)!;
+    }
+    // (01)XXXXXXXXXXXXXX
+    final aiParens = RegExp(r'^\(01\)0*(\d+)$').firstMatch(raw);
+    if (aiParens != null) return aiParens.group(1)!;
+    // 01XXXXXXXXXXXXXX  (AI 01 + 14 digits = 16 chars total)
+    final aiPlain = RegExp(r'^010+(\d{10,13})$').firstMatch(raw);
+    if (aiPlain != null) return aiPlain.group(1)!;
+    return raw;
+  }
+
   void _onDetect(BarcodeCapture capture) {
     if (_processing) return;
-    final value = capture.barcodes.firstOrNull?.rawValue;
-    if (value == null || value.isEmpty) return;
+    final raw = capture.barcodes.firstOrNull?.rawValue;
+    if (raw == null || raw.isEmpty) return;
+    debugPrint('[SCANNER] Detected barcode raw value: "$raw"');
+    debugPrint('[SCANNER] Barcode format: ${capture.barcodes.firstOrNull?.format}');
+    final value = _parseBarcode(raw);
+    debugPrint('[SCANNER] Parsed barcode: "$value"');
     _processing = true;
     Navigator.of(context).pop(value);
   }
@@ -63,14 +88,17 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
       if (picked == null) return;
       final capture = await _scanner.analyzeImage(picked.path);
       if (!mounted) return;
-      final value = capture?.barcodes.firstOrNull?.rawValue;
-      if (value == null || value.isEmpty) {
+      final raw = capture?.barcodes.firstOrNull?.rawValue;
+      debugPrint('[SCANNER] Image analyze result: "$raw"');
+      if (raw == null || raw.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('No barcode found in the selected image')),
         );
         return;
       }
+      final value = _parseBarcode(raw);
+      debugPrint('[SCANNER] Parsed barcode: "$value"');
       Navigator.of(context).pop(value);
     } catch (_) {
       // ignore: already_active or other picker errors
