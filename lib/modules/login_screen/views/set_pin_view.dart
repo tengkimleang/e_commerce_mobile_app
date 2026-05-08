@@ -13,11 +13,13 @@ class SetPinView extends StatefulWidget {
     required this.flow,
     required this.phoneNumber,
     this.fullName,
+    this.resetToken,
   });
 
   final PinSetupFlow flow;
   final String phoneNumber;
   final String? fullName;
+  final String? resetToken;
 
   @override
   State<SetPinView> createState() => _SetPinViewState();
@@ -82,6 +84,7 @@ class _SetPinViewState extends State<SetPinView> {
         pinCode: _pinCode,
         confirmPinCode: _pinCode,
         phoneNumber: widget.phoneNumber,
+        resetToken: widget.resetToken,
       );
       if (_isMissingEndpointResponse(resetResponse)) {
         return _authService.setPin(pinCode: _pinCode, confirmPinCode: _pinCode);
@@ -118,11 +121,18 @@ class _SetPinViewState extends State<SetPinView> {
 
       if (!isAccepted) {
         setState(() => _isSubmitting = false);
+        // Security: never expose the backend's specific error message in the
+        // forgotPin flow. A message like "New PIN must be different from
+        // current PIN" reveals that the entered PIN matches the current PIN,
+        // allowing brute-force PIN discovery via the OTP reset path.
+        final displayMessage = widget.flow == PinSetupFlow.forgotPin
+            ? 'PIN reset failed. Please try again.'
+            : (errorMsg.isEmpty
+                ? 'Unable to set your PIN right now. Please try again.'
+                : errorMsg);
         _showErrorDialog(
           title: 'PIN Setup Failed',
-          message: errorMsg.isEmpty
-              ? 'Unable to set your PIN right now. Please try again.'
-              : errorMsg,
+          message: displayMessage,
           icon: Icons.error_outline_rounded,
           iconColor: const Color(0xFFEC407A),
         );

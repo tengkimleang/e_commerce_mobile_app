@@ -462,6 +462,11 @@ class _OtpViewState extends State<OtpView> {
           _extractAccessTokenExpiresInSeconds(verifyData);
       final verifyRefreshTokenExpiresInSeconds =
           _extractRefreshTokenExpiresInSeconds(verifyData);
+      final verifyNestedForReset = _toStringDynamicMap(verifyData['data']);
+      final resolvedResetToken = _pickFirstNonEmpty([
+        verifyData['resetToken'],
+        verifyNestedForReset?['resetToken'],
+      ]);
       final verifyNested = verifyData['data'];
       final verifyNestedMap = _toStringDynamicMap(verifyNested);
       final verifyPrimaryUser = _extractPrimaryUser(verifyData);
@@ -668,6 +673,9 @@ class _OtpViewState extends State<OtpView> {
                   ? widget.phoneNumber
                   : resolvedPhone,
               fullName: resolvedFullName,
+              resetToken: _isForgotPinFlow && resolvedResetToken.isNotEmpty
+                  ? resolvedResetToken
+                  : null,
             ),
           ),
           (route) => false,
