@@ -23,3 +23,10 @@ class FavoriteRemoved extends FavoriteEvent {
 class FavoriteCleared extends FavoriteEvent {
   const FavoriteCleared();
 }
+
+/// Dispatched right after a successful login.
+/// Pushes any locally-stored guest favorites up to the backend
+/// and then re-loads from the server as the source of truth.
+class FavoriteMigrationRequested extends FavoriteEvent {
+  const FavoriteMigrationRequested();
+}

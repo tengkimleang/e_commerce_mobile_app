@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum PinSetupFlow { signup, forgotPin }
 
@@ -148,6 +151,7 @@ class _SetPinViewState extends State<SetPinView> {
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
+      context.read<FavoriteBloc>().add(const FavoriteMigrationRequested());
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const IndexView()),
         (route) => false,

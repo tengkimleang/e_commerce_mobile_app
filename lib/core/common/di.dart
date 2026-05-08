@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +27,9 @@ Future<void> initializeDependenciesInjection() async {
 
   // Shop/Branch repository — fetches the live store list from GET /stores.
   di.registerSingleton<ShopRepository>(ShopRepository(di<Dio>()));
+
+  // Favorites repository — syncs user favorites with the backend.
+  di.registerSingleton<FavoritesRepository>(HttpFavoritesRepository(di<Dio>()));
 
   //repository
   // di.registerFactory(() => UserRepository());

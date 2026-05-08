@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PinLoginView extends StatefulWidget {
   const PinLoginView({super.key, required this.phoneNumber});
@@ -428,6 +431,7 @@ class _PinLoginViewState extends State<PinLoginView> {
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
+      context.read<FavoriteBloc>().add(const FavoriteMigrationRequested());
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const IndexView()),
         (route) => false,

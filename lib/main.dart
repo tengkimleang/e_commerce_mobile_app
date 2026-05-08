@@ -6,6 +6,7 @@ import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
+import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => CartBloc()),
         BlocProvider(
           create: (_) =>
-              FavoriteBloc(di<SharedPreferences>())
+              FavoriteBloc(di<SharedPreferences>(), di<FavoritesRepository>())
                 ..add(const FavoriteLoadRequested()),
         ),
         BlocProvider(

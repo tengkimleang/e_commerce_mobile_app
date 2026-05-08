@@ -36,4 +36,11 @@ class ApiUrl {
   static String subCategoryProducts(int subCategoryId) => '/subcategories/$subCategoryId/products';
   static String productDetail(int id) => '/products/$id';
   static String productByBarcode(String code) => '/products/by-barcode/$code';
+
+  // ── Favorites ──
+  // GET  /favorites?shopId=X        → list of favorited product IDs for the current user
+  // POST /favorites                 → toggle (add if absent, remove if present)
+  // POST /favorites/sync            → bulk-sync local favorites on first login
+  static const favorites = '/favorites';
+  static const favoritesSync = '/favorites/sync';
 }
