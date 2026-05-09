@@ -66,7 +66,12 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
       final success = result['success'] == true;
 
       if (errorCode.isNotEmpty || !success) {
-        final msg = (result['errorMsg'] ?? '').toString().trim();
+        final isAuthError = errorCode == 'AUTH401' ||
+            errorCode == 'HTTP401' ||
+            errorCode == 'UNAUTHORIZED';
+        final msg = isAuthError
+            ? 'Your session has expired. Please log in again.'
+            : (result['errorMsg'] ?? '').toString().trim();
         setState(() {
           _isLoading = false;
           _errorMessage = msg.isEmpty

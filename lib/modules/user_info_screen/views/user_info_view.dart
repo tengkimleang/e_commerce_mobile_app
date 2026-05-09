@@ -1041,8 +1041,13 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
     try {
       final result = await _authService.checkTelegramLinkStatus();
       if (!mounted) return;
+      final errorCode =
+          (result['errorCode'] ?? '').toString().trim().toUpperCase();
+      final isAuthError = errorCode == 'AUTH401' ||
+          errorCode == 'HTTP401' ||
+          errorCode == 'UNAUTHORIZED';
       setState(() {
-        _isLinked = result['linked'] == true;
+        _isLinked = !isAuthError && result['linked'] == true;
         _isLoading = false;
       });
     } catch (_) {
@@ -1052,6 +1057,17 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   }
 
   Future<void> _openLinkView() async {
+    // If the session expired (token was cleared by markGuest during a
+    // failed refresh), guard here before entering TelegramLinkView.
+    if (UserSession.isGuest) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your session has expired. Please log in again.'),
+        ),
+      );
+      return;
+    }
     final linked = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const TelegramLinkView()),
     );
