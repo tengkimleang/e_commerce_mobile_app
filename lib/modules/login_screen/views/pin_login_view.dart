@@ -554,7 +554,10 @@ class _PinLoginViewState extends State<PinLoginView> {
       setState(() => _isSendingForgotOtp = false);
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => OtpView(phoneNumber: widget.phoneNumber),
+          builder: (_) => OtpView(
+            phoneNumber: widget.phoneNumber,
+            channel: requestResult['channel'] as String? ?? 'sms',
+          ),
         ),
       );
     } catch (e) {
@@ -605,6 +608,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           builder: (_) => OtpView(
             phoneNumber: widget.phoneNumber,
             flow: AuthFlow.forgotPin,
+            channel: result['channel'] as String? ?? 'sms',
           ),
         ),
       );

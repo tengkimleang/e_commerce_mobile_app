@@ -13,6 +13,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_langua
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/telegram_link_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
@@ -245,6 +246,11 @@ class UserInfoView extends StatelessWidget {
                                   trailingText: 'Change',
                                   onTap: () => _openChangePin(context),
                                 ),
+                                const Divider(
+                                  height: 30,
+                                  color: Color(0xFFD7D1D6),
+                                ),
+                                const _TelegramBackupTile(),
                                 const Divider(
                                   height: 30,
                                   color: Color(0xFFD7D1D6),
@@ -1002,6 +1008,166 @@ class _SecurityRow extends StatelessWidget {
             trailingText,
             style: const TextStyle(fontSize: 15, color: Color(0xFFEC407A)),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Self-contained tile that loads the Telegram link status and lets the user
+/// link or unlink their Telegram account as an OTP fallback channel.
+class _TelegramBackupTile extends StatefulWidget {
+  const _TelegramBackupTile();
+
+  @override
+  State<_TelegramBackupTile> createState() => _TelegramBackupTileState();
+}
+
+class _TelegramBackupTileState extends State<_TelegramBackupTile> {
+  static const _accent = Color(0xFFEC407A);
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = true;
+  bool _isLinked = false;
+  bool _isUnlinking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatus();
+  }
+
+  Future<void> _loadStatus() async {
+    try {
+      final result = await _authService.checkTelegramLinkStatus();
+      if (!mounted) return;
+      setState(() {
+        _isLinked = result['linked'] == true;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _openLinkView() async {
+    final linked = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const TelegramLinkView()),
+    );
+    if (linked == true && mounted) {
+      setState(() => _isLinked = true);
+    }
+  }
+
+  Future<void> _confirmUnlink() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Remove Telegram Backup'),
+        content: const Text(
+          'OTP will only be sent via SMS after removing Telegram backup.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: _accent),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    setState(() => _isUnlinking = true);
+    try {
+      await _authService.unlinkTelegram();
+      if (!mounted) return;
+      setState(() {
+        _isLinked = false;
+        _isUnlinking = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isUnlinking = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to remove Telegram backup.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Telegram OTP Backup:',
+                style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+              ),
+            ),
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2, color: _accent),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_isLinked) {
+      return Row(
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF0D9A58), size: 18),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Telegram OTP Backup:',
+              style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+            ),
+          ),
+          _isUnlinking
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: _accent,
+                  ),
+                )
+              : TextButton(
+                  onPressed: _confirmUnlink,
+                  style: TextButton.styleFrom(foregroundColor: _accent),
+                  child: const Text(
+                    'Remove',
+                    style: TextStyle(fontSize: 15),
+                  ),
+                ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        const Expanded(
+          child: Text(
+            'Telegram OTP Backup:',
+            style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+          ),
+        ),
+        TextButton(
+          onPressed: _openLinkView,
+          style: TextButton.styleFrom(foregroundColor: _accent),
+          child: const Text('Set Up', style: TextStyle(fontSize: 15)),
         ),
       ],
     );

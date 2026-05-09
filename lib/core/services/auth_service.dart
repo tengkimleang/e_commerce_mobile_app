@@ -534,12 +534,16 @@ class AuthService {
       'message',
     ]);
     final sent = _readBoolField(data, ['sent', 'Sent']);
+    // 'channel' is 'sms' or 'telegram' — set by the backend when OTP
+    // falls back to Telegram because Plasgate returned 403 or is disabled.
+    final channel = _readStringField(data, ['channel', 'Channel']);
 
     return {
       ...data,
       'errorCode': errorCode,
       'errorMsg': errorMsg,
       'sent': sent,
+      'channel': channel.isEmpty ? 'sms' : channel,
     };
   }
 
@@ -723,7 +727,9 @@ class AuthService {
       );
       return requestOtp(phoneNumber);
     }
-    return normalized;
+    // Ensure 'channel' key is always present (defaults to 'sms').
+    final channel = _readStringField(normalized, ['channel', 'Channel']);
+    return {...normalized, 'channel': channel.isEmpty ? 'sms' : channel};
   }
 
   Future<Map<String, dynamic>> verifyForgotPinOtp({
@@ -1458,6 +1464,92 @@ class AuthService {
         '[AuthService] getLoyaltyPointsExpiry retry response: ${response.statusCode} → ${response.data}',
       );
     }
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  // ── Telegram account linking ──────────────────────────────────────────────
+
+  /// Requests a short-lived one-time code from the backend that the user
+  /// must send to the Telegram bot to link their account.
+  /// Returns `{ code, botUsername }` on success.
+  Future<Map<String, dynamic>> requestTelegramLinkCode() async {
+    debugPrint('[AuthService] requestTelegramLinkCode');
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: false,
+      send: (headers) => _dio
+          .post(
+            ApiUrl.telegramLinkRequest,
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Telegram link request timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] requestTelegramLinkCode response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  /// Checks whether the current user has a Telegram account linked.
+  /// Returns `{ linked: bool }` on success.
+  Future<Map<String, dynamic>> checkTelegramLinkStatus() async {
+    debugPrint('[AuthService] checkTelegramLinkStatus');
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: false,
+      send: (headers) => _dio
+          .get(
+            ApiUrl.telegramLinkStatus,
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () =>
+                throw TimeoutException('Telegram link status timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] checkTelegramLinkStatus response: ${response.statusCode} → ${response.data}',
+    );
+
+    final result = _normalizeProfileResponseWithStatus(response);
+    final linked = _readBoolField(result, ['linked', 'Linked']) ||
+        _readBoolField(
+          _toResponseMap(result['data']),
+          ['linked', 'Linked'],
+        );
+    return {...result, 'linked': linked};
+  }
+
+  /// Removes the linked Telegram account for the current user.
+  Future<Map<String, dynamic>> unlinkTelegram() async {
+    debugPrint('[AuthService] unlinkTelegram');
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: false,
+      send: (headers) => _dio
+          .delete(
+            ApiUrl.telegramUnlink,
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Telegram unlink timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] unlinkTelegram response: ${response.statusCode} → ${response.data}',
+    );
 
     return _normalizeProfileResponseWithStatus(response);
   }

@@ -14,12 +14,16 @@ class OtpView extends StatefulWidget {
   final String phoneNumber;
   final String? fullName;
   final AuthFlow flow;
+  /// Which channel the OTP was delivered on: 'sms' or 'telegram'.
+  /// Defaults to 'sms'. Set by the caller after receiving the requestOtp response.
+  final String channel;
 
   const OtpView({
     super.key,
     required this.phoneNumber,
     this.fullName,
     this.flow = AuthFlow.login,
+    this.channel = 'sms',
   });
 
   @override
@@ -827,7 +831,9 @@ class _OtpViewState extends State<OtpView> {
               const SizedBox(height: 8),
               Center(
                 child: Text(
-                  'Please enter the 4-digit code sent to ${widget.phoneNumber}',
+                  widget.channel == 'telegram'
+                      ? 'Please enter the 4-digit code sent to your Telegram'
+                      : 'Please enter the 4-digit code sent to ${widget.phoneNumber}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 14, color: Colors.black54),
                 ),

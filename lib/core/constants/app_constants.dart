@@ -43,4 +43,9 @@ class ApiUrl {
   // POST /favorites/sync            → bulk-sync local favorites on first login
   static const favorites = '/favorites';
   static const favoritesSync = '/favorites/sync';
+
+  // ── Telegram linking ──
+  static const telegramLinkRequest = '/auth/telegram/link-request';
+  static const telegramLinkStatus = '/auth/telegram/link-status';
+  static const telegramUnlink = '/auth/telegram/unlink';
 }
