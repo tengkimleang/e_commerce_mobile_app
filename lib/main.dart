@@ -11,6 +11,9 @@ import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_cate
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
+import 'package:e_commerce_mobile_app/modules/address/repositories/address_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +49,10 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) =>
               ShopBloc(di<ShopRepository>())..add(const FetchStores()),
+        ),
+        BlocProvider(
+          create: (_) =>
+              AddressBloc(AddressRepository())..add(const LoadAddresses()),
         ),
       ],
       child: MaterialApp(

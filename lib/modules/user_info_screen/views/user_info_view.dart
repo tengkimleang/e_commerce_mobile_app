@@ -1057,17 +1057,6 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   }
 
   Future<void> _openLinkView() async {
-    // If the session expired (token was cleared by markGuest during a
-    // failed refresh), guard here before entering TelegramLinkView.
-    if (UserSession.isGuest) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your session has expired. Please log in again.'),
-        ),
-      );
-      return;
-    }
     final linked = await Navigator.of(context).push<bool>(
       MaterialPageRoute(builder: (_) => const TelegramLinkView()),
     );

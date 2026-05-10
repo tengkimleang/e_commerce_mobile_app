@@ -41,8 +41,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   bool _isLocating = false;
   bool _isResolvingAddress = false;
   bool _isSearching = false;
-  String? _locationError;
 
+  LatLng get _mapCenter => _selectedCenter ?? _fallbackCenter;
   bool get _hasLocation => _selectedCenter != null;
 
   @override
@@ -58,12 +58,11 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     super.dispose();
   }
 
+  // ── location ──────────────────────────────────────────────────────────────
+
   Future<void> _useCurrentLocation() async {
     if (_isLocating) return;
-    setState(() {
-      _isLocating = true;
-      _locationError = null;
-    });
+    setState(() => _isLocating = true);
 
     LatLng center = _fallbackCenter;
     String? locationWarning;
@@ -74,26 +73,19 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     } catch (error) {
       locationWarning = _mapLocationError(error);
     } finally {
-      if (mounted) {
-        setState(() => _isLocating = false);
-      }
+      if (mounted) setState(() => _isLocating = false);
     }
 
     if (!mounted) return;
 
-    setState(() {
-      _selectedCenter = center;
-      _locationError = locationWarning;
-    });
+    setState(() => _selectedCenter = center);
     await _moveCamera(center);
     await _resolveAddress(center);
 
     if (locationWarning != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Could not get current location. Move the map pin to your address.',
-          ),
+          content: Text('Could not get current location. Move the map pin to your address.'),
         ),
       );
     }
@@ -134,6 +126,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     return 'Unable to detect your location right now. Please try again.';
   }
 
+  // ── map helpers ───────────────────────────────────────────────────────────
+
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
   }
@@ -142,30 +136,18 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     final controller = _mapController;
     if (controller == null) return;
     await controller.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: center, zoom: zoom),
-      ),
+      CameraUpdate.newCameraPosition(CameraPosition(target: center, zoom: zoom)),
     );
   }
 
-  Future<void> _setSelectedCenter(
-    LatLng center, {
-    bool animateCamera = false,
-  }) async {
+  Future<void> _onMapTapped(LatLng center) async {
     setState(() => _selectedCenter = center);
-    if (animateCamera) {
-      await _moveCamera(center);
-    }
     await _resolveAddress(center);
   }
 
-  Future<void> _onMapTapped(LatLng center) async {
-    if (!_hasLocation) return;
-    await _setSelectedCenter(center);
-  }
-
   Future<void> _onMarkerDragEnd(LatLng center) async {
-    await _setSelectedCenter(center);
+    setState(() => _selectedCenter = center);
+    await _resolveAddress(center);
   }
 
   Future<void> _zoomMap(double delta) async {
@@ -184,25 +166,19 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     setState(() => _isSearching = true);
     try {
       final locations = await locationFromAddress(query);
-      if (locations.isEmpty) {
-        throw const _LocationException('Address was not found.');
-      }
-      final result = locations.first;
-      final target = LatLng(result.latitude, result.longitude);
-
+      if (locations.isEmpty) throw const _LocationException('Address was not found.');
+      final target = LatLng(locations.first.latitude, locations.first.longitude);
       if (!mounted) return;
-      await _setSelectedCenter(target, animateCamera: true);
+      setState(() => _selectedCenter = target);
+      await _moveCamera(target);
+      await _resolveAddress(target);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address not found. Try more specific keywords.'),
-        ),
+        const SnackBar(content: Text('Address not found. Try more specific keywords.')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isSearching = false);
-      }
+      if (mounted) setState(() => _isSearching = false);
     }
   }
 
@@ -210,25 +186,18 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     if (!mounted) return;
     setState(() => _isResolvingAddress = true);
     try {
-      final placemarks = await placemarkFromCoordinates(
-        center.latitude,
-        center.longitude,
-      );
+      final placemarks = await placemarkFromCoordinates(center.latitude, center.longitude);
       final place = placemarks.isEmpty ? null : placemarks.first;
       final formatted = _formatPlacemark(place);
       if (!mounted) return;
       setState(() {
-        _resolvedAddress = formatted.isEmpty
-            ? _latLngFallback(center)
-            : formatted;
+        _resolvedAddress = formatted.isEmpty ? _latLngFallback(center) : formatted;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() => _resolvedAddress = _latLngFallback(center));
     } finally {
-      if (mounted) {
-        setState(() => _isResolvingAddress = false);
-      }
+      if (mounted) setState(() => _isResolvingAddress = false);
     }
   }
 
@@ -246,7 +215,6 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
       place.administrativeArea ?? '',
       place.country ?? '',
     ];
-
     final normalized = <String>[];
     for (final part in parts) {
       final text = part.trim();
@@ -269,6 +237,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     );
   }
 
+  // ── build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -281,99 +251,31 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, size: 22),
         ),
-        title: Text(
-          _hasLocation ? 'Add address' : 'Receiving address',
-          style: const TextStyle(
+        title: const Text(
+          'Add address',
+          style: TextStyle(
             fontSize: 21,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1D1B24),
           ),
         ),
       ),
-      body: _hasLocation ? _buildMapBody() : _buildEmptyState(),
-      bottomNavigationBar: _hasLocation
-          ? _buildMapBottomBar()
-          : _buildUseCurrentLocationButton(),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            color: const Color(0xFFF0F0F3),
-            alignment: Alignment.center,
-            child: _locationError == null
-                ? const SizedBox.shrink()
-                : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      _locationError!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFF8E8B96),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUseCurrentLocationButton() {
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: 84,
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _isLocating ? null : _useCurrentLocation,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _accent,
-            disabledBackgroundColor: _accent.withValues(alpha: 0.6),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-            ),
-          ),
-          child: _isLocating
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text(
-                  'Use Current Location',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-                ),
-        ),
-      ),
+      body: _buildMapBody(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
   Widget _buildMapBody() {
-    final center = _selectedCenter!;
     return Stack(
       children: [
+        // Full-screen map
         Positioned.fill(
           child: GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: center,
+              target: _mapCenter,
               zoom: _defaultZoom,
             ),
-            minMaxZoomPreference: const MinMaxZoomPreference(
-              _minZoom,
-              _maxZoom,
-            ),
+            minMaxZoomPreference: const MinMaxZoomPreference(_minZoom, _maxZoom),
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             rotateGesturesEnabled: true,
@@ -384,19 +286,23 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             mapToolbarEnabled: false,
             onMapCreated: _onMapCreated,
             onTap: _onMapTapped,
-            markers: {
-              Marker(
-                markerId: const MarkerId('delivery-pin'),
-                position: center,
-                draggable: true,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueRose,
-                ),
-                onDragEnd: _onMarkerDragEnd,
-              ),
-            },
+            markers: _hasLocation
+                ? {
+                    Marker(
+                      markerId: const MarkerId('delivery-pin'),
+                      position: _selectedCenter!,
+                      draggable: true,
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueRose,
+                      ),
+                      onDragEnd: _onMarkerDragEnd,
+                    ),
+                  }
+                : {},
           ),
         ),
+
+        // Search bar overlay
         Positioned(
           left: 14,
           right: 14,
@@ -425,10 +331,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                         onPressed: _searchAddress,
                         icon: const Icon(Icons.arrow_forward_rounded),
                       ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
-                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(28),
@@ -441,20 +344,16 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             ),
           ),
         ),
+
+        // Zoom + location controls
         Positioned(
           right: 16,
-          bottom: 260,
+          bottom: 16,
           child: Column(
             children: [
-              _MapControlButton(
-                icon: Icons.add_rounded,
-                onTap: () => _zoomMap(1),
-              ),
+              _MapControlButton(icon: Icons.add_rounded, onTap: () => _zoomMap(1)),
               const SizedBox(height: 10),
-              _MapControlButton(
-                icon: Icons.remove_rounded,
-                onTap: () => _zoomMap(-1),
-              ),
+              _MapControlButton(icon: Icons.remove_rounded, onTap: () => _zoomMap(-1)),
               const SizedBox(height: 10),
               _MapControlButton(
                 icon: Icons.my_location_rounded,
@@ -468,8 +367,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     );
   }
 
-  Widget _buildMapBottomBar() {
-    final canSave = _resolvedAddress.trim().isNotEmpty;
+  Widget _buildBottomBar() {
+    final canSave = _hasLocation && _resolvedAddress.trim().isNotEmpty;
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -478,7 +377,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,7 +385,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
               const Text(
                 'Address',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF1D1B24),
                 ),
@@ -505,11 +404,13 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                       _isResolvingAddress
                           ? 'Detecting address...'
                           : (_resolvedAddress.trim().isEmpty
-                                ? 'Move map to detect address'
-                                : _resolvedAddress),
-                      style: const TextStyle(
-                        color: Color(0xFF34313B),
-                        fontSize: 16,
+                              ? 'Tap the map to select your location'
+                              : _resolvedAddress),
+                      style: TextStyle(
+                        color: (!_isResolvingAddress && _resolvedAddress.trim().isEmpty)
+                            ? const Color(0xFFB0AFBA)
+                            : const Color(0xFF34313B),
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
                         height: 1.25,
                       ),

@@ -11,7 +11,11 @@ import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mal
 import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
+import 'package:e_commerce_mobile_app/modules/address/views/receiving_address_screen.dart';
 import 'package:e_commerce_mobile_app/modules/scan_barcode/views/scan_barcode_view.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Named routes used throughout the app.
 abstract final class AppRoutes {
@@ -27,6 +31,7 @@ abstract final class AppRoutes {
   static const String chipmongMall = '/chipmong-mall';
   static const String index = '/index';
   static const String scanBarcode = '/scan-barcode';
+  static const String receivingAddress = '/receiving-address';
 }
 
 /// Generates a [Route] for the given [RouteSettings].
@@ -58,6 +63,13 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return _page(const ChipmongMallScreen());
     case AppRoutes.scanBarcode:
       return _page<String>(const ScanBarcodeView());
+    case AppRoutes.receivingAddress:
+      return MaterialPageRoute<DeliveryAddress>(
+        builder: (ctx) => BlocProvider.value(
+          value: ctx.read<AddressBloc>(),
+          child: const ReceivingAddressScreen(),
+        ),
+      );
     default:
       return _page(const LoginView());
   }

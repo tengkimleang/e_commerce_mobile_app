@@ -1,5 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
+import 'package:e_commerce_mobile_app/modules/address/blocs/address_state.dart';
+import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -64,7 +69,16 @@ class _CartViewState extends State<CartView> {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () async {
+                        final result = await Navigator.of(context)
+                            .pushNamed<DeliveryAddress>(
+                                AppRoutes.receivingAddress);
+                        if (result != null && context.mounted) {
+                          context
+                              .read<AddressBloc>()
+                              .add(SelectAddress(result));
+                        }
+                      },
                       child: const Text(
                         'Select address',
                         style: TextStyle(
@@ -80,7 +94,51 @@ class _CartViewState extends State<CartView> {
 
               const Divider(height: 1, thickness: 0.5),
 
-              // Product Order header (collapsible)
+              // Selected address display
+              BlocBuilder<AddressBloc, AddressState>(
+                builder: (context, addressState) {
+                  final addr = addressState.selectedAddress;
+                  if (addr == null) return const SizedBox.shrink();
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                    color: const Color(0xFFFFF0F5),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.place_rounded,
+                            color: AppColors.primary, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                addr.nameAddress,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                addr.address,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
+              const Divider(height: 1, thickness: 0.5),
               InkWell(
                 onTap: () =>
                     setState(() => _orderExpanded = !_orderExpanded),
