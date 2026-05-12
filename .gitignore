@@ -63,3 +63,5 @@ macos/Flutter/Flutter-Release.xcconfig
 
 # FVM Version Cache
 .fvm/
+android/gradle.properties
+ios/Flutter/Debug.xcconfig

@@ -16,12 +16,15 @@ import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
 import 'package:e_commerce_mobile_app/modules/address/repositories/address_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env', isOptional: true);
   await initializeDependenciesInjection();
   await UserSession.init();
   await registerPartnerPrivilegeModuleDi();

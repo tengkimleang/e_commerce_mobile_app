@@ -2,20 +2,20 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DirectionsService {
   // Dedicated Dio with no baseUrl/auth headers — only for Google APIs.
   DirectionsService([Dio? dio])
-      : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
+    : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
 
   final Dio _dio;
 
-  // API key is injected at build time via --dart-define=MAPS_API_KEY=...
-  // Never commit the real key to source control.
-  static const _apiKey = String.fromEnvironment('MAPS_API_KEY');
+  // API key is loaded from .env at runtime
+  final String _apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
   // Routes API (new) — replaces the legacy Directions API.
   static const _routesUrl =
-      'https://routes.googleapis.com/directions/v2:computeRoutes';
+    'https://routes.googleapis.com/directions/v2:computeRoutes';
 
   /// Returns a list of [LatLng] points representing the driving route between
   /// [origin] and [destination]. Returns an empty list on failure.
