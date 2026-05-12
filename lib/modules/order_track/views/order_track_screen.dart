@@ -36,9 +36,17 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
     final o = widget.order;
     if (o.shopLatitude == null || o.shopLongitude == null) return;
     final shopLatLng = LatLng(o.shopLatitude!, o.shopLongitude!);
-    final deliveryLatLng = LatLng(o.deliveryAddress.latitude, o.deliveryAddress.longitude);
-    final points = await _directionsService.getRoutePoints(shopLatLng, deliveryLatLng);
-    final finalPoints = points.isNotEmpty ? points : [shopLatLng, deliveryLatLng];
+    final deliveryLatLng = LatLng(
+      o.deliveryAddress.latitude,
+      o.deliveryAddress.longitude,
+    );
+    final points = await _directionsService.getRoutePoints(
+      shopLatLng,
+      deliveryLatLng,
+    );
+    final finalPoints = points.isNotEmpty
+        ? points
+        : [shopLatLng, deliveryLatLng];
     if (!mounted) return;
     setState(() => _polylinePoints = finalPoints);
     _moveCameraToFit(shopLatLng, deliveryLatLng);
@@ -68,33 +76,41 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
     if (order.shopLatitude != null && order.shopLongitude != null) {
       shopLatLng = LatLng(order.shopLatitude!, order.shopLongitude!);
     }
-    final deliveryLatLng =
-        LatLng(order.deliveryAddress.latitude, order.deliveryAddress.longitude);
+    final deliveryLatLng = LatLng(
+      order.deliveryAddress.latitude,
+      order.deliveryAddress.longitude,
+    );
 
     final Set<Marker> markers = {};
     if (shopLatLng != null) {
-      markers.add(Marker(
-        markerId: const MarkerId('store'),
-        position: shopLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
-        infoWindow: InfoWindow(title: order.shopName),
-      ));
+      markers.add(
+        Marker(
+          markerId: const MarkerId('store'),
+          position: shopLatLng,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+          infoWindow: InfoWindow(title: order.shopName),
+        ),
+      );
     }
-    markers.add(Marker(
-      markerId: const MarkerId('delivery'),
-      position: deliveryLatLng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      infoWindow: InfoWindow(title: order.deliveryAddress.nameAddress),
-    ));
+    markers.add(
+      Marker(
+        markerId: const MarkerId('delivery'),
+        position: deliveryLatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        infoWindow: InfoWindow(title: order.deliveryAddress.nameAddress),
+      ),
+    );
 
     final Set<Polyline> polylines = {};
     if (_polylinePoints.isNotEmpty) {
-      polylines.add(Polyline(
-        polylineId: const PolylineId('route'),
-        color: AppColors.primary,
-        width: 4,
-        points: _polylinePoints,
-      ));
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('route'),
+          color: AppColors.primary,
+          width: 4,
+          points: _polylinePoints,
+        ),
+      );
     }
 
     final initialCamera = shopLatLng ?? deliveryLatLng;
@@ -108,54 +124,70 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
             height: MediaQuery.of(context).size.height * 0.40,
             child: Stack(
               children: [
-                IgnorePointer(
-                  child: GoogleMap(
-                    onMapCreated: (c) {
-                      if (!_mapController.isCompleted) {
-                        _mapController.complete(c);
-                        WidgetsBinding.instance
-                            .addPostFrameCallback((_) => _onMapReady());
-                      }
-                    },
-                    initialCameraPosition:
-                        CameraPosition(target: initialCamera, zoom: 13),
-                    markers: markers,
-                    polylines: polylines,
-                    scrollGesturesEnabled: false,
-                    zoomGesturesEnabled: false,
-                    rotateGesturesEnabled: false,
-                    tiltGesturesEnabled: false,
-                    myLocationButtonEnabled: false,
-                    zoomControlsEnabled: false,
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: GoogleMap(
+                      onMapCreated: (c) {
+                        if (!_mapController.isCompleted) {
+                          _mapController.complete(c);
+                          WidgetsBinding.instance.addPostFrameCallback(
+                            (_) => _onMapReady(),
+                          );
+                        }
+                      },
+                      initialCameraPosition: CameraPosition(
+                        target: initialCamera,
+                        zoom: 13,
+                      ),
+                      markers: markers,
+                      polylines: polylines,
+                      scrollGesturesEnabled: false,
+                      zoomGesturesEnabled: false,
+                      rotateGesturesEnabled: false,
+                      tiltGesturesEnabled: false,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                    ),
                   ),
                 ),
                 // Title row overlaid on map
-                SafeArea(
-                  bottom: false,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new,
-                            color: Colors.black87),
-                        onPressed: () => Navigator.of(context).popUntil(
-                          (route) =>
-                              route.settings.name == '/home' || route.isFirst,
-                        ),
-                      ),
-                      const Expanded(
-                        child: Center(
-                          child: Text(
-                            'Order Track',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    bottom: false,
+                    child: SizedBox(
+                      height: 48,
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new,
                               color: Colors.black87,
                             ),
+                            onPressed: () => Navigator.of(context).popUntil(
+                              (route) =>
+                                  route.settings.name == '/home' ||
+                                  route.isFirst,
+                            ),
                           ),
-                        ),
+                          const Expanded(
+                            child: Center(
+                              child: Text(
+                                'Order Track',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 48),
+                        ],
                       ),
-                      const SizedBox(width: 48),
-                    ],
+                    ),
                   ),
                 ),
               ],
@@ -168,8 +200,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -177,8 +208,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
               ),
               child: Text(
                 order.deliveryAddress.address,
-                style:
-                    const TextStyle(fontSize: 13, color: Colors.black87),
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -189,49 +219,80 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
           Expanded(
             child: SingleChildScrollView(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Step bar
-                  Container(
-                    color: Colors.white,
-                    child: const Column(
-                      children: [
-                        OrderStepBar(currentStep: OrderStep.requesting),
-                        Divider(height: 1, thickness: 0.5),
-                      ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Column(
+                        children: [
+                          OrderStepBar(currentStep: OrderStep.requesting),
+                          Divider(height: 1, thickness: 0.5),
+                        ],
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
                   // Order meta
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.shopName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Order Date: $formattedDate',
-                          style: const TextStyle(
-                              fontSize: 13, color: Colors.black54),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Order: # ${order.orderNumber}',
-                          style: const TextStyle(
-                              fontSize: 13, color: Colors.black54),
-                        ),
-                      ],
+                        ],
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.shopName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Order Date: $formattedDate',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Order: # ${order.orderNumber}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -245,8 +306,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                       children: [
                         // Delivery Info
                         Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                           child: Row(
                             children: [
                               const Text(
@@ -258,13 +318,18 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              const Icon(Icons.bookmark,
-                                  color: AppColors.primary, size: 16),
+                              const Icon(
+                                Icons.bookmark,
+                                color: AppColors.primary,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 '${order.deliveryAddress.nameAddress} , ${order.deliveryAddress.phoneNumber}',
                                 style: const TextStyle(
-                                    fontSize: 13, color: Colors.black87),
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ],
                           ),

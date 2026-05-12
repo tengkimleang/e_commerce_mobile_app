@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 enum OrderStep { requesting, picking, delivering, delivered }
 
 class OrderStepBar extends StatelessWidget {
-  const OrderStepBar({
-    super.key,
-    required this.currentStep,
-  });
+  const OrderStepBar({super.key, required this.currentStep});
 
   final OrderStep currentStep;
 
@@ -57,8 +54,8 @@ class OrderStepBar extends StatelessWidget {
                     textAlign: i == 0
                         ? TextAlign.left
                         : i == _steps.length - 1
-                            ? TextAlign.right
-                            : TextAlign.center,
+                        ? TextAlign.right
+                        : TextAlign.center,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: i == currentIndex
@@ -102,7 +99,7 @@ class _StepCircle extends StatelessWidget {
         boxShadow: isCurrent
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.35),
+                  color: AppColors.primary.withValues(alpha: 0.35),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),
