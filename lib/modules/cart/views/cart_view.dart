@@ -77,6 +77,8 @@ class _CartViewState extends State<CartView> {
                           context
                               .read<AddressBloc>()
                               .add(SelectAddress(result));
+                          Navigator.of(context)
+                              .pushNamed(AppRoutes.checkout);
                         }
                       },
                       child: const Text(
@@ -525,73 +527,4 @@ class _CartItemSheetState extends State<_CartItemSheet> {
   }
 }
 
-class _CheckoutBar extends StatelessWidget {
-  final int itemCount;
-  final double total;
-  const _CheckoutBar({required this.itemCount, required this.total});
 
-  @override
-  Widget build(BuildContext context) {
-    const accent = AppColors.primary;
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-        decoration: const BoxDecoration(
-          color: accent,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$itemCount Items detail',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Total: \$ ${total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 150,
-              height: 44,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'Check Out',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
