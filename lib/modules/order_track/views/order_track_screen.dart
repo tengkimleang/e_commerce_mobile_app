@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/services/directions_service.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/order_pricing_section.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/product_order_section.dart';
 import 'package:e_commerce_mobile_app/modules/order_track/widgets/order_step_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -67,6 +70,12 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
     controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
   }
 
+  void _handleBackPressed() {
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
@@ -125,29 +134,33 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: IgnorePointer(
-                    child: GoogleMap(
-                      onMapCreated: (c) {
-                        if (!_mapController.isCompleted) {
-                          _mapController.complete(c);
-                          WidgetsBinding.instance.addPostFrameCallback(
-                            (_) => _onMapReady(),
-                          );
-                        }
-                      },
-                      initialCameraPosition: CameraPosition(
-                        target: initialCamera,
-                        zoom: 13,
-                      ),
-                      markers: markers,
-                      polylines: polylines,
-                      scrollGesturesEnabled: false,
-                      zoomGesturesEnabled: false,
-                      rotateGesturesEnabled: false,
-                      tiltGesturesEnabled: false,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
+                  child: GoogleMap(
+                    onMapCreated: (c) {
+                      if (!_mapController.isCompleted) {
+                        _mapController.complete(c);
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _onMapReady(),
+                        );
+                      }
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: initialCamera,
+                      zoom: 13,
                     ),
+                    markers: markers,
+                    polylines: polylines,
+                    // Keep map draggable/zoomable even with surrounding content.
+                    gestureRecognizers: {
+                      Factory<OneSequenceGestureRecognizer>(
+                        () => EagerGestureRecognizer(),
+                      ),
+                    },
+                    scrollGesturesEnabled: true,
+                    zoomGesturesEnabled: true,
+                    rotateGesturesEnabled: false,
+                    tiltGesturesEnabled: false,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
                   ),
                 ),
                 // Title row overlaid on map
@@ -166,11 +179,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                               Icons.arrow_back_ios_new,
                               color: Colors.black87,
                             ),
-                            onPressed: () => Navigator.of(context).popUntil(
-                              (route) =>
-                                  route.settings.name == '/home' ||
-                                  route.isFirst,
-                            ),
+                            onPressed: _handleBackPressed,
                           ),
                           const Expanded(
                             child: Center(

@@ -18,7 +18,9 @@ import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_state.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/models/shop_option.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -61,17 +63,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _loadDirections(BuildContext context) {
     final shop = _selectedShop(context);
     final addr = context.read<AddressBloc>().state.selectedAddress;
-    if (shop?.latitude == null || shop?.longitude == null || addr == null) return;
+    if (shop?.latitude == null || shop?.longitude == null || addr == null) {
+      return;
+    }
     context.read<CheckoutCubit>().loadDirections(
-          LatLng(shop!.latitude!, shop.longitude!),
-          LatLng(addr.latitude, addr.longitude),
-        );
+      LatLng(shop!.latitude!, shop.longitude!),
+      LatLng(addr.latitude, addr.longitude),
+    );
     _moveCameraToFit(context);
   }
 
   Future<void> _selectAddress(BuildContext context) async {
-    final result = await Navigator.of(context)
-        .pushNamed<DeliveryAddress>(AppRoutes.receivingAddress);
+    final result = await Navigator.of(
+      context,
+    ).pushNamed<DeliveryAddress>(AppRoutes.receivingAddress);
     if (result != null && context.mounted) {
       context.read<AddressBloc>().add(SelectAddress(result));
       _loadDirections(context);
@@ -97,9 +102,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         [shop.longitude!, addr.longitude].reduce((a, b) => a > b ? a : b),
       ),
     );
-    controller.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
-    );
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
   }
 
   @override
@@ -117,7 +120,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     return BlocListener<CheckoutCubit, CheckoutState>(
       listenWhen: (prev, curr) =>
-          curr.status == CheckoutStatus.success && prev.status != CheckoutStatus.success,
+          curr.status == CheckoutStatus.success &&
+          prev.status != CheckoutStatus.success,
       listener: (context, state) {
         final order = state.completedOrder!;
         context.read<CartBloc>().add(ClearCart());
@@ -141,8 +145,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new,
-                size: 20, color: Colors.black87),
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              size: 20,
+              color: Colors.black87,
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: const Text(
@@ -206,23 +213,25 @@ class _CheckoutBody extends StatelessWidget {
           ),
         ),
         SliverToBoxAdapter(child: _AddressBar()),
-        SliverToBoxAdapter(child: _DeliveryInfoRow(onSelectAddress: onSelectAddress)),
+        SliverToBoxAdapter(
+          child: _DeliveryInfoRow(onSelectAddress: onSelectAddress),
+        ),
         SliverToBoxAdapter(child: _ShopNameRow(selectedShop: selectedShop)),
         SliverToBoxAdapter(
           child: BlocBuilder<CartBloc, CartState>(
-            builder: (context, state) => ProductOrderSection(items: state.items),
+            builder: (context, state) =>
+                ProductOrderSection(items: state.items),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _PromoCodeRow(controller: promoController),
-        ),
+        SliverToBoxAdapter(child: _PromoCodeRow(controller: promoController)),
         SliverToBoxAdapter(
           child: BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
               return BlocBuilder<CheckoutCubit, CheckoutState>(
                 builder: (context, checkoutState) {
                   final subtotal = cartState.totalAmount;
-                  final total = subtotal +
+                  final total =
+                      subtotal +
                       deliveryFee +
                       packageFees -
                       checkoutState.promoDiscount;
@@ -273,57 +282,62 @@ class _MapSection extends StatelessWidget {
     if (shop?.latitude != null && shop?.longitude != null) {
       final shopLatLng = LatLng(shop!.latitude!, shop.longitude!);
       initialCamera = shopLatLng;
-      markers.add(Marker(
-        markerId: const MarkerId('store'),
-        position: shopLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
-        infoWindow: InfoWindow(title: shop.storeName),
-      ));
+      markers.add(
+        Marker(
+          markerId: const MarkerId('store'),
+          position: shopLatLng,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+          infoWindow: InfoWindow(title: shop.storeName),
+        ),
+      );
     }
 
     final addr = addressState.selectedAddress;
     if (addr != null) {
-      markers.add(Marker(
-        markerId: const MarkerId('delivery'),
-        position: LatLng(addr.latitude, addr.longitude),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: InfoWindow(title: addr.nameAddress),
-      ));
+      markers.add(
+        Marker(
+          markerId: const MarkerId('delivery'),
+          position: LatLng(addr.latitude, addr.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: InfoWindow(title: addr.nameAddress),
+        ),
+      );
     }
 
     if (checkoutState.polylinePoints.isNotEmpty) {
-      polylines.add(Polyline(
-        polylineId: const PolylineId('route'),
-        color: AppColors.primary,
-        width: 4,
-        points: checkoutState.polylinePoints,
-      ));
+      polylines.add(
+        Polyline(
+          polylineId: const PolylineId('route'),
+          color: AppColors.primary,
+          width: 4,
+          points: checkoutState.polylinePoints,
+        ),
+      );
     }
 
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.38,
-      child: IgnorePointer(
-        child: GoogleMap(
-          onMapCreated: (c) {
-            if (!mapController.isCompleted) {
-              mapController.complete(c);
-              // Use addPostFrameCallback so the cubit context is ready
-              WidgetsBinding.instance.addPostFrameCallback((_) => onMapReady());
-            }
-          },
-          initialCameraPosition: CameraPosition(
-            target: initialCamera,
-            zoom: 13,
-          ),
-          markers: markers,
-          polylines: polylines,
-          scrollGesturesEnabled: false,
-          zoomGesturesEnabled: false,
-          rotateGesturesEnabled: false,
-          tiltGesturesEnabled: false,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-        ),
+      child: GoogleMap(
+        onMapCreated: (c) {
+          if (!mapController.isCompleted) {
+            mapController.complete(c);
+            // Use addPostFrameCallback so the cubit context is ready
+            WidgetsBinding.instance.addPostFrameCallback((_) => onMapReady());
+          }
+        },
+        initialCameraPosition: CameraPosition(target: initialCamera, zoom: 13),
+        markers: markers,
+        polylines: polylines,
+        // Ensure map drag works inside the surrounding scroll view.
+        gestureRecognizers: {
+          Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+        },
+        scrollGesturesEnabled: true,
+        zoomGesturesEnabled: true,
+        rotateGesturesEnabled: false,
+        tiltGesturesEnabled: false,
+        myLocationButtonEnabled: false,
+        zoomControlsEnabled: false,
       ),
     );
   }
@@ -346,7 +360,7 @@ class _AddressBar extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -418,8 +432,11 @@ class _DeliveryInfoRow extends StatelessWidget {
                 onTap: () => onSelectAddress(context),
                 child: Row(
                   children: [
-                    const Icon(Icons.bookmark,
-                        color: AppColors.primary, size: 16),
+                    const Icon(
+                      Icons.bookmark,
+                      color: AppColors.primary,
+                      size: 16,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '${addr.nameAddress} , ${addr.phoneNumber}',
@@ -430,8 +447,11 @@ class _DeliveryInfoRow extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right,
-                        size: 18, color: Colors.black45),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: Colors.black45,
+                    ),
                   ],
                 ),
               );
@@ -508,10 +528,7 @@ class _PromoCodeRow extends StatelessWidget {
                         context.read<CheckoutCubit>().updatePromoCode(v),
                     decoration: const InputDecoration(
                       hintText: 'Enter promo code here',
-                      hintStyle: TextStyle(
-                        fontSize: 13,
-                        color: Colors.black38,
-                      ),
+                      hintStyle: TextStyle(fontSize: 13, color: Colors.black38),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(horizontal: 14),
                     ),
@@ -522,13 +539,13 @@ class _PromoCodeRow extends StatelessWidget {
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      context.read<CheckoutCubit>().applyPromo(),
+                  onPressed: () => context.read<CheckoutCubit>().applyPromo(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
                   child: const Text(
@@ -588,7 +605,9 @@ class _PlaceOrderButton extends StatelessWidget {
                         width: 22,
                         height: 22,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text(
                         'Place Order',
@@ -619,12 +638,12 @@ class _PlaceOrderButton extends StatelessWidget {
     final shopName = shop?.storeName ?? 'Supermarket';
 
     context.read<CheckoutCubit>().placeOrder(
-          items: cartItems,
-          deliveryAddress: addr,
-          shopName: shopName,
-          storeLatitude: shop?.latitude,
-          storeLongitude: shop?.longitude,
-        );
+      items: cartItems,
+      deliveryAddress: addr,
+      shopName: shopName,
+      storeLatitude: shop?.latitude,
+      storeLongitude: shop?.longitude,
+    );
   }
 }
 
@@ -652,7 +671,7 @@ class _OrderSuccessDialog extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
+                color: AppColors.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -701,5 +720,3 @@ class _OrderSuccessDialog extends StatelessWidget {
     );
   }
 }
-
-

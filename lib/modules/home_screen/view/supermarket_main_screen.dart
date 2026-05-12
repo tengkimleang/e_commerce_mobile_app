@@ -109,6 +109,13 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             });
       }
     });
+
+    // Rehydrate local UI state from existing bloc snapshots when this screen is
+    // reopened (e.g. returning from Order Track). Without this, the slider can
+    // stay empty until another category fetch event occurs.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _hydrateFromBlocState(),
+    );
   }
 
   @override
@@ -342,13 +349,80 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     );
   }
 
+  void _hydrateFromBlocState() {
+    if (!mounted) return;
+
+    final shopState = context.read<ShopBloc>().state;
+    if (shopState is ShopsLoaded && shopState.shops.isNotEmpty) {
+      final savedId = UserSession.selectedShopId;
+      final resolvedShop = savedId.isNotEmpty
+          ? shopState.shops.firstWhere(
+              (s) => s.shopId == savedId,
+              orElse: () => shopState.shops.first,
+            )
+          : shopState.shops.first;
+
+      if (_selectedShop?.shopId != resolvedShop.shopId) {
+        setState(() => _selectedShop = resolvedShop);
+      }
+
+      if (UserSession.selectedShopId.isEmpty) {
+        UserSession.setSelectedShop(
+          resolvedShop.shopId,
+          name: resolvedShop.storeName,
+        );
+      }
+    }
+
+    final categoryState = context.read<SupermarketCategoryBloc>().state;
+    if (categoryState is CategoriesLoaded) {
+      _applySliderImages(categoryState.categories);
+      return;
+    }
+
+    if (categoryState is! CategoriesLoading) {
+      context.read<SupermarketCategoryBloc>().add(LoadCategories());
+    }
+  }
+
+  void _applySliderImages(List<CategoryModel> categories) {
+    final images = categories
+        .map((c) => c.bannerImageUrl)
+        .where((url) => url.isNotEmpty)
+        .toList();
+
+    final hasSameLength = images.length == _sliderImages.length;
+    var isIdentical = hasSameLength;
+    if (isIdentical) {
+      for (var i = 0; i < images.length; i++) {
+        if (images[i] != _sliderImages[i]) {
+          isIdentical = false;
+          break;
+        }
+      }
+    }
+
+    if (isIdentical) return;
+
+    setState(() {
+      _sliderImages = images;
+      _current = 0;
+    });
+
+    if (_controller.hasClients && images.isNotEmpty) {
+      _controller.jumpToPage(0);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
         BlocListener<ShopBloc, ShopState>(
           listener: (context, state) {
-            if (state is ShopsLoaded && state.shops.isNotEmpty && _selectedShop == null) {
+            if (state is ShopsLoaded &&
+                state.shops.isNotEmpty &&
+                _selectedShop == null) {
               final savedId = UserSession.selectedShopId;
               final shop = savedId.isNotEmpty
                   ? state.shops.firstWhere(
@@ -365,17 +439,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         BlocListener<SupermarketCategoryBloc, SupermarketCategoryState>(
           listener: (context, state) {
             if (state is CategoriesLoaded) {
-              final images = state.categories
-                  .map((c) => c.bannerImageUrl)
-                  .where((url) => url.isNotEmpty)
-                  .toList();
-              setState(() {
-                _sliderImages = images;
-                _current = 0;
-              });
-              if (_controller.hasClients && images.isNotEmpty) {
-                _controller.jumpToPage(0);
-              }
+              _applySliderImages(state.categories);
             }
           },
         ),
@@ -570,7 +634,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                 height: 300,
                 child: _sliderImages.isEmpty
                     ? ClipRRect(
-                        borderRadius: const BorderRadius.all(Radius.circular(5)),
+                        borderRadius: const BorderRadius.all(
+                          Radius.circular(5),
+                        ),
                         child: Container(color: Colors.grey[200]),
                       )
                     : Stack(
@@ -581,7 +647,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             onPageChanged: (i) => setState(() => _current = i),
                             itemBuilder: (context, index) {
                               return GestureDetector(
-                                onTap: () => _showBannerImagePopup(context, index),
+                                onTap: () =>
+                                    _showBannerImagePopup(context, index),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: ClipRRect(
@@ -592,16 +659,17 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                       imageUrl: _sliderImages[index],
                                       fit: BoxFit.cover,
                                       width: double.infinity,
-                                      placeholder: (_, __) =>
+                                      placeholder: (_, placeholderUrl) =>
                                           Container(color: Colors.grey[200]),
-                                      errorWidget: (_, __, ___) => Container(
-                                        color: Colors.grey[300],
-                                        child: const Icon(
-                                          Icons.broken_image,
-                                          size: 48,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+                                      errorWidget: (_, failedImageUrl, error) =>
+                                          Container(
+                                            color: Colors.grey[300],
+                                            child: const Icon(
+                                              Icons.broken_image,
+                                              size: 48,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -617,9 +685,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             BlocBuilder<SupermarketCategoryBloc, SupermarketCategoryState>(
               builder: (context, state) {
                 if (state is CategoriesLoaded) {
-                  return Column(
-                    children: _buildCategoryRows(state.categories),
-                  );
+                  return Column(children: _buildCategoryRows(state.categories));
                 }
                 if (state is CategoriesError) {
                   return Padding(
