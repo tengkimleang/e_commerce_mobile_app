@@ -198,7 +198,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   builder: (context, cartState) {
                     final quantity = cartState.quantityFor(product.id);
 
-                    if (quantity == 0) {
+                    if (true) {
                       return SizedBox(
                         width: double.infinity,
                         height: 44,

@@ -183,15 +183,6 @@ class _CartViewState extends State<CartView> {
           );
         },
       ),
-      bottomNavigationBar: BlocBuilder<CartBloc, CartState>(
-        builder: (context, state) {
-          if (state.items.isEmpty) return const SizedBox.shrink();
-          return _CheckoutBar(
-            itemCount: state.distinctItemCount,
-            total: state.totalAmount,
-          );
-        },
-      ),
     );
   }
 }

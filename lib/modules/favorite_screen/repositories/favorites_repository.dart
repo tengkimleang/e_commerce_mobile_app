@@ -58,13 +58,16 @@ class HttpFavoritesRepository implements FavoritesRepository {
       final body = response.data;
       final decoded = body is String ? jsonDecode(body) : body;
 
-      // If the server returned something that is not a list, treat it as a
-      // failed call (null) rather than an empty list, so callers don't
-      // accidentally wipe local favorites.
-      if (decoded is! List) return null;
+      // Response shape: { "success": true, "data": { "items": [{ "productId": int }] } }
+      // Return null on unexpected format so callers don't accidentally wipe local state.
+      if (decoded is! Map) return null;
+      final data = decoded['data'];
+      if (data is! Map) return null;
+      final items = data['items'];
+      if (items is! List) return null;
 
       // productId may arrive as int (123) or string ("123") — normalize to String.
-      return decoded
+      return items
           .whereType<Map>()
           .map((e) => e['productId']?.toString() ?? '')
           .where((id) => id.isNotEmpty)

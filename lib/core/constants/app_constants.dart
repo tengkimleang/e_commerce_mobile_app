@@ -38,9 +38,9 @@ class ApiUrl {
   static String productByBarcode(String code) => '/products/by-barcode/$code';
 
   // ── Favorites ──
-  // GET  /favorites?shopId=X        → list of favorited product IDs for the current user
-  // POST /favorites                 → toggle (add if absent, remove if present)
-  // POST /favorites/sync            → bulk-sync local favorites on first login
+  // GET  /favorites                 → list of favorited product IDs for the authenticated user (no query params)
+  // POST /favorites                 → toggle (add if absent, remove if present); returns { "action": "added" | "removed" }
+  // POST /favorites/sync            → bulk-upsert local guest favorites on first login; returns { "insertedCount": N }
   static const favorites = '/favorites';
   static const favoritesSync = '/favorites/sync';
 
