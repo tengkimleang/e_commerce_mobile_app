@@ -56,7 +56,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.72,
+                    childAspectRatio: 0.69,
                   ),
                   itemCount: shops.length,
                   itemBuilder: (context, index) {
@@ -166,8 +166,7 @@ class _ShopCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    // const Spacer(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     Center(
                       child: Text(
                         shop.branchLabel,
@@ -179,6 +178,20 @@ class _ShopCard extends StatelessWidget {
                           color: accent,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        shop.distanceKm != null
+                            ? '${shop.distanceKm!.toStringAsFixed(2)} Km'
+                            : '',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black45,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

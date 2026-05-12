@@ -7,6 +7,9 @@ class ShopOption {
     required this.imageUrl,
     this.guestAllowed = true,
     this.displayOrder = 0,
+    this.latitude,
+    this.longitude,
+    this.distanceKm,
   });
 
   final int id;
@@ -16,6 +19,9 @@ class ShopOption {
   final String imageUrl;
   final bool guestAllowed;
   final int displayOrder;
+  final double? latitude;
+  final double? longitude;
+  final double? distanceKm;
 
   factory ShopOption.fromJson(Map<String, dynamic> json) => ShopOption(
         id: json['id'] as int? ?? 0,
@@ -25,5 +31,20 @@ class ShopOption {
         imageUrl: json['imageUrl'] as String? ?? '',
         guestAllowed: json['guestAllowed'] as bool? ?? true,
         displayOrder: json['displayOrder'] as int? ?? 0,
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
+      );
+
+  ShopOption withDistance(double? km) => ShopOption(
+        id: id,
+        shopId: shopId,
+        storeName: storeName,
+        branchLabel: branchLabel,
+        imageUrl: imageUrl,
+        guestAllowed: guestAllowed,
+        displayOrder: displayOrder,
+        latitude: latitude,
+        longitude: longitude,
+        distanceKm: km,
       );
 }
