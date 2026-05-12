@@ -1,3 +1,8 @@
+# Secret keys — never commit these
+secrets.properties
+.env
+*.env
+
 # Miscellaneous
 *.class
 *.log

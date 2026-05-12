@@ -10,7 +10,9 @@ class DirectionsService {
 
   final Dio _dio;
 
-  static const _apiKey = 'REDACTED_GOOGLE_API_KEY';
+  // API key is injected at build time via --dart-define=MAPS_API_KEY=...
+  // Never commit the real key to source control.
+  static const _apiKey = String.fromEnvironment('MAPS_API_KEY');
   // Routes API (new) — replaces the legacy Directions API.
   static const _routesUrl =
       'https://routes.googleapis.com/directions/v2:computeRoutes';
