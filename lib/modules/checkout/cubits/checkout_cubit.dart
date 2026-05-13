@@ -5,19 +5,15 @@ import 'package:uuid/uuid.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_state.dart';
-import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
+import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/services/directions_service.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
-  CheckoutCubit(this._directionsService) : super(const CheckoutState());
+  CheckoutCubit(this._directionsService, this._ordersRepository)
+    : super(const CheckoutState());
 
   final DirectionsService _directionsService;
-
-  static const double _deliveryFee = 1.59;
-  static const double _packageFees = 0.10;
-  static const String _paymentMethod = 'Cash on Delivery';
-
-  int _orderCounter = 1;
+  final OrdersRepository _ordersRepository;
   int _directionsRequestId = 0;
 
   void _emitIfOpen(CheckoutState nextState) {
@@ -67,55 +63,124 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         promoCode: code,
         isPromoApplied: false,
         promoDiscount: 0.0,
+        clearErrorMessage: true,
       ),
     );
   }
 
-  void applyPromo() {
-    // Phase 1: mock — no real validation yet
+  Future<void> applyPromo({
+    required String shopId,
+    required List<CartItemViewModel> items,
+  }) async {
     if (state.promoCode.trim().isEmpty) return;
-    _emitIfOpen(state.copyWith(isPromoApplied: true, promoDiscount: 0.0));
+    if (items.isEmpty) {
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: 'Your cart is empty.',
+        ),
+      );
+      return;
+    }
+    if (shopId.trim().isEmpty) {
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: 'Please select a shop before applying promo.',
+        ),
+      );
+      return;
+    }
+
+    try {
+      final result = await _ordersRepository.validatePromo(
+        shopId: shopId,
+        promoCode: state.promoCode,
+        items: items,
+      );
+      _emitIfOpen(
+        state.copyWith(
+          isPromoApplied: result.valid,
+          promoDiscount: result.discountAmount,
+          status: CheckoutStatus.idle,
+          clearErrorMessage: true,
+        ),
+      );
+    } on OrdersRepositoryException catch (e) {
+      _emitIfOpen(
+        state.copyWith(
+          isPromoApplied: false,
+          promoDiscount: 0.0,
+          status: CheckoutStatus.failure,
+          errorMessage: e.message,
+        ),
+      );
+    } catch (_) {
+      _emitIfOpen(
+        state.copyWith(
+          isPromoApplied: false,
+          promoDiscount: 0.0,
+          status: CheckoutStatus.failure,
+          errorMessage: 'Failed to validate promo code. Please try again.',
+        ),
+      );
+    }
   }
 
   Future<void> placeOrder({
     required List<CartItemViewModel> items,
     required DeliveryAddress deliveryAddress,
-    required String shopName,
-    double? storeLatitude,
-    double? storeLongitude,
+    required String shopId,
   }) async {
     if (state.status == CheckoutStatus.placingOrder) return;
+    if (items.isEmpty) {
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: 'Your cart is empty.',
+        ),
+      );
+      return;
+    }
+    if (shopId.trim().isEmpty) {
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: 'Please select a shop before placing order.',
+        ),
+      );
+      return;
+    }
     _emitIfOpen(state.copyWith(status: CheckoutStatus.placingOrder));
+    try {
+      final summary = await _ordersRepository.createOrder(
+        shopId: shopId,
+        deliveryAddress: deliveryAddress,
+        items: items,
+        paymentMethod: 'COD',
+        idempotencyKey: const Uuid().v4(),
+        promoCode: state.isPromoApplied ? state.promoCode : '',
+      );
 
-    final subtotal = items.fold<double>(
-      0.0,
-      (sum, item) => sum + (item.product.price * item.quantity),
-    );
-    final total = subtotal + _deliveryFee + _packageFees - state.promoDiscount;
-    final orderNumber = _orderCounter.toString().padLeft(5, '0');
-    _orderCounter++;
-
-    final summary = OrderSummary(
-      orderId: const Uuid().v4(),
-      orderNumber: orderNumber,
-      orderDate: DateTime.now(),
-      shopName: shopName,
-      items: items,
-      deliveryAddress: deliveryAddress,
-      subtotal: subtotal,
-      deliveryFee: _deliveryFee,
-      packageFees: _packageFees,
-      discount: 0.0,
-      promoDiscount: state.promoDiscount,
-      total: total,
-      paymentMethod: _paymentMethod,
-      shopLatitude: storeLatitude,
-      shopLongitude: storeLongitude,
-    );
-
-    _emitIfOpen(
-      state.copyWith(status: CheckoutStatus.success, completedOrder: summary),
-    );
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.success,
+          completedOrder: summary,
+          clearErrorMessage: true,
+        ),
+      );
+    } on OrdersRepositoryException catch (e) {
+      _emitIfOpen(
+        state.copyWith(status: CheckoutStatus.failure, errorMessage: e.message),
+      );
+    } catch (_) {
+      _emitIfOpen(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: 'Failed to place order. Please try again.',
+        ),
+      );
+    }
   }
 
   void reset() {

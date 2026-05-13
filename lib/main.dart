@@ -9,7 +9,9 @@ import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_eve
 import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/repositories/di.dart';
+import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
@@ -17,6 +19,7 @@ import 'package:e_commerce_mobile_app/modules/address/repositories/address_repos
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,6 +59,11 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) =>
               AddressBloc(AddressRepository())..add(const LoadAddresses()),
+        ),
+        BlocProvider(
+          create: (_) =>
+              OrderHistoryCubit(ordersRepository: OrdersRepository(di<Dio>()))
+                ..loadOrders(),
         ),
       ],
       child: MaterialApp(

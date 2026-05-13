@@ -16,6 +16,9 @@ class OrderSummary {
     required this.promoDiscount,
     required this.total,
     required this.paymentMethod,
+    this.statusCode = '',
+    this.trackStep = '',
+    this.itemCount,
     this.shopLatitude,
     this.shopLongitude,
   });
@@ -33,6 +36,16 @@ class OrderSummary {
   final double promoDiscount;
   final double total;
   final String paymentMethod;
+
+  /// Backend lifecycle status (e.g. REQUESTING, PICKING, DELIVERING, DELIVERED, CANCELED).
+  final String statusCode;
+
+  /// Tracking step from backend (`track.step`). Falls back to [statusCode] when empty.
+  final String trackStep;
+
+  /// Optional server-provided item count from list endpoints.
+  final int? itemCount;
+
   /// Store location — used to draw the route on the Order Track map.
   final double? shopLatitude;
   final double? shopLongitude;

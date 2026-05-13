@@ -1,14 +1,58 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_state.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_details_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
-class OrderHistoryView extends StatelessWidget {
+class OrderHistoryView extends StatefulWidget {
   final bool showBottomNavigation;
 
   const OrderHistoryView({super.key, this.showBottomNavigation = true});
+
+  @override
+  State<OrderHistoryView> createState() => _OrderHistoryViewState();
+}
+
+class _OrderHistoryViewState extends State<OrderHistoryView> {
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadOrders();
+      _startAutoRefresh();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _loadOrders() {
+    if (!mounted || !UserSession.isAuthenticated) return;
+    context.read<OrderHistoryCubit>().loadOrders();
+  }
+
+  void _startAutoRefresh() {
+    if (!UserSession.isAuthenticated) return;
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _loadOrders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +93,46 @@ class OrderHistoryView extends StatelessWidget {
               ),
             ),
           ),
-          const Expanded(child: Center(child: _EmptyOrderState())),
+          Expanded(
+            child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
+              builder: (context, state) {
+                final useFallback =
+                    !UserSession.isAuthenticated && state.orders.isEmpty;
+                final orders = useFallback
+                    ? OrderHistoryCubit.fallbackOrders
+                    : state.orders;
+                if (orders.isEmpty) {
+                  return const Center(child: _EmptyOrderState());
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async => _loadOrders(),
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+                    itemCount: orders.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (_, index) {
+                      final entry = orders[index];
+                      return _OrderCard(
+                        entry: entry,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => OrderDetailsView(entry: entry),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: showBottomNavigation
+      bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
               selectedIndex: 3,
               onTap: (index) => _onBottomNavTap(context, index),
@@ -90,6 +170,159 @@ class OrderHistoryView extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const UserInfoView()),
       );
     }
+  }
+}
+
+class _OrderCard extends StatelessWidget {
+  const _OrderCard({required this.entry, required this.onTap});
+
+  final OrderHistoryEntry entry;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final order = entry.summary;
+    final dateText = DateFormat('d, MMM, y | h:mm a').format(order.orderDate);
+    final itemCount = entry.displayItemCount;
+    final itemSuffix = itemCount > 1 ? 'Items' : 'Item';
+
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.shopName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF151515),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _OrderStatusChip(status: entry.status),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Order: # ${order.orderNumber}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF3A3A3A),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '\$ ${order.total.toStringAsFixed(2)} ',
+                      style: const TextStyle(
+                        color: Color(0xFFEC407A),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '($itemCount $itemSuffix)',
+                      style: const TextStyle(color: Color(0xFF6A6A6A)),
+                    ),
+                  ],
+                ),
+                style: const TextStyle(fontSize: 20, height: 1.2),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                dateText,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF7D7D7D)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderStatusChip extends StatelessWidget {
+  const _OrderStatusChip({required this.status});
+
+  final OrderStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isCanceled = status == OrderStatus.canceled;
+    final bool isRequesting = status == OrderStatus.requesting;
+    final bgColor = isCanceled
+        ? const Color(0xFFFF6200)
+        : isRequesting
+        ? const Color(0xFFEC407A)
+        : const Color(0xFF2BB857);
+    final iconData = isCanceled
+        ? Icons.close
+        : isRequesting
+        ? Icons.hourglass_top_rounded
+        : Icons.check;
+    final label = isCanceled
+        ? 'Cancel'
+        : isRequesting
+        ? 'Request'
+        : 'Ordered';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 15,
+            height: 15,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Icon(iconData, size: 11, color: bgColor),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

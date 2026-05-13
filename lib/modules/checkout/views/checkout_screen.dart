@@ -14,6 +14,7 @@ import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_cubit.dar
 import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_state.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/order_pricing_section.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/product_order_section.dart';
+import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_state.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/models/shop_option.dart';
@@ -119,24 +120,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<CheckoutCubit, CheckoutState>(
-      listenWhen: (prev, curr) =>
-          curr.status == CheckoutStatus.success &&
-          prev.status != CheckoutStatus.success,
+      listenWhen: (prev, curr) {
+        final becameSuccess =
+            curr.status == CheckoutStatus.success &&
+            prev.status != CheckoutStatus.success;
+        final hasNewError =
+            (curr.errorMessage ?? '').isNotEmpty &&
+            curr.errorMessage != prev.errorMessage;
+        return becameSuccess || hasNewError;
+      },
       listener: (context, state) {
-        final order = state.completedOrder!;
-        context.read<CartBloc>().add(ClearCart());
-        showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => _OrderSuccessDialog(
-            orderNumber: order.orderNumber,
-            onTrackOrder: () {
-              Navigator.of(context)
-                ..pop()
-                ..pushReplacementNamed(AppRoutes.orderTrack, arguments: order);
-            },
-          ),
-        );
+        if (state.status == CheckoutStatus.success &&
+            state.completedOrder != null) {
+          final order = state.completedOrder!;
+          context.read<OrderHistoryCubit>().addPlacedOrder(order);
+          context.read<CartBloc>().add(ClearCart());
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => _OrderSuccessDialog(
+              orderNumber: order.orderNumber,
+              onTrackOrder: () {
+                Navigator.of(context)
+                  ..pop()
+                  ..pushReplacementNamed(
+                    AppRoutes.orderTrack,
+                    arguments: order,
+                  );
+              },
+            ),
+          );
+          return;
+        }
+
+        final error = state.errorMessage?.trim() ?? '';
+        if (error.isNotEmpty) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error)));
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -223,7 +245,12 @@ class _CheckoutBody extends StatelessWidget {
                 ProductOrderSection(items: state.items),
           ),
         ),
-        SliverToBoxAdapter(child: _PromoCodeRow(controller: promoController)),
+        SliverToBoxAdapter(
+          child: _PromoCodeRow(
+            controller: promoController,
+            selectedShop: selectedShop,
+          ),
+        ),
         SliverToBoxAdapter(
           child: BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
@@ -492,9 +519,10 @@ class _ShopNameRow extends StatelessWidget {
 // ─── Promo Code Row ───────────────────────────────────────────────────────────
 
 class _PromoCodeRow extends StatelessWidget {
-  const _PromoCodeRow({required this.controller});
+  const _PromoCodeRow({required this.controller, required this.selectedShop});
 
   final TextEditingController controller;
+  final ShopOption? Function(BuildContext) selectedShop;
 
   @override
   Widget build(BuildContext context) {
@@ -539,7 +567,17 @@ class _PromoCodeRow extends StatelessWidget {
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () => context.read<CheckoutCubit>().applyPromo(),
+                  onPressed: () {
+                    final shopId =
+                        (selectedShop(context)?.shopId ??
+                                UserSession.selectedShopId)
+                            .trim();
+                    final items = context.read<CartBloc>().state.items;
+                    context.read<CheckoutCubit>().applyPromo(
+                      shopId: shopId,
+                      items: items,
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -635,14 +673,12 @@ class _PlaceOrderButton extends StatelessWidget {
     }
     final cartItems = context.read<CartBloc>().state.items;
     final shop = selectedShop(context);
-    final shopName = shop?.storeName ?? 'Supermarket';
+    final shopId = (shop?.shopId ?? UserSession.selectedShopId).trim();
 
     context.read<CheckoutCubit>().placeOrder(
       items: cartItems,
       deliveryAddress: addr,
-      shopName: shopName,
-      storeLatitude: shop?.latitude,
-      storeLongitude: shop?.longitude,
+      shopId: shopId,
     );
   }
 }

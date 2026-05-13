@@ -27,3 +27,8 @@ class RemoveFromCart extends CartEvent {
 class ClearCart extends CartEvent {
   const ClearCart();
 }
+
+class ChangeCartBranch extends CartEvent {
+  final String branchId;
+  const ChangeCartBranch(this.branchId);
+}

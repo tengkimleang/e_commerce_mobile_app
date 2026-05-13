@@ -1,7 +1,7 @@
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-enum CheckoutStatus { idle, loadingDirections, placingOrder, success }
+enum CheckoutStatus { idle, loadingDirections, placingOrder, success, failure }
 
 class CheckoutState {
   const CheckoutState({
@@ -11,6 +11,7 @@ class CheckoutState {
     this.promoDiscount = 0.0,
     this.polylinePoints = const [],
     this.completedOrder,
+    this.errorMessage,
   });
 
   final CheckoutStatus status;
@@ -19,6 +20,7 @@ class CheckoutState {
   final double promoDiscount;
   final List<LatLng> polylinePoints;
   final OrderSummary? completedOrder;
+  final String? errorMessage;
 
   CheckoutState copyWith({
     CheckoutStatus? status,
@@ -27,6 +29,8 @@ class CheckoutState {
     double? promoDiscount,
     List<LatLng>? polylinePoints,
     OrderSummary? completedOrder,
+    String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return CheckoutState(
       status: status ?? this.status,
@@ -35,6 +39,9 @@ class CheckoutState {
       promoDiscount: promoDiscount ?? this.promoDiscount,
       polylinePoints: polylinePoints ?? this.polylinePoints,
       completedOrder: completedOrder ?? this.completedOrder,
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
     );
   }
 }

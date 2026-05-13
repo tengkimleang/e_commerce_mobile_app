@@ -32,8 +32,10 @@ class ApiUrl {
   static const categories = '/categories';
   static const products = '/products';
   static String categoryProducts(int id) => '/categories/$id/products';
-  static String categorySubCategories(int categoryId) => '/categories/$categoryId/subcategories';
-  static String subCategoryProducts(int subCategoryId) => '/subcategories/$subCategoryId/products';
+  static String categorySubCategories(int categoryId) =>
+      '/categories/$categoryId/subcategories';
+  static String subCategoryProducts(int subCategoryId) =>
+      '/subcategories/$subCategoryId/products';
   static String productDetail(int id) => '/products/$id';
   static String productByBarcode(String code) => '/products/by-barcode/$code';
 
@@ -43,6 +45,10 @@ class ApiUrl {
   // POST /favorites/sync            → bulk-upsert local guest favorites on first login; returns { "insertedCount": N }
   static const favorites = '/favorites';
   static const favoritesSync = '/favorites/sync';
+
+  // ── Orders ──
+  static const orders = '/orders';
+  static const ordersPromoValidate = '/orders/promo/validate';
 
   // ── Telegram linking ──
   static const telegramLinkRequest = '/auth/telegram/link-request';

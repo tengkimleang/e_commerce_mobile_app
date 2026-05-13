@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
+import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/services/directions_service.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/order_pricing_section.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/product_order_section.dart';
@@ -27,16 +30,26 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
 
   final _mapController = Completer<GoogleMapController>();
   final _directionsService = DirectionsService();
+  final _ordersRepository = OrdersRepository(di<Dio>());
+  Timer? _pollingTimer;
+  late OrderSummary _order;
   List<LatLng> _polylinePoints = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _order = widget.order;
+    _startOrderPolling();
+  }
+
   void _onMapReady() {
-    final o = widget.order;
+    final o = _order;
     if (o.shopLatitude == null || o.shopLongitude == null) return;
     _loadDirections();
   }
 
   Future<void> _loadDirections() async {
-    final o = widget.order;
+    final o = _order;
     if (o.shopLatitude == null || o.shopLongitude == null) return;
     final shopLatLng = LatLng(o.shopLatitude!, o.shopLongitude!);
     final deliveryLatLng = LatLng(
@@ -53,6 +66,34 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
     if (!mounted) return;
     setState(() => _polylinePoints = finalPoints);
     _moveCameraToFit(shopLatLng, deliveryLatLng);
+  }
+
+  Future<void> _refreshOrderDetail() async {
+    final orderId = _order.orderId.trim();
+    if (orderId.isEmpty) return;
+    try {
+      final latest = await _ordersRepository.fetchOrderDetail(orderId: orderId);
+      if (!mounted) return;
+      final shouldReloadRoute =
+          latest.shopLatitude != _order.shopLatitude ||
+          latest.shopLongitude != _order.shopLongitude ||
+          latest.deliveryAddress.latitude != _order.deliveryAddress.latitude ||
+          latest.deliveryAddress.longitude != _order.deliveryAddress.longitude;
+      setState(() => _order = latest);
+      if (shouldReloadRoute) {
+        _loadDirections();
+      }
+    } catch (_) {
+      // Keep current UI state when backend detail refresh fails.
+    }
+  }
+
+  void _startOrderPolling() {
+    _refreshOrderDetail();
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => _refreshOrderDetail(),
+    );
   }
 
   Future<void> _moveCameraToFit(LatLng a, LatLng b) async {
@@ -77,8 +118,14 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
   }
 
   @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final order = widget.order;
+    final order = _order;
     final formattedDate = DateFormat(_dateFormat).format(order.orderDate);
 
     LatLng? shopLatLng;
@@ -245,9 +292,14 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                           ),
                         ],
                       ),
-                      child: const Column(
+                      child: Column(
                         children: [
-                          OrderStepBar(currentStep: OrderStep.requesting),
+                          OrderStepBar(
+                            currentStep: _resolveOrderStep(
+                              order.trackStep,
+                              order.statusCode,
+                            ),
+                          ),
                           Divider(height: 1, thickness: 0.5),
                         ],
                       ),
@@ -370,5 +422,24 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
         ],
       ),
     );
+  }
+
+  OrderStep _resolveOrderStep(String trackStep, String statusCode) {
+    final value = (trackStep.trim().isNotEmpty ? trackStep : statusCode)
+        .trim()
+        .toUpperCase();
+    switch (value) {
+      case 'REQUESTING':
+        return OrderStep.requesting;
+      case 'PICKING':
+        return OrderStep.picking;
+      case 'DELIVERING':
+        return OrderStep.delivering;
+      case 'DELIVERED':
+        return OrderStep.delivered;
+      case 'CANCELED':
+      default:
+        return OrderStep.requesting;
+    }
   }
 }

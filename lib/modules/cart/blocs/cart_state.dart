@@ -1,9 +1,12 @@
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
 class CartState {
-  final Map<String, CartLine> lines;
+  final String activeBranchId;
+  final Map<String, Map<String, CartLine>> linesByBranch;
 
-  const CartState({this.lines = const {}});
+  const CartState({this.activeBranchId = '', this.linesByBranch = const {}});
+
+  Map<String, CartLine> get lines => linesByBranch[activeBranchId] ?? const {};
 
   int get distinctItemCount => lines.length;
 
@@ -15,13 +18,16 @@ class CartState {
       .map((l) => CartItemViewModel(product: l.product, quantity: l.quantity))
       .toList(growable: false);
 
-  double get totalAmount => lines.values.fold(
-        0.0,
-        (sum, l) => sum + (l.product.price * l.quantity),
-      );
+  double get totalAmount =>
+      lines.values.fold(0.0, (sum, l) => sum + (l.product.price * l.quantity));
 
-  CartState copyWith({Map<String, CartLine>? lines}) =>
-      CartState(lines: lines ?? this.lines);
+  CartState copyWith({
+    String? activeBranchId,
+    Map<String, Map<String, CartLine>>? linesByBranch,
+  }) => CartState(
+    activeBranchId: activeBranchId ?? this.activeBranchId,
+    linesByBranch: linesByBranch ?? this.linesByBranch,
+  );
 }
 
 class CartLine {

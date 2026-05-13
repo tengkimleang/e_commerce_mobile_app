@@ -11,11 +11,13 @@ class ProductOrderSection extends StatefulWidget {
     super.key,
     required this.items,
     this.showPickedCount = false,
+    this.showOutOfStock = false,
     this.initiallyExpanded = true,
   });
 
   final List<CartItemViewModel> items;
   final bool showPickedCount;
+  final bool showOutOfStock;
   final bool initiallyExpanded;
 
   @override
@@ -39,8 +41,7 @@ class _ProductOrderSectionState extends State<ProductOrderSection> {
         InkWell(
           onTap: () => setState(() => _expanded = !_expanded),
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 const Text(
@@ -67,13 +68,18 @@ class _ProductOrderSectionState extends State<ProductOrderSection> {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: widget.items.length,
-            separatorBuilder: (_, __) =>
-                const Divider(height: 1, thickness: 0.5, indent: 16, endIndent: 16),
+            separatorBuilder: (_, _) => const Divider(
+              height: 1,
+              thickness: 0.5,
+              indent: 16,
+              endIndent: 16,
+            ),
             itemBuilder: (context, index) {
               final item = widget.items[index];
               return _ProductOrderRow(
                 item: item,
                 showPickedCount: widget.showPickedCount,
+                showOutOfStock: widget.showOutOfStock,
               );
             },
           ),
@@ -86,10 +92,12 @@ class _ProductOrderRow extends StatelessWidget {
   const _ProductOrderRow({
     required this.item,
     required this.showPickedCount,
+    required this.showOutOfStock,
   });
 
   final CartItemViewModel item;
   final bool showPickedCount;
+  final bool showOutOfStock;
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +117,8 @@ class _ProductOrderRow extends StatelessWidget {
               width: 56,
               height: 56,
               fit: BoxFit.cover,
-              placeholder: (_, __) => Container(color: Colors.grey[200]),
-              errorWidget: (_, __, ___) => Container(color: Colors.grey[300]),
+              placeholder: (_, _) => Container(color: Colors.grey[200]),
+              errorWidget: (_, _, _) => Container(color: Colors.grey[300]),
             ),
           ),
           const SizedBox(width: 12),
@@ -129,9 +137,26 @@ class _ProductOrderRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  qtyLabel,
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                Row(
+                  children: [
+                    Text(
+                      qtyLabel,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    if (showOutOfStock) ...[
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Out of stock',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFFE57373),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

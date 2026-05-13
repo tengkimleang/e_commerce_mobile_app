@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/views/cart_view.dart';
@@ -366,6 +367,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         setState(() => _selectedShop = resolvedShop);
       }
 
+      context.read<CartBloc>().add(ChangeCartBranch(resolvedShop.shopId));
+
       if (UserSession.selectedShopId.isEmpty) {
         UserSession.setSelectedShop(
           resolvedShop.shopId,
@@ -431,6 +434,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                     )
                   : state.shops.first;
               UserSession.setSelectedShop(shop.shopId, name: shop.storeName);
+              context.read<CartBloc>().add(ChangeCartBranch(shop.shopId));
               setState(() => _selectedShop = shop);
               context.read<SupermarketCategoryBloc>().add(LoadCategories());
             }
@@ -985,6 +989,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       return;
     }
     UserSession.setSelectedShop(selected.shopId, name: selected.storeName);
+    context.read<CartBloc>().add(ChangeCartBranch(selected.shopId));
     setState(() => _selectedShop = selected);
     context.read<SupermarketCategoryBloc>().add(LoadCategories());
   }

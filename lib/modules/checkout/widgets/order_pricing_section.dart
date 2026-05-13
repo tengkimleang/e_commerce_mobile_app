@@ -180,7 +180,7 @@ class _SimpleRow extends StatelessWidget {
             label,
             style: const TextStyle(fontSize: 14, color: Colors.black87),
           ),
-          if (labelSuffix != null) labelSuffix!,
+          ?labelSuffix,
           const Spacer(),
           Text(
             value,

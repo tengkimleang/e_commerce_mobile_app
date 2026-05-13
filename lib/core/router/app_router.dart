@@ -17,9 +17,12 @@ import 'package:e_commerce_mobile_app/modules/address/views/receiving_address_sc
 import 'package:e_commerce_mobile_app/modules/scan_barcode/views/scan_barcode_view.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/views/checkout_screen.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_cubit.dart';
+import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/services/directions_service.dart';
 import 'package:e_commerce_mobile_app/modules/order_track/views/order_track_screen.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Named routes used throughout the app.
@@ -80,7 +83,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case AppRoutes.checkout:
       return MaterialPageRoute<void>(
         builder: (_) => BlocProvider(
-          create: (_) => CheckoutCubit(DirectionsService()),
+          create: (_) =>
+              CheckoutCubit(DirectionsService(), OrdersRepository(di<Dio>())),
           child: const CheckoutScreen(),
         ),
       );
