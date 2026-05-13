@@ -7,6 +7,7 @@ import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
+import 'package:flutter/foundation.dart';
 
 class OrdersRepositoryException implements Exception {
   const OrdersRepositoryException({required this.code, required this.message});
@@ -37,9 +38,12 @@ class OrdersRepository {
 
   Map<String, dynamic> get _authHeaders {
     final token = (UserSession.token ?? '').trim();
+    final fallbackAuth = _asString(_dio.options.headers['Authorization']);
     return {
       'Content-Type': 'application/json',
       if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+      if (token.isEmpty && fallbackAuth.isNotEmpty)
+        'Authorization': fallbackAuth,
     };
   }
 
@@ -141,9 +145,8 @@ class OrdersRepository {
 
   Future<OrderSummary> fetchOrderDetail({required String orderId}) async {
     try {
-      final response = await _dio.get(
-        '${ApiUrl.orders}/$orderId',
-        options: Options(headers: _authHeaders),
+      final response = await _getWithJsonBodyCompatibility(
+        path: '${ApiUrl.orders}/$orderId',
       );
       final body = _parseBody(response.data);
       _throwIfApiError(body);
@@ -159,10 +162,9 @@ class OrdersRepository {
     int pageSize = 20,
   }) async {
     try {
-      final response = await _dio.get(
-        ApiUrl.orders,
+      final response = await _getWithJsonBodyCompatibility(
+        path: ApiUrl.orders,
         queryParameters: {'page': page, 'pageSize': pageSize},
-        options: Options(headers: _authHeaders),
       );
       final body = _parseBody(response.data);
       _throwIfApiError(body);
@@ -174,6 +176,60 @@ class OrdersRepository {
     } on DioException catch (e) {
       throw _fromDioException(e);
     }
+  }
+
+  Future<Response<dynamic>> _getWithJsonBodyCompatibility({
+    required String path,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      return await _dio.get(
+        path,
+        queryParameters: queryParameters,
+        options: Options(headers: _authHeaders),
+      );
+    } on DioException catch (e) {
+      if (!_shouldRetryWithJsonBody(e)) rethrow;
+
+      final retryBody = queryParameters ?? <String, dynamic>{};
+      debugPrint(
+        '[OrdersRepository] retrying GET $path with JSON body for backend compatibility',
+      );
+      return _dio.get(
+        path,
+        data: retryBody,
+        options: Options(
+          headers: {..._authHeaders, 'Content-Type': 'application/json'},
+        ),
+      );
+    }
+  }
+
+  bool _shouldRetryWithJsonBody(DioException e) {
+    return e.response?.statusCode == 400 &&
+        _hasSerializerBodyError(e.response?.data);
+  }
+
+  bool _hasSerializerBodyError(dynamic raw) {
+    final payload = _parseBody(raw);
+    final errors = payload['errors'];
+    if (errors is! Map) return false;
+
+    final serializerErrors =
+        errors['serializerErrors'] ??
+        errors['SerializerErrors'] ??
+        errors['serializerError'];
+    if (serializerErrors is List && serializerErrors.isNotEmpty) {
+      return serializerErrors.any(
+        (item) =>
+            item.toString().toLowerCase().contains('json tokens') ||
+            item.toString().toLowerCase().contains(
+              'lineNumber: 0'.toLowerCase(),
+            ),
+      );
+    }
+    final text = serializerErrors?.toString().toLowerCase() ?? '';
+    return text.contains('json tokens') || text.contains('linenumber: 0');
   }
 
   OrderSummary _parseOrderSummary(
@@ -369,6 +425,9 @@ class OrdersRepository {
 
   OrdersRepositoryException _fromDioException(DioException e) {
     final body = _parseBody(e.response?.data);
+    debugPrint(
+      '[OrdersRepository] DioException: ${e.response?.statusCode} ${e.message} body=$body',
+    );
     final code = _firstNonEmpty([
       _asString(body['errorCode']),
       'NETWORK_ERROR',

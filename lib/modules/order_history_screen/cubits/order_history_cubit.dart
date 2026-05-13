@@ -6,6 +6,7 @@ import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart
 import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_state.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OrderHistoryCubit extends Cubit<OrderHistoryState> {
@@ -48,6 +49,7 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
       emit(state.copyWith(orders: entries));
     } catch (_) {
       // Keep current/fallback UI when backend history fetch fails.
+      debugPrint('[OrderHistoryCubit] loadOrders failed.');
     }
   }
 
