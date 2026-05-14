@@ -399,6 +399,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                         ProductOrderSection(
                           items: order.items,
                           showPickedCount: true,
+                          showUnitPrice: true,
                         ),
                         const Divider(height: 1, thickness: 0.5),
                         OrderPricingSection(

@@ -13,12 +13,14 @@ class ProductOrderSection extends StatefulWidget {
     this.showPickedCount = false,
     this.showOutOfStock = false,
     this.initiallyExpanded = true,
+    this.showUnitPrice = false,
   });
 
   final List<CartItemViewModel> items;
   final bool showPickedCount;
   final bool showOutOfStock;
   final bool initiallyExpanded;
+  final bool showUnitPrice;
 
   @override
   State<ProductOrderSection> createState() => _ProductOrderSectionState();
@@ -80,6 +82,7 @@ class _ProductOrderSectionState extends State<ProductOrderSection> {
                 item: item,
                 showPickedCount: widget.showPickedCount,
                 showOutOfStock: widget.showOutOfStock,
+                showUnitPrice: widget.showUnitPrice,
               );
             },
           ),
@@ -93,17 +96,22 @@ class _ProductOrderRow extends StatelessWidget {
     required this.item,
     required this.showPickedCount,
     required this.showOutOfStock,
+    required this.showUnitPrice,
   });
 
   final CartItemViewModel item;
   final bool showPickedCount;
   final bool showOutOfStock;
+  final bool showUnitPrice;
 
   @override
   Widget build(BuildContext context) {
     final qtyLabel = showPickedCount
         ? 'x 0/${item.quantity}'
         : 'x ${item.quantity}';
+    final displayedPrice = showUnitPrice
+        ? item.product.price
+        : (item.product.price * item.quantity);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -163,7 +171,7 @@ class _ProductOrderRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '\$ ${(item.product.price * item.quantity).toStringAsFixed(2)}',
+            '\$ ${displayedPrice.toStringAsFixed(2)}',
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,

@@ -298,40 +298,69 @@ class OrdersRepository {
       fallbackItems: fallbackItems,
     );
 
+    final itemSubtotal = _sumSubtotal(resolvedItems);
+    final parsedSubtotal = _firstNonNullDouble([
+      _asNullableDouble(
+        _lookupValue(pricingMap, const ['subtotal', 'subTotal', 'sub_total']),
+      ),
+      _asNullableDouble(
+        _lookupValue(data, const ['subtotal', 'subTotal', 'sub_total']),
+      ),
+    ]);
     final subtotal =
-        _firstNonNullDouble([
-          _asNullableDouble(pricingMap['subtotal']),
-          _asNullableDouble(data['subtotal']),
-        ]) ??
-        _sumSubtotal(resolvedItems);
+        parsedSubtotal == null || (parsedSubtotal == 0 && itemSubtotal > 0)
+        ? itemSubtotal
+        : parsedSubtotal;
     final deliveryFee =
         _firstNonNullDouble([
-          _asNullableDouble(pricingMap['deliveryFee']),
-          _asNullableDouble(data['deliveryFee']),
+          _asNullableDouble(
+            _lookupValue(pricingMap, const ['deliveryFee', 'delivery_fee']),
+          ),
+          _asNullableDouble(
+            _lookupValue(data, const ['deliveryFee', 'delivery_fee']),
+          ),
         ]) ??
         1.59;
     final packageFees =
         _firstNonNullDouble([
-          _asNullableDouble(pricingMap['packageFees']),
-          _asNullableDouble(data['packageFees']),
+          _asNullableDouble(
+            _lookupValue(pricingMap, const [
+              'packageFees',
+              'packageFee',
+              'package_fees',
+              'package_fee',
+            ]),
+          ),
+          _asNullableDouble(
+            _lookupValue(data, const [
+              'packageFees',
+              'packageFee',
+              'package_fees',
+              'package_fee',
+            ]),
+          ),
         ]) ??
         0.10;
     final discount =
         _firstNonNullDouble([
-          _asNullableDouble(pricingMap['discount']),
-          _asNullableDouble(data['discount']),
+          _asNullableDouble(_lookupValue(pricingMap, const ['discount'])),
+          _asNullableDouble(_lookupValue(data, const ['discount'])),
         ]) ??
         0.0;
     final promoDiscount =
         _firstNonNullDouble([
-          _asNullableDouble(pricingMap['promoDiscount']),
-          _asNullableDouble(data['promoDiscount']),
+          _asNullableDouble(
+            _lookupValue(pricingMap, const ['promoDiscount', 'promo_discount']),
+          ),
+          _asNullableDouble(
+            _lookupValue(data, const ['promoDiscount', 'promo_discount']),
+          ),
         ]) ??
         0.0;
     final total =
         _firstNonNullDouble([
-          _asNullableDouble(pricingMap['total']),
-          _asNullableDouble(data['total']),
+          _asNullableDouble(_lookupValue(pricingMap, const ['total'])),
+          _asNullableDouble(_lookupValue(data, const ['total'])),
         ]) ??
         (subtotal + deliveryFee + packageFees - discount - promoDiscount);
 
@@ -395,13 +424,16 @@ class OrdersRepository {
           _asNullableInt(map['quantity']) ?? fallback?.quantity ?? 0;
       if (quantity <= 0) continue;
 
+      final lineTotal = _asNullableDouble(
+        _lookupValue(map, const ['lineTotal', 'line_total']),
+      );
       final unitPrice =
           _firstNonNullDouble([
-            _asNullableDouble(map['unitPrice']),
+            _asNullableDouble(
+              _lookupValue(map, const ['unitPrice', 'unit_price']),
+            ),
             _asNullableDouble(map['price']),
-            _asNullableDouble(map['lineTotal']) != null
-                ? (_asNullableDouble(map['lineTotal'])! / quantity)
-                : null,
+            lineTotal != null ? lineTotal / quantity : null,
             fallback?.product.price,
           ]) ??
           0.0;
@@ -525,6 +557,17 @@ class OrdersRepository {
   double? _firstNonNullDouble(List<double?> values) {
     for (final value in values) {
       if (value != null) return value;
+    }
+    return null;
+  }
+
+  dynamic _lookupValue(Map<String, dynamic> map, List<String> keys) {
+    for (final key in keys) {
+      if (map.containsKey(key)) return map[key];
+    }
+    final lowerKeys = keys.map((key) => key.toLowerCase()).toSet();
+    for (final entry in map.entries) {
+      if (lowerKeys.contains(entry.key.toLowerCase())) return entry.value;
     }
     return null;
   }
