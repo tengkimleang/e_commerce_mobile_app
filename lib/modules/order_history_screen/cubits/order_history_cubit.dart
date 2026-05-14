@@ -25,7 +25,7 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
   void addPlacedOrder(OrderSummary summary) {
     final next = OrderHistoryEntry(
       summary: summary,
-      status: _statusFromCode(summary.statusCode),
+      status: _statusFromSummary(summary),
     );
     emit(OrderHistoryState(orders: [next, ...state.orders]));
   }
@@ -42,7 +42,7 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
           .map(
             (summary) => OrderHistoryEntry(
               summary: summary,
-              status: _statusFromCode(summary.statusCode),
+              status: _statusFromSummary(summary),
             ),
           )
           .toList(growable: false);
@@ -53,17 +53,25 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
     }
   }
 
-  static OrderStatus _statusFromCode(String code) {
-    final normalized = code.trim().toUpperCase();
+  static OrderStatus _statusFromSummary(OrderSummary summary) {
+    final normalized =
+        (summary.trackStep.trim().isNotEmpty
+                ? summary.trackStep
+                : summary.statusCode)
+            .trim()
+            .toUpperCase();
     switch (normalized) {
       case 'CANCELED':
+      case 'CANCELLED':
         return OrderStatus.canceled;
       case 'REQUESTING':
         return OrderStatus.requesting;
       case 'PICKING':
+        return OrderStatus.picking;
       case 'DELIVERING':
+        return OrderStatus.delivering;
       case 'DELIVERED':
-        return OrderStatus.ordered;
+        return OrderStatus.delivered;
       default:
         return OrderStatus.requesting;
     }

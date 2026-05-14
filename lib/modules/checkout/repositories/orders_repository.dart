@@ -157,6 +157,38 @@ class OrdersRepository {
     }
   }
 
+  Future<OrderSummary> approveOrder({required String orderId}) {
+    return _postOrderTransition(
+      path: ApiUrl.orderApprove(orderId.trim()),
+      orderId: orderId,
+      fallbackStatus: 'PICKING',
+    );
+  }
+
+  Future<OrderSummary> cancelOrder({required String orderId}) {
+    return _postOrderTransition(
+      path: ApiUrl.orderCancel(orderId.trim()),
+      orderId: orderId,
+      fallbackStatus: 'CANCELED',
+    );
+  }
+
+  Future<OrderSummary> deliverStartOrder({required String orderId}) {
+    return _postOrderTransition(
+      path: ApiUrl.orderDeliverStart(orderId.trim()),
+      orderId: orderId,
+      fallbackStatus: 'DELIVERING',
+    );
+  }
+
+  Future<OrderSummary> deliverCompleteOrder({required String orderId}) {
+    return _postOrderTransition(
+      path: ApiUrl.orderDeliverComplete(orderId.trim()),
+      orderId: orderId,
+      fallbackStatus: 'DELIVERED',
+    );
+  }
+
   Future<List<OrderSummary>> fetchOrders({
     int page = 1,
     int pageSize = 20,
@@ -173,6 +205,56 @@ class OrdersRepository {
       return items
           .map((item) => _parseOrderSummary(_toMap(item)))
           .toList(growable: false);
+    } on DioException catch (e) {
+      throw _fromDioException(e);
+    }
+  }
+
+  Future<OrderSummary> _postOrderTransition({
+    required String path,
+    required String orderId,
+    required String fallbackStatus,
+  }) async {
+    try {
+      final response = await _dio.post(
+        path,
+        data: const <String, dynamic>{},
+        options: Options(headers: _authHeaders),
+      );
+      final body = _parseBody(response.data);
+      _throwIfApiError(body);
+      final data = _toMap(body['data']);
+      if (data.isNotEmpty) {
+        return _parseOrderSummary(data);
+      }
+
+      final latest = await fetchOrderDetail(orderId: orderId.trim());
+      if (latest.statusCode.trim().isNotEmpty) return latest;
+
+      return OrderSummary(
+        orderId: latest.orderId,
+        orderNumber: latest.orderNumber,
+        orderDate: latest.orderDate,
+        shopName: latest.shopName,
+        items: latest.items,
+        deliveryAddress: latest.deliveryAddress,
+        subtotal: latest.subtotal,
+        deliveryFee: latest.deliveryFee,
+        packageFees: latest.packageFees,
+        discount: latest.discount,
+        promoDiscount: latest.promoDiscount,
+        total: latest.total,
+        paymentMethod: latest.paymentMethod,
+        statusCode: fallbackStatus,
+        trackStep: fallbackStatus,
+        cancelReasonCode: latest.cancelReasonCode,
+        cancelReasonNote: latest.cancelReasonNote,
+        cancelledBy: latest.cancelledBy,
+        cancelledAtUtc: latest.cancelledAtUtc,
+        itemCount: latest.itemCount,
+        shopLatitude: latest.shopLatitude,
+        shopLongitude: latest.shopLongitude,
+      );
     } on DioException catch (e) {
       throw _fromDioException(e);
     }
@@ -389,6 +471,24 @@ class OrdersRepository {
       ]),
       statusCode: resolvedStatusCode,
       trackStep: resolvedTrackStep,
+      cancelReasonCode: _firstNonEmpty([
+        _asString(data['cancelReasonCode']),
+        _asString(data['cancel_reason_code']),
+      ]),
+      cancelReasonNote: _firstNonEmpty([
+        _asString(data['cancelReasonNote']),
+        _asString(data['cancel_reason_note']),
+      ]),
+      cancelledBy: _firstNonEmpty([
+        _asString(data['cancelledBy']),
+        _asString(data['canceledBy']),
+        _asString(data['cancelled_by']),
+      ]),
+      cancelledAtUtc: _parseNullableDateTime(
+        data['cancelledAtUtc'] ??
+            data['canceledAtUtc'] ??
+            data['cancelled_at_utc'],
+      ),
       itemCount: _asNullableInt(data['itemCount']),
       shopLatitude: _firstNonNullDouble([
         _asNullableDouble(shopMap['latitude']),
@@ -450,7 +550,20 @@ class OrdersRepository {
           fallback?.product.imageUrl ?? '',
         ]),
       );
-      parsed.add(CartItemViewModel(product: product, quantity: quantity));
+      parsed.add(
+        CartItemViewModel(
+          product: product,
+          quantity: quantity,
+          cancelReasonCode: _firstNonEmpty([
+            _asString(map['cancelReasonCode']),
+            _asString(map['cancel_reason_code']),
+          ]),
+          cancelReasonNote: _firstNonEmpty([
+            _asString(map['cancelReasonNote']),
+            _asString(map['cancel_reason_note']),
+          ]),
+        ),
+      );
     }
     return parsed.isNotEmpty ? parsed : fallbackItems;
   }
@@ -576,6 +689,14 @@ class OrdersRepository {
     final text = _asString(raw);
     final parsed = text.isEmpty ? null : DateTime.tryParse(text);
     if (parsed == null) return DateTime.now();
+    return parsed.isUtc ? parsed.toLocal() : parsed;
+  }
+
+  DateTime? _parseNullableDateTime(dynamic raw) {
+    final text = _asString(raw);
+    if (text.isEmpty) return null;
+    final parsed = DateTime.tryParse(text);
+    if (parsed == null) return null;
     return parsed.isUtc ? parsed.toLocal() : parsed;
   }
 

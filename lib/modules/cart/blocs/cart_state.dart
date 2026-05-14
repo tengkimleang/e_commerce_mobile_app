@@ -43,6 +43,13 @@ class CartLine {
 class CartItemViewModel {
   final ProductModel product;
   final int quantity;
+  final String cancelReasonCode;
+  final String cancelReasonNote;
 
-  const CartItemViewModel({required this.product, required this.quantity});
+  const CartItemViewModel({
+    required this.product,
+    required this.quantity,
+    this.cancelReasonCode = '',
+    this.cancelReasonNote = '',
+  });
 }

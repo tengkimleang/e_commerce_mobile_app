@@ -300,3 +300,68 @@ FE display mapping (1:1 with current backend):
 - `REQUESTING` -> `Request`
 - `PICKING`, `DELIVERING`, `DELIVERED` -> `Ordered`
 - `CANCELED` -> `Cancel`
+
+## 8) Approval Flow v1 (Current Implementation Target, 2026-05-14)
+
+### 8.1 Summary
+- FE checkout/order request is integrated and running.
+- Next joint milestone is backend-driven staff approval transitions while FE continues polling.
+
+### 8.2 Canonical lifecycle to enforce
+- Keep statuses: `REQUESTING`, `PICKING`, `DELIVERING`, `DELIVERED`, `CANCELED`.
+- Enforced transitions:
+  - `REQUESTING -> PICKING` (staff approve)
+  - `REQUESTING -> CANCELED` (staff reject/cancel)
+  - `PICKING -> DELIVERING -> DELIVERED`
+  - no backward transitions.
+
+### 8.3 Required BE transition endpoints
+- `POST /orders/{orderId}/approve`
+- `POST /orders/{orderId}/cancel`
+- Optional in this milestone or next:
+  - `POST /orders/{orderId}/deliver-start`
+  - `POST /orders/{orderId}/deliver-complete`
+- Keep standard response envelope:
+  - `{ success, errorCode, errorMsg, data }`
+
+### 8.4 Customer cancel rule (v1)
+- Customer cancel allowed only while order status is `REQUESTING`.
+- If status is `PICKING` or later, return business error via envelope.
+
+### 8.5 Message To Backend Team (Ready To Send)
+Hi BE team,
+
+As of **May 14, 2026**, mobile FE checkout + order-request integration is ready for next phase. We need to lock **staff approval flow v1** before continuing FE implementation.
+
+Please confirm and implement:
+1. Staff action endpoints for order transitions:
+   - `POST /orders/{orderId}/approve` (`REQUESTING -> PICKING`)
+   - `POST /orders/{orderId}/cancel` (`REQUESTING -> CANCELED`)
+2. Transition guardrails (no invalid/backward transitions).
+3. Customer cancel policy in v1: only allowed in `REQUESTING`.
+4. `GET /orders` and `GET /orders/{orderId}` return real-time persisted status with the same response envelope.
+5. Business error codes for:
+   - invalid transition
+   - already processed
+   - cancel not allowed
+
+Once these are confirmed, FE mapping remains:
+- `REQUESTING` = `Request`
+- `PICKING|DELIVERING|DELIVERED` = `Ordered`
+- `CANCELED` = `Cancel`
+
+### 8.6 FE readiness implemented
+- `OrdersRepository` now includes transition methods:
+  - `approveOrder(orderId)`
+  - `cancelOrder(orderId)`
+  - `deliverStartOrder(orderId)` (optional endpoint support)
+  - `deliverCompleteOrder(orderId)` (optional endpoint support)
+- `OrderDetailsView` now exposes customer cancel action when status is `REQUESTING`.
+- On successful cancel, FE refreshes order summary state and reflects backend status.
+
+### 8.7 Joint FE/BE validation checklist
+1. Place order -> status is `REQUESTING`.
+2. Staff approve -> status changes to `PICKING`; FE list/track updates on refresh/poll.
+3. Staff cancel from `REQUESTING` -> FE status becomes `Cancel`.
+4. Invalid transition (example: approve canceled order) -> business error envelope returned.
+5. Customer cancel in `REQUESTING` succeeds; in `PICKING` returns `cancel not allowed`.

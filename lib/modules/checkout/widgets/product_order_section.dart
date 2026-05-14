@@ -12,6 +12,7 @@ class ProductOrderSection extends StatefulWidget {
     required this.items,
     this.showPickedCount = false,
     this.showOutOfStock = false,
+    this.canceledFallbackLabel = 'Canceled',
     this.initiallyExpanded = true,
     this.showUnitPrice = false,
   });
@@ -19,6 +20,7 @@ class ProductOrderSection extends StatefulWidget {
   final List<CartItemViewModel> items;
   final bool showPickedCount;
   final bool showOutOfStock;
+  final String canceledFallbackLabel;
   final bool initiallyExpanded;
   final bool showUnitPrice;
 
@@ -82,6 +84,7 @@ class _ProductOrderSectionState extends State<ProductOrderSection> {
                 item: item,
                 showPickedCount: widget.showPickedCount,
                 showOutOfStock: widget.showOutOfStock,
+                canceledFallbackLabel: widget.canceledFallbackLabel,
                 showUnitPrice: widget.showUnitPrice,
               );
             },
@@ -96,19 +99,44 @@ class _ProductOrderRow extends StatelessWidget {
     required this.item,
     required this.showPickedCount,
     required this.showOutOfStock,
+    required this.canceledFallbackLabel,
     required this.showUnitPrice,
   });
 
   final CartItemViewModel item;
   final bool showPickedCount;
   final bool showOutOfStock;
+  final String canceledFallbackLabel;
   final bool showUnitPrice;
+
+  String _resolveCanceledReasonText() {
+    final code = item.cancelReasonCode.trim().toUpperCase();
+    final note = item.cancelReasonNote.trim();
+
+    final label = switch (code) {
+      'OUT_OF_STOCK' => 'Out of stock',
+      'CUSTOMER_REQUEST' => 'Customer canceled',
+      'PAYMENT_ISSUE' => 'Payment issue',
+      'DELIVERY_UNAVAILABLE' => 'Delivery unavailable',
+      'STORE_CLOSED' => 'Store closed',
+      'OTHER' => 'Other',
+      _ => '',
+    };
+
+    if (note.isNotEmpty && label.isNotEmpty) return '$label: $note';
+    if (note.isNotEmpty) return note;
+    if (label.isNotEmpty) return label;
+    return canceledFallbackLabel;
+  }
 
   @override
   Widget build(BuildContext context) {
     final qtyLabel = showPickedCount
         ? 'x 0/${item.quantity}'
         : 'x ${item.quantity}';
+    final canceledReasonText = showOutOfStock
+        ? _resolveCanceledReasonText()
+        : '';
     final displayedPrice = showUnitPrice
         ? item.product.price
         : (item.product.price * item.quantity);
@@ -156,8 +184,8 @@ class _ProductOrderRow extends StatelessWidget {
                     ),
                     if (showOutOfStock) ...[
                       const SizedBox(width: 10),
-                      const Text(
-                        'Out of stock',
+                      Text(
+                        canceledReasonText,
                         style: TextStyle(
                           fontSize: 13,
                           color: Color(0xFFE57373),

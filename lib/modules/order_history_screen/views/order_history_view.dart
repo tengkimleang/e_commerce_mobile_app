@@ -10,6 +10,7 @@ import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_state.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_details_view.dart';
+import 'package:e_commerce_mobile_app/modules/order_track/views/order_track_screen.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
@@ -117,11 +118,9 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
                       return _OrderCard(
                         entry: entry,
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => OrderDetailsView(entry: entry),
-                            ),
-                          );
+                          Navigator.of(
+                            context,
+                          ).push(_buildOrderTapRoute(entry));
                         },
                       );
                     },
@@ -170,6 +169,34 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
         MaterialPageRoute(builder: (_) => const UserInfoView()),
       );
     }
+  }
+
+  Route<void> _buildOrderTapRoute(OrderHistoryEntry entry) {
+    if (_isActiveTrackStatus(entry)) {
+      return MaterialPageRoute<void>(
+        builder: (_) => OrderTrackScreen(order: entry.summary),
+      );
+    }
+    return MaterialPageRoute<void>(
+      builder: (_) => OrderDetailsView(entry: entry),
+    );
+  }
+
+  bool _isActiveTrackStatus(OrderHistoryEntry entry) {
+    final summary = entry.summary;
+    final normalized =
+        (summary.trackStep.trim().isNotEmpty
+                ? summary.trackStep
+                : summary.statusCode)
+            .trim()
+            .toUpperCase();
+
+    if (normalized.isEmpty) {
+      return entry.isRequesting;
+    }
+    return normalized == 'REQUESTING' ||
+        normalized == 'PICKING' ||
+        normalized == 'DELIVERING';
   }
 }
 
@@ -274,23 +301,37 @@ class _OrderStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isCanceled = status == OrderStatus.canceled;
-    final bool isRequesting = status == OrderStatus.requesting;
-    final bgColor = isCanceled
-        ? const Color(0xFFFF6200)
-        : isRequesting
-        ? const Color(0xFFEC407A)
-        : const Color(0xFF2BB857);
-    final iconData = isCanceled
-        ? Icons.close
-        : isRequesting
-        ? Icons.hourglass_top_rounded
-        : Icons.check;
-    final label = isCanceled
-        ? 'Cancel'
-        : isRequesting
-        ? 'Request'
-        : 'Ordered';
+    final Color bgColor;
+    final IconData iconData;
+    final String label;
+
+    switch (status) {
+      case OrderStatus.requesting:
+        bgColor = const Color(0xFFEC407A);
+        iconData = Icons.hourglass_top_rounded;
+        label = 'Request';
+        break;
+      case OrderStatus.picking:
+        bgColor = const Color(0xFFE64980);
+        iconData = Icons.shopping_cart_outlined;
+        label = 'Picking';
+        break;
+      case OrderStatus.delivering:
+        bgColor = const Color(0xFF1E88E5);
+        iconData = Icons.delivery_dining_outlined;
+        label = 'Delivering';
+        break;
+      case OrderStatus.delivered:
+        bgColor = const Color(0xFF2BB857);
+        iconData = Icons.check;
+        label = 'Delivered';
+        break;
+      case OrderStatus.canceled:
+        bgColor = const Color(0xFFFF6200);
+        iconData = Icons.close;
+        label = 'Cancel';
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),

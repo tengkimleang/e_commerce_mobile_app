@@ -1,6 +1,6 @@
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
 
-enum OrderStatus { requesting, ordered, canceled }
+enum OrderStatus { requesting, picking, delivering, delivered, canceled }
 
 class OrderHistoryEntry {
   const OrderHistoryEntry({required this.summary, required this.status});
@@ -8,7 +8,10 @@ class OrderHistoryEntry {
   final OrderSummary summary;
   final OrderStatus status;
 
-  bool get isRequesting => status == OrderStatus.requesting;
+  bool get isRequesting =>
+      status == OrderStatus.requesting ||
+      status == OrderStatus.picking ||
+      status == OrderStatus.delivering;
   bool get isCanceled => status == OrderStatus.canceled;
   int get displayItemCount =>
       summary.itemCount ??
@@ -17,9 +20,13 @@ class OrderHistoryEntry {
   String get statusTitle {
     switch (status) {
       case OrderStatus.requesting:
-        return 'Requesting';
-      case OrderStatus.ordered:
-        return 'Ordered';
+        return 'Request';
+      case OrderStatus.picking:
+        return 'Picking';
+      case OrderStatus.delivering:
+        return 'Delivering';
+      case OrderStatus.delivered:
+        return 'Delivered';
       case OrderStatus.canceled:
         return 'Cancel';
     }

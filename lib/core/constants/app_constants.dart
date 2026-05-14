@@ -49,6 +49,12 @@ class ApiUrl {
   // ── Orders ──
   static const orders = '/orders';
   static const ordersPromoValidate = '/orders/promo/validate';
+  static String orderApprove(String orderId) => '/orders/$orderId/approve';
+  static String orderCancel(String orderId) => '/orders/$orderId/cancel';
+  static String orderDeliverStart(String orderId) =>
+      '/orders/$orderId/deliver-start';
+  static String orderDeliverComplete(String orderId) =>
+      '/orders/$orderId/deliver-complete';
 
   // ── Telegram linking ──
   static const telegramLinkRequest = '/auth/telegram/link-request';

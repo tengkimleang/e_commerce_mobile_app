@@ -18,6 +18,10 @@ class OrderSummary {
     required this.paymentMethod,
     this.statusCode = '',
     this.trackStep = '',
+    this.cancelReasonCode = '',
+    this.cancelReasonNote = '',
+    this.cancelledBy = '',
+    this.cancelledAtUtc,
     this.itemCount,
     this.shopLatitude,
     this.shopLongitude,
@@ -42,6 +46,12 @@ class OrderSummary {
 
   /// Tracking step from backend (`track.step`). Falls back to [statusCode] when empty.
   final String trackStep;
+
+  /// Optional cancellation metadata.
+  final String cancelReasonCode;
+  final String cancelReasonNote;
+  final String cancelledBy;
+  final DateTime? cancelledAtUtc;
 
   /// Optional server-provided item count from list endpoints.
   final int? itemCount;
