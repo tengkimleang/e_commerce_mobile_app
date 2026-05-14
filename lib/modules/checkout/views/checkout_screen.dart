@@ -663,7 +663,7 @@ class _PlaceOrderButton extends StatelessWidget {
     );
   }
 
-  void _onPlaceOrder(BuildContext context) {
+  Future<void> _onPlaceOrder(BuildContext context) async {
     final addr = context.read<AddressBloc>().state.selectedAddress;
     if (addr == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -671,6 +671,10 @@ class _PlaceOrderButton extends StatelessWidget {
       );
       return;
     }
+
+    final accepted = await _showPlaceOrderConfirmation(context);
+    if (accepted != true || !context.mounted) return;
+
     final cartItems = context.read<CartBloc>().state.items;
     final shop = selectedShop(context);
     final shopId = (shop?.shopId ?? UserSession.selectedShopId).trim();
@@ -679,6 +683,36 @@ class _PlaceOrderButton extends StatelessWidget {
       items: cartItems,
       deliveryAddress: addr,
       shopId: shopId,
+    );
+  }
+
+  Future<bool?> _showPlaceOrderConfirmation(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirm Order'),
+          content: const Text(
+            'Please confirm your order. You can cancel only while the order is in REQUESTING status. '
+            'After staff approval, cancellation may no longer be available.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Back'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

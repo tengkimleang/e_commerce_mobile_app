@@ -95,26 +95,6 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
     return code == 'REQUESTING';
   }
 
-  String get _orderCancelReasonText {
-    final code = _order.cancelReasonCode.trim().toUpperCase();
-    final note = _order.cancelReasonNote.trim();
-
-    final label = switch (code) {
-      'OUT_OF_STOCK' => 'Out of stock',
-      'CUSTOMER_REQUEST' => 'Customer canceled',
-      'PAYMENT_ISSUE' => 'Payment issue',
-      'DELIVERY_UNAVAILABLE' => 'Delivery unavailable',
-      'STORE_CLOSED' => 'Store closed',
-      'OTHER' => 'Other',
-      _ => '',
-    };
-
-    if (note.isNotEmpty && label.isNotEmpty) return '$label: $note';
-    if (note.isNotEmpty) return note;
-    if (label.isNotEmpty) return label;
-    return 'Canceled';
-  }
-
   Future<void> _cancelOrderByCustomer() async {
     final repository = _ordersRepository;
     final orderId = _order.orderId.trim();
@@ -177,21 +157,6 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    if (isCanceled)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            _orderCancelReasonText,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFE57373),
-                            ),
-                          ),
-                        ),
-                      ),
                     const SizedBox(height: 10),
                     Container(
                       color: Colors.white,
