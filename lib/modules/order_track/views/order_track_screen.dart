@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/maps/map_marker_icons.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
@@ -34,12 +35,22 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
   Timer? _pollingTimer;
   late OrderSummary _order;
   List<LatLng> _polylinePoints = [];
+  BitmapDescriptor _shopMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(
+    BitmapDescriptor.hueRose,
+  );
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+    _loadShopMarkerIcon();
     _startOrderPolling();
+  }
+
+  Future<void> _loadShopMarkerIcon() async {
+    final icon = await MapMarkerIcons.pinkShopMarker();
+    if (!mounted) return;
+    setState(() => _shopMarkerIcon = icon);
   }
 
   void _onMapReady() {
@@ -143,7 +154,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
         Marker(
           markerId: const MarkerId('store'),
           position: shopLatLng,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+          icon: _shopMarkerIcon,
           infoWindow: InfoWindow(title: order.shopName),
         ),
       );

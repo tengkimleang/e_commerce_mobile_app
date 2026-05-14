@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/maps/map_marker_icons.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_state.dart';
@@ -34,6 +35,9 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final Completer<GoogleMapController> _mapController = Completer();
   final TextEditingController _promoController = TextEditingController();
+  BitmapDescriptor _storeMarkerIcon = BitmapDescriptor.defaultMarkerWithHue(
+    BitmapDescriptor.hueRose,
+  );
 
   static const double _deliveryFee = 1.59;
   static const double _packageFees = 0.10;
@@ -109,8 +113,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _loadStoreMarkerIcon();
     // Directions + camera fit are triggered via _onMapReady when the map is
     // fully created, so we avoid a timing race with the Completer.
+  }
+
+  Future<void> _loadStoreMarkerIcon() async {
+    final icon = await MapMarkerIcons.pinkShopMarker();
+    if (!mounted) return;
+    setState(() => _storeMarkerIcon = icon);
   }
 
   void _onMapReady() {
@@ -188,6 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           promoController: _promoController,
           deliveryFee: _deliveryFee,
           packageFees: _packageFees,
+          storeMarkerIcon: _storeMarkerIcon,
           selectedShop: (ctx) => _selectedShop(ctx),
           onSelectAddress: _selectAddress,
           onMapReady: _onMapReady,
@@ -210,6 +222,7 @@ class _CheckoutBody extends StatelessWidget {
     required this.promoController,
     required this.deliveryFee,
     required this.packageFees,
+    required this.storeMarkerIcon,
     required this.selectedShop,
     required this.onSelectAddress,
     required this.onMapReady,
@@ -219,6 +232,7 @@ class _CheckoutBody extends StatelessWidget {
   final TextEditingController promoController;
   final double deliveryFee;
   final double packageFees;
+  final BitmapDescriptor storeMarkerIcon;
   final ShopOption? Function(BuildContext) selectedShop;
   final Future<void> Function(BuildContext) onSelectAddress;
   final VoidCallback onMapReady;
@@ -231,6 +245,7 @@ class _CheckoutBody extends StatelessWidget {
           child: _MapSection(
             mapController: mapController,
             selectedShop: selectedShop,
+            storeMarkerIcon: storeMarkerIcon,
             onMapReady: onMapReady,
           ),
         ),
@@ -288,11 +303,13 @@ class _MapSection extends StatelessWidget {
   const _MapSection({
     required this.mapController,
     required this.selectedShop,
+    required this.storeMarkerIcon,
     required this.onMapReady,
   });
 
   final Completer<GoogleMapController> mapController;
   final ShopOption? Function(BuildContext) selectedShop;
+  final BitmapDescriptor storeMarkerIcon;
   final VoidCallback onMapReady;
 
   @override
@@ -313,7 +330,7 @@ class _MapSection extends StatelessWidget {
         Marker(
           markerId: const MarkerId('store'),
           position: shopLatLng,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+          icon: storeMarkerIcon,
           infoWindow: InfoWindow(title: shop.storeName),
         ),
       );
