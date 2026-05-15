@@ -28,6 +28,26 @@ class SetPinView extends StatefulWidget {
   State<SetPinView> createState() => _SetPinViewState();
 }
 
+class _ResolvedSessionData {
+  const _ResolvedSessionData({
+    required this.fullName,
+    required this.phoneNumber,
+    required this.token,
+    required this.refreshToken,
+    required this.accessTokenExpiresInSeconds,
+    required this.refreshTokenExpiresInSeconds,
+    required this.hasCredentialPayload,
+  });
+
+  final String fullName;
+  final String phoneNumber;
+  final String token;
+  final String refreshToken;
+  final int? accessTokenExpiresInSeconds;
+  final int? refreshTokenExpiresInSeconds;
+  final bool hasCredentialPayload;
+}
+
 class _SetPinViewState extends State<SetPinView> {
   final AuthService _authService = AuthService();
   late final List<TextEditingController> _controllers;
@@ -73,6 +93,287 @@ class _SetPinViewState extends State<SetPinView> {
   }
 
   String _clean(dynamic value) => value?.toString().trim() ?? '';
+
+  String _pickFirstNonEmpty(Iterable<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is String && candidate.trim().isNotEmpty) {
+        return candidate.trim();
+      }
+    }
+    return '';
+  }
+
+  int _pickFirstPositiveInt(Iterable<dynamic> candidates) {
+    for (final candidate in candidates) {
+      if (candidate is int && candidate > 0) return candidate;
+      if (candidate is num && candidate > 0) return candidate.toInt();
+      if (candidate is String) {
+        final parsed = int.tryParse(candidate.trim());
+        if (parsed != null && parsed > 0) return parsed;
+      }
+    }
+    return 0;
+  }
+
+  Map<String, dynamic>? _toStringDynamicMap(dynamic source) {
+    if (source is Map<String, dynamic>) return source;
+    if (source is Map) {
+      return source.map((key, value) => MapEntry(key.toString(), value));
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _extractPrimaryUser(Map<String, dynamic> data) {
+    List<dynamic> resolveUsersList(dynamic source) {
+      if (source is List) return source;
+      return const [];
+    }
+
+    final directUsers = resolveUsersList(data['users']);
+    if (directUsers.isNotEmpty) {
+      final user = _toStringDynamicMap(directUsers.first);
+      if (user != null) return user;
+    }
+
+    final directUsersUpper = resolveUsersList(data['Users']);
+    if (directUsersUpper.isNotEmpty) {
+      final user = _toStringDynamicMap(directUsersUpper.first);
+      if (user != null) return user;
+    }
+
+    final nested = _toStringDynamicMap(data['data']);
+    if (nested == null) return null;
+
+    final nestedUsers = resolveUsersList(nested['users']);
+    if (nestedUsers.isNotEmpty) {
+      final user = _toStringDynamicMap(nestedUsers.first);
+      if (user != null) return user;
+    }
+
+    final nestedUsersUpper = resolveUsersList(nested['Users']);
+    if (nestedUsersUpper.isNotEmpty) {
+      final user = _toStringDynamicMap(nestedUsersUpper.first);
+      if (user != null) return user;
+    }
+
+    return null;
+  }
+
+  String _extractToken(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    return _pickFirstNonEmpty([
+      data['token'],
+      data['accessToken'],
+      data['jwt'],
+      data['jwtToken'],
+      nestedMap?['token'],
+      nestedMap?['accessToken'],
+      nestedMap?['jwt'],
+      nestedMap?['jwtToken'],
+    ]);
+  }
+
+  String _extractRefreshToken(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    return _pickFirstNonEmpty([
+      data['refreshToken'],
+      data['RefreshToken'],
+      nestedMap?['refreshToken'],
+      nestedMap?['RefreshToken'],
+    ]);
+  }
+
+  int? _extractAccessTokenExpiresInSeconds(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    final expiresIn = _pickFirstPositiveInt([
+      data['accessTokenExpiresInSeconds'],
+      data['AccessTokenExpiresInSeconds'],
+      data['accessTokenExpiresInSecond'],
+      data['AccessTokenExpiresInSecond'],
+      data['expiresInSeconds'],
+      data['ExpiresInSeconds'],
+      nestedMap?['accessTokenExpiresInSeconds'],
+      nestedMap?['AccessTokenExpiresInSeconds'],
+      nestedMap?['accessTokenExpiresInSecond'],
+      nestedMap?['AccessTokenExpiresInSecond'],
+      nestedMap?['expiresInSeconds'],
+      nestedMap?['ExpiresInSeconds'],
+    ]);
+    return expiresIn > 0 ? expiresIn : null;
+  }
+
+  int? _extractRefreshTokenExpiresInSeconds(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    final expiresIn = _pickFirstPositiveInt([
+      data['refreshTokenExpiresInSeconds'],
+      data['RefreshTokenExpiresInSeconds'],
+      data['refreshExpiresInSeconds'],
+      data['RefreshExpiresInSeconds'],
+      nestedMap?['refreshTokenExpiresInSeconds'],
+      nestedMap?['RefreshTokenExpiresInSeconds'],
+      nestedMap?['refreshExpiresInSeconds'],
+      nestedMap?['RefreshExpiresInSeconds'],
+    ]);
+    return expiresIn > 0 ? expiresIn : null;
+  }
+
+  Future<_ResolvedSessionData> _resolveSessionData(
+    Map<String, dynamic> response, {
+    String fallbackFullName = '',
+    String fallbackPhoneNumber = '',
+  }) async {
+    final nestedMap = _toStringDynamicMap(response['data']);
+    final primaryUser = _extractPrimaryUser(response);
+
+    var resolvedFullName = _pickFirstNonEmpty([
+      fallbackFullName,
+      response['fullName'],
+      response['name'],
+      response['username'],
+      response['full_name'],
+      response['user_name'],
+      nestedMap?['fullName'],
+      nestedMap?['name'],
+      nestedMap?['username'],
+      nestedMap?['full_name'],
+      nestedMap?['user_name'],
+      primaryUser?['fullName'],
+      primaryUser?['name'],
+      primaryUser?['username'],
+      primaryUser?['full_name'],
+      primaryUser?['user_name'],
+      primaryUser?['FullName'],
+      primaryUser?['Name'],
+      primaryUser?['Username'],
+    ]);
+
+    var resolvedPhoneNumber = _pickFirstNonEmpty([
+      fallbackPhoneNumber,
+      response['phoneNumber'],
+      response['phone'],
+      response['phone_number'],
+      nestedMap?['phoneNumber'],
+      nestedMap?['phone'],
+      nestedMap?['phone_number'],
+      primaryUser?['phoneNumber'],
+      primaryUser?['phone'],
+      primaryUser?['phone_number'],
+      primaryUser?['PhoneNumber'],
+      primaryUser?['Phone'],
+    ]);
+
+    final resolvedToken = _extractToken(response);
+    final resolvedRefreshToken = _extractRefreshToken(response);
+    final resolvedAccessTokenExpiresInSeconds =
+        _extractAccessTokenExpiresInSeconds(response);
+    final resolvedRefreshTokenExpiresInSeconds =
+        _extractRefreshTokenExpiresInSeconds(response);
+    final hasCredentialPayload =
+        resolvedToken.isNotEmpty ||
+        resolvedRefreshToken.isNotEmpty ||
+        resolvedAccessTokenExpiresInSeconds != null ||
+        resolvedRefreshTokenExpiresInSeconds != null;
+
+    if (resolvedFullName.isEmpty && resolvedToken.isNotEmpty) {
+      try {
+        final profileResult = await _authService.getUserProfile(
+          accessToken: resolvedToken,
+        );
+        final profileErrorCode = _clean(profileResult['errorCode']);
+        final profileSuccess = profileResult['success'] == true;
+
+        if (profileErrorCode.isEmpty && profileSuccess) {
+          final profileMap =
+              _toStringDynamicMap(profileResult['data']) ?? profileResult;
+          final profileUser = _extractPrimaryUser(profileResult);
+
+          final profileName = _pickFirstNonEmpty([
+            profileMap['fullName'],
+            profileMap['name'],
+            profileMap['username'],
+            profileMap['full_name'],
+            profileMap['user_name'],
+            profileUser?['fullName'],
+            profileUser?['name'],
+            profileUser?['username'],
+            profileUser?['full_name'],
+            profileUser?['user_name'],
+          ]);
+          final profilePhone = _pickFirstNonEmpty([
+            profileMap['phoneNumber'],
+            profileMap['phone'],
+            profileMap['phone_number'],
+            profileUser?['phoneNumber'],
+            profileUser?['phone'],
+            profileUser?['phone_number'],
+          ]);
+
+          if (profileName.isNotEmpty) {
+            resolvedFullName = profileName;
+          }
+          if (profilePhone.isNotEmpty) {
+            resolvedPhoneNumber = profilePhone;
+          }
+        }
+      } catch (_) {
+        // Keep the PIN setup flow successful even if profile hydration fails.
+      }
+    }
+
+    return _ResolvedSessionData(
+      fullName: resolvedFullName,
+      phoneNumber: resolvedPhoneNumber,
+      token: resolvedToken,
+      refreshToken: resolvedRefreshToken,
+      accessTokenExpiresInSeconds: resolvedAccessTokenExpiresInSeconds,
+      refreshTokenExpiresInSeconds: resolvedRefreshTokenExpiresInSeconds,
+      hasCredentialPayload: hasCredentialPayload,
+    );
+  }
+
+  Future<_ResolvedSessionData> _ensureSessionAfterPinSetup(
+    Map<String, dynamic> pinSetupResponse,
+  ) async {
+    final fallbackFullName = _clean(widget.fullName);
+    final fallbackPhoneNumber = _clean(widget.phoneNumber);
+
+    var resolved = await _resolveSessionData(
+      pinSetupResponse,
+      fallbackFullName: fallbackFullName,
+      fallbackPhoneNumber: fallbackPhoneNumber,
+    );
+
+    final hasExistingAccessToken = (UserSession.token ?? '').trim().isNotEmpty;
+    final shouldAutoLogin =
+        !resolved.hasCredentialPayload &&
+        !hasExistingAccessToken &&
+        fallbackPhoneNumber.isNotEmpty;
+
+    if (!shouldAutoLogin) {
+      return resolved;
+    }
+
+    final loginResponse = await _authService.verifyPin(
+      phoneNumber: fallbackPhoneNumber,
+      pinCode: _pinCode,
+    );
+    final loginErrorCode = _clean(loginResponse['errorCode']);
+    final loginSuccess = loginResponse['success'] == true;
+
+    if (loginErrorCode.isNotEmpty || !loginSuccess) {
+      throw Exception(
+        'Your PIN was updated, but automatic sign-in failed. Please log in with your new PIN.',
+      );
+    }
+
+    resolved = await _resolveSessionData(
+      loginResponse,
+      fallbackFullName: fallbackFullName,
+      fallbackPhoneNumber: fallbackPhoneNumber,
+    );
+
+    return resolved;
+  }
 
   bool _isMissingEndpointResponse(Map<String, dynamic> payload) {
     final code = _clean(payload['errorCode']).toUpperCase();
@@ -131,8 +432,8 @@ class _SetPinViewState extends State<SetPinView> {
         final displayMessage = widget.flow == PinSetupFlow.forgotPin
             ? 'PIN reset failed. Please try again.'
             : (errorMsg.isEmpty
-                ? 'Unable to set your PIN right now. Please try again.'
-                : errorMsg);
+                  ? 'Unable to set your PIN right now. Please try again.'
+                  : errorMsg);
         _showErrorDialog(
           title: 'PIN Setup Failed',
           message: displayMessage,
@@ -142,11 +443,28 @@ class _SetPinViewState extends State<SetPinView> {
         return;
       }
 
+      final resolvedSession = await _ensureSessionAfterPinSetup(response);
+      if (!mounted) return;
+
       await UserSession.markAuthenticated(
-        fullName: _clean(widget.fullName).isEmpty ? null : widget.fullName,
-        phoneNumber: _clean(widget.phoneNumber).isEmpty
+        fullName: resolvedSession.fullName.isEmpty
+            ? (_clean(widget.fullName).isEmpty ? null : widget.fullName)
+            : resolvedSession.fullName,
+        phoneNumber: resolvedSession.phoneNumber.isEmpty
             ? null
-            : widget.phoneNumber,
+            : resolvedSession.phoneNumber,
+        token: resolvedSession.hasCredentialPayload
+            ? resolvedSession.token
+            : null,
+        refreshToken: resolvedSession.hasCredentialPayload
+            ? resolvedSession.refreshToken
+            : null,
+        accessTokenExpiresInSeconds: resolvedSession.hasCredentialPayload
+            ? resolvedSession.accessTokenExpiresInSeconds
+            : null,
+        refreshTokenExpiresInSeconds: resolvedSession.hasCredentialPayload
+            ? resolvedSession.refreshTokenExpiresInSeconds
+            : null,
       );
 
       if (!mounted) return;
