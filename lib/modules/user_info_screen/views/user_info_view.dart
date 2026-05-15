@@ -19,8 +19,8 @@ import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_event.dart';
@@ -64,12 +64,8 @@ class UserInfoView extends StatelessWidget {
           final String address = userInfo.address.trim();
           final bool isVerified = userInfo.isVerified;
           final String profileImageUrl = userInfo.profileImageUrl.trim();
-          final File? profileImageFile = (() {
-            final rawPath = userInfo.profileImagePath?.trim() ?? '';
-            if (rawPath.isEmpty) return null;
-            final file = File(rawPath);
-            return file.existsSync() ? file : null;
-          })();
+          final String profileImagePath =
+              userInfo.profileImagePath?.trim() ?? '';
 
           String dateOfBirthLabel() {
             if (dateOfBirth == null) return 'Not Added';
@@ -108,7 +104,7 @@ class UserInfoView extends StatelessWidget {
                         children: [
                           _HeaderCard(
                             username: username,
-                            profileImageFile: profileImageFile,
+                            profileImagePath: profileImagePath,
                             profileImageUrl: profileImageUrl,
                             points: userInfo.points,
                             onTapCamera: () => _pickProfileImage(context),
@@ -704,14 +700,14 @@ class UserInfoView extends StatelessWidget {
 class _HeaderCard extends StatelessWidget {
   const _HeaderCard({
     required this.username,
-    required this.profileImageFile,
+    required this.profileImagePath,
     required this.profileImageUrl,
     required this.points,
     required this.onTapCamera,
   });
 
   final String username;
-  final File? profileImageFile;
+  final String profileImagePath;
   final String profileImageUrl;
   final int points;
   final VoidCallback onTapCamera;
@@ -788,11 +784,21 @@ class _HeaderCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: accent, width: 2),
                     ),
-                    child: profileImageFile != null
+                    child: profileImagePath.isNotEmpty
                         ? ClipOval(
                             child: Image.file(
-                              profileImageFile!,
+                              File(profileImagePath),
                               fit: BoxFit.cover,
+                              errorBuilder: (_, error, stackTrace) {
+                                debugPrint(
+                                  '[UserInfoView] local avatar load failed for $profileImagePath: $error',
+                                );
+                                return const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Color(0xFFEAA4C3),
+                                );
+                              },
                             ),
                           )
                         : profileImageUrl.isNotEmpty
@@ -1116,281 +1122,13 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   }
 
   Future<bool> _showPinVerificationDialog() async {
-    final pinController = TextEditingController();
-    bool isSubmitting = false;
-    bool hidePin = true;
-    String errorText = '';
-    bool isVerified = false;
-    bool isPinLocked = false;
-    const fallbackLockSeconds = 15 * 60;
-    int lockSecondsRemaining = 0;
-    Timer? lockTimer;
-
-    String extractRawLockUntil(Map<String, dynamic> response) {
-      const keys = [
-        'lockUntilUtc',
-        'LockUntilUtc',
-        'lock_until_utc',
-        'lockedUntil',
-        'lockedUntilUtc',
-        'pinLockUntilUtc',
-      ];
-      for (final key in keys) {
-        final value = response[key]?.toString().trim() ?? '';
-        if (value.isNotEmpty) return value;
-      }
-      final nested = response['data'];
-      if (nested is Map) {
-        for (final key in keys) {
-          final value = nested[key]?.toString().trim() ?? '';
-          if (value.isNotEmpty) return value;
-        }
-      }
-      return '';
-    }
-
-    int computeLockSeconds(Map<String, dynamic> response) {
-      final rawLockUntil = extractRawLockUntil(response);
-      if (rawLockUntil.isEmpty) return 0;
-      DateTime? lockUntil = DateTime.tryParse(rawLockUntil);
-      // Some backend responses send UTC without a zone suffix.
-      if (lockUntil == null &&
-          !rawLockUntil.endsWith('Z') &&
-          !rawLockUntil.contains('+')) {
-        lockUntil = DateTime.tryParse('${rawLockUntil}Z');
-      }
-      lockUntil = lockUntil?.toUtc();
-      if (lockUntil == null) return 0;
-      final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
-      return diff > 0 ? diff : 0;
-    }
-
-    String formatCountdown(int seconds) {
-      final mins = (seconds ~/ 60).toString().padLeft(2, '0');
-      final secs = (seconds % 60).toString().padLeft(2, '0');
-      return '$mins:$secs';
-    }
-
-    try {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: true,
-        builder: (ctx) {
-          return StatefulBuilder(
-            builder: (ctx, setDialogState) {
-              void safeDialogSetState(VoidCallback fn) {
-                if (!ctx.mounted) return;
-                setDialogState(fn);
-              }
-
-              void stopLockTimer() {
-                lockTimer?.cancel();
-                lockTimer = null;
-              }
-
-              void startLockTimer(int seconds) {
-                stopLockTimer();
-                lockSecondsRemaining = seconds > 0
-                    ? seconds
-                    : fallbackLockSeconds;
-                lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-                  if (!ctx.mounted || !mounted) {
-                    timer.cancel();
-                    return;
-                  }
-                  if (lockSecondsRemaining <= 1) {
-                    timer.cancel();
-                    safeDialogSetState(() {
-                      lockSecondsRemaining = 0;
-                      isPinLocked = false;
-                      errorText = '';
-                    });
-                    return;
-                  }
-                  safeDialogSetState(() => lockSecondsRemaining -= 1);
-                });
-              }
-
-              Future<void> submitPin() async {
-                final pinCode = pinController.text.trim();
-                if (!_pinPattern.hasMatch(pinCode) ||
-                    isSubmitting ||
-                    isPinLocked) {
-                  return;
-                }
-
-                final phoneNumber = UserSession.phoneNumber.trim();
-                if (phoneNumber.isEmpty) {
-                  safeDialogSetState(() {
-                    errorText = 'Unable to verify PIN. Please login again.';
-                  });
-                  return;
-                }
-
-                safeDialogSetState(() {
-                  isSubmitting = true;
-                  errorText = '';
-                });
-
-                try {
-                  final verifyResponse = await _authService.verifyPin(
-                    phoneNumber: phoneNumber,
-                    pinCode: pinCode,
-                  );
-                  if (!mounted || !ctx.mounted) return;
-
-                  final success = verifyResponse['success'] == true;
-                  final errorCode = (verifyResponse['errorCode'] ?? '')
-                      .toString()
-                      .trim()
-                      .toUpperCase();
-                  final errorMsg = (verifyResponse['errorMsg'] ?? '')
-                      .toString()
-                      .trim();
-
-                  if (!success || errorCode.isNotEmpty) {
-                    final locked = errorCode == 'PIN_LOCKED';
-                    final rawLockSeconds = locked
-                        ? computeLockSeconds(verifyResponse)
-                        : 0;
-                    final effectiveLockSeconds = locked
-                        ? (rawLockSeconds > 0
-                              ? rawLockSeconds
-                              : fallbackLockSeconds)
-                        : 0;
-                    if (locked) {
-                      startLockTimer(effectiveLockSeconds);
-                    } else {
-                      stopLockTimer();
-                    }
-                    safeDialogSetState(() {
-                      isSubmitting = false;
-                      isPinLocked = locked;
-                      lockSecondsRemaining = effectiveLockSeconds;
-                      errorText = errorMsg.isNotEmpty
-                          ? errorMsg
-                          : (locked
-                                ? 'PIN is temporarily locked. Please try again later.'
-                                : 'Incorrect PIN. Please try again.');
-                    });
-                    return;
-                  }
-
-                  stopLockTimer();
-                  isVerified = true;
-                  if (ctx.mounted) {
-                    Navigator.of(ctx).pop();
-                  }
-                } catch (_) {
-                  if (!mounted || !ctx.mounted) return;
-                  safeDialogSetState(() {
-                    isSubmitting = false;
-                    errorText =
-                        'Unable to verify PIN right now. Please try again.';
-                  });
-                }
-              }
-
-              final pin = pinController.text.trim();
-              final canSubmit =
-                  _pinPattern.hasMatch(pin) && !isSubmitting && !isPinLocked;
-
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                title: const Text('Enter PIN'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Enter your login PIN to remove Telegram backup.',
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: pinController,
-                      autofocus: true,
-                      keyboardType: TextInputType.number,
-                      obscureText: hidePin,
-                      maxLength: 4,
-                      enabled: !isPinLocked,
-                      textInputAction: TextInputAction.done,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(4),
-                      ],
-                      onChanged: (_) {
-                        if (errorText.isNotEmpty) {
-                          safeDialogSetState(() => errorText = '');
-                        } else {
-                          safeDialogSetState(() {});
-                        }
-                      },
-                      onSubmitted: (_) {
-                        if (canSubmit) {
-                          submitPin();
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: '4-digit PIN',
-                        counterText: '',
-                        errorText: errorText.isEmpty ? null : errorText,
-                        suffixIcon: IconButton(
-                          onPressed: isPinLocked
-                              ? null
-                              : () => safeDialogSetState(() {
-                                  hidePin = !hidePin;
-                                }),
-                          color: isPinLocked ? Colors.grey : null,
-                          icon: Icon(
-                            hidePin ? Icons.visibility_off : Icons.visibility,
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isPinLocked) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Try again in ${formatCountdown(lockSecondsRemaining)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: isSubmitting
-                        ? null
-                        : () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: canSubmit ? submitPin : null,
-                    style: TextButton.styleFrom(foregroundColor: _accent),
-                    child: isSubmitting
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(isPinLocked ? 'Locked' : 'Confirm'),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      lockTimer?.cancel();
-      pinController.dispose();
-    }
-
-    return isVerified;
+    final verified = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _TelegramPinVerificationView(authService: _authService),
+      ),
+    );
+    return verified == true;
   }
 
   @override
@@ -1459,6 +1197,377 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
           child: const Text('Set Up', style: TextStyle(fontSize: 15)),
         ),
       ],
+    );
+  }
+}
+
+class _TelegramPinVerificationView extends StatefulWidget {
+  final AuthService authService;
+
+  const _TelegramPinVerificationView({required this.authService});
+
+  @override
+  State<_TelegramPinVerificationView> createState() =>
+      _TelegramPinVerificationViewState();
+}
+
+class _TelegramPinVerificationViewState
+    extends State<_TelegramPinVerificationView> {
+  static const _accent = Color(0xFFEC407A);
+  static const _fallbackLockSeconds = 15 * 60;
+
+  final TextEditingController _pinController = TextEditingController();
+  Timer? _lockTimer;
+
+  bool _isSubmitting = false;
+  bool _hidePin = true;
+  bool _isPinLocked = false;
+  int _lockSecondsRemaining = 0;
+  String _errorText = '';
+
+  @override
+  void dispose() {
+    _lockTimer?.cancel();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  String _extractRawLockUntil(Map<String, dynamic> response) {
+    const keys = [
+      'lockUntilUtc',
+      'LockUntilUtc',
+      'lock_until_utc',
+      'lockedUntil',
+      'lockedUntilUtc',
+      'pinLockUntilUtc',
+    ];
+
+    for (final key in keys) {
+      final value = response[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+
+    final nested = response['data'];
+    if (nested is Map) {
+      for (final key in keys) {
+        final value = nested[key]?.toString().trim() ?? '';
+        if (value.isNotEmpty) return value;
+      }
+    }
+
+    return '';
+  }
+
+  int _computeLockSeconds(Map<String, dynamic> response) {
+    final rawLockUntil = _extractRawLockUntil(response);
+    if (rawLockUntil.isEmpty) return 0;
+
+    DateTime? lockUntil = DateTime.tryParse(rawLockUntil);
+    if (lockUntil == null &&
+        !rawLockUntil.endsWith('Z') &&
+        !rawLockUntil.contains('+')) {
+      lockUntil = DateTime.tryParse('${rawLockUntil}Z');
+    }
+
+    lockUntil = lockUntil?.toUtc();
+    if (lockUntil == null) return 0;
+
+    final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    return diff > 0 ? diff : 0;
+  }
+
+  String _formatCountdown(int seconds) {
+    final mins = (seconds ~/ 60).toString().padLeft(2, '0');
+    final secs = (seconds % 60).toString().padLeft(2, '0');
+    return '$mins:$secs';
+  }
+
+  String _resolvePinErrorMessage(String rawMessage, {required bool locked}) {
+    final fallback = locked
+        ? 'PIN is temporarily locked. Please try again later.'
+        : 'Incorrect PIN. Please try again.';
+    final normalized = rawMessage.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.isEmpty) return fallback;
+    if (normalized.length <= 140) return normalized;
+    return '${normalized.substring(0, 137)}...';
+  }
+
+  void _stopLockTimer() {
+    _lockTimer?.cancel();
+    _lockTimer = null;
+  }
+
+  void _startLockTimer(int seconds) {
+    _stopLockTimer();
+    setState(() {
+      _lockSecondsRemaining = seconds > 0 ? seconds : _fallbackLockSeconds;
+      _isPinLocked = true;
+    });
+
+    _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_lockSecondsRemaining <= 1) {
+        timer.cancel();
+        setState(() {
+          _lockSecondsRemaining = 0;
+          _isPinLocked = false;
+          _errorText = '';
+        });
+        return;
+      }
+
+      setState(() => _lockSecondsRemaining -= 1);
+    });
+  }
+
+  void _close(bool verified) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    Navigator.of(context).pop(verified);
+  }
+
+  Future<void> _submitPin() async {
+    final pinCode = _pinController.text.trim();
+    if (!_TelegramBackupTileState._pinPattern.hasMatch(pinCode) ||
+        _isSubmitting ||
+        _isPinLocked) {
+      return;
+    }
+
+    final phoneNumber = UserSession.phoneNumber.trim();
+    if (phoneNumber.isEmpty) {
+      setState(() {
+        _errorText = 'Unable to verify PIN. Please login again.';
+      });
+      return;
+    }
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _isSubmitting = true;
+      _errorText = '';
+    });
+
+    try {
+      final verifyResponse = await widget.authService.verifyPin(
+        phoneNumber: phoneNumber,
+        pinCode: pinCode,
+      );
+      if (!mounted) return;
+
+      final success = verifyResponse['success'] == true;
+      final errorCode = (verifyResponse['errorCode'] ?? '')
+          .toString()
+          .trim()
+          .toUpperCase();
+      final errorMsg = (verifyResponse['errorMsg'] ?? '').toString().trim();
+
+      if (!success || errorCode.isNotEmpty) {
+        final locked = errorCode == 'PIN_LOCKED';
+        final rawLockSeconds = locked ? _computeLockSeconds(verifyResponse) : 0;
+        final effectiveLockSeconds = locked
+            ? (rawLockSeconds > 0 ? rawLockSeconds : _fallbackLockSeconds)
+            : 0;
+
+        if (locked) {
+          _startLockTimer(effectiveLockSeconds);
+        } else {
+          _stopLockTimer();
+        }
+
+        setState(() {
+          _isSubmitting = false;
+          _isPinLocked = locked;
+          _lockSecondsRemaining = effectiveLockSeconds;
+          _errorText = _resolvePinErrorMessage(errorMsg, locked: locked);
+        });
+        return;
+      }
+
+      _stopLockTimer();
+      _close(true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _errorText = 'Unable to verify PIN right now. Please try again.';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pinCode = _pinController.text.trim();
+    final canSubmit =
+        _TelegramBackupTileState._pinPattern.hasMatch(pinCode) &&
+        !_isSubmitting &&
+        !_isPinLocked;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F0F3),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF34313A),
+        elevation: 0,
+        leading: IconButton(
+          onPressed: _isSubmitting ? null : () => _close(false),
+          icon: const Icon(Icons.close),
+        ),
+        title: const Text(
+          'Enter PIN',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.all(24),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 24,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Remove Telegram backup',
+                  style: TextStyle(
+                    color: Color(0xFF34313A),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Enter your login PIN to remove Telegram OTP backup.',
+                  style: TextStyle(
+                    color: Color(0xFF756B73),
+                    fontSize: 15,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _pinController,
+                  autofocus: true,
+                  enabled: !_isSubmitting && !_isPinLocked,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  obscureText: _hidePin,
+                  maxLength: 4,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(4),
+                  ],
+                  decoration: InputDecoration(
+                    counterText: '',
+                    labelText: 'PIN',
+                    hintText: '4 digits',
+                    errorText: _errorText.isEmpty ? null : _errorText,
+                    errorMaxLines: 2,
+                    filled: true,
+                    fillColor: const Color(0xFFFFF7FA),
+                    suffixIcon: IconButton(
+                      onPressed: _isPinLocked
+                          ? null
+                          : () => setState(() => _hidePin = !_hidePin),
+                      icon: Icon(
+                        _hidePin ? Icons.visibility_off : Icons.visibility,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _accent, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFE6CCD8)),
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFE6CCD8)),
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _accent),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: _accent, width: 1.5),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    setState(() {
+                      if (_errorText.isNotEmpty) _errorText = '';
+                    });
+                  },
+                  onSubmitted: (_) => _submitPin(),
+                ),
+                if (_isPinLocked) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Try again in ${_formatCountdown(_lockSecondsRemaining)}',
+                    style: const TextStyle(
+                      color: Color(0xFF756B73),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 28),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: canSubmit ? _submitPin : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accent,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(0xFFF3D6E2),
+                      disabledForegroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(_isPinLocked ? 'Locked' : 'Confirm'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: _isSubmitting ? null : () => _close(false),
+                    style: TextButton.styleFrom(foregroundColor: _accent),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

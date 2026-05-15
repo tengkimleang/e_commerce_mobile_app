@@ -26,6 +26,7 @@ class AuthService {
 
   static String get _baseUrl => ApiUrl.baseUrl;
   static Future<bool>? _refreshInFlight;
+  static const int _maxDebugPayloadLength = 240;
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -41,6 +42,25 @@ class AuthService {
       validateStatus: (status) => status != null,
     ),
   );
+
+  void _debugLog(String message) {
+    if (!kDebugMode) return;
+    debugPrint(message);
+  }
+
+  String _compactForDebug(dynamic value) {
+    final raw = value?.toString() ?? '';
+    if (raw.isEmpty) return '';
+    final oneLine = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (oneLine.length <= _maxDebugPayloadLength) return oneLine;
+    return '${oneLine.substring(0, _maxDebugPayloadLength)}...';
+  }
+
+  void _debugResponse(String tag, Response<dynamic> response) {
+    if (!kDebugMode) return;
+    final body = _compactForDebug(response.data);
+    debugPrint('[AuthService] $tag response: ${response.statusCode} → $body');
+  }
 
   String _asCleanString(dynamic value) {
     if (value == null) return '';
@@ -888,9 +908,14 @@ class AuthService {
         phoneNumber: phoneNumber,
         pinCode: oldPinCode,
       );
-      final verifyCode = _asCleanString(verifyResult['errorCode']).toUpperCase();
+      final verifyCode = _asCleanString(
+        verifyResult['errorCode'],
+      ).toUpperCase();
       if (verifyCode.isNotEmpty) return verifyResult;
-      final verifySuccess = _readBoolField(verifyResult, ['success', 'Success']);
+      final verifySuccess = _readBoolField(verifyResult, [
+        'success',
+        'Success',
+      ]);
       if (!verifySuccess) return verifyResult;
 
       return setPin(pinCode: newPinCode, confirmPinCode: newPinCode);
@@ -945,7 +970,7 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> getUserProfile({String? accessToken}) async {
-    debugPrint('[AuthService] getUserProfile → $_baseUrl/user/me');
+    _debugLog('[AuthService] getUserProfile → $_baseUrl/user/me');
 
     final explicitToken = (accessToken ?? '').trim();
     final response = explicitToken.isNotEmpty
@@ -972,9 +997,7 @@ class AuthService {
                 ),
           );
 
-    debugPrint(
-      '[AuthService] getUserProfile response: ${response.statusCode} → ${response.data}',
-    );
+    _debugResponse('getUserProfile', response);
 
     return _normalizeProfileResponseWithStatus(response);
   }
@@ -1479,10 +1502,7 @@ class AuthService {
     final response = await _sendWithAuthRetry(
       useEnglishHeaders: false,
       send: (headers) => _dio
-          .post(
-            ApiUrl.telegramLinkRequest,
-            options: Options(headers: headers),
-          )
+          .post(ApiUrl.telegramLinkRequest, options: Options(headers: headers))
           .timeout(
             const Duration(seconds: 20),
             onTimeout: () =>
@@ -1500,15 +1520,12 @@ class AuthService {
   /// Checks whether the current user has a Telegram account linked.
   /// Returns `{ linked: bool }` on success.
   Future<Map<String, dynamic>> checkTelegramLinkStatus() async {
-    debugPrint('[AuthService] checkTelegramLinkStatus');
+    _debugLog('[AuthService] checkTelegramLinkStatus');
 
     final response = await _sendWithAuthRetry(
       useEnglishHeaders: false,
       send: (headers) => _dio
-          .get(
-            ApiUrl.telegramLinkStatus,
-            options: Options(headers: headers),
-          )
+          .get(ApiUrl.telegramLinkStatus, options: Options(headers: headers))
           .timeout(
             const Duration(seconds: 15),
             onTimeout: () =>
@@ -1516,16 +1533,12 @@ class AuthService {
           ),
     );
 
-    debugPrint(
-      '[AuthService] checkTelegramLinkStatus response: ${response.statusCode} → ${response.data}',
-    );
+    _debugResponse('checkTelegramLinkStatus', response);
 
     final result = _normalizeProfileResponseWithStatus(response);
-    final linked = _readBoolField(result, ['linked', 'Linked']) ||
-        _readBoolField(
-          _toResponseMap(result['data']),
-          ['linked', 'Linked'],
-        );
+    final linked =
+        _readBoolField(result, ['linked', 'Linked']) ||
+        _readBoolField(_toResponseMap(result['data']), ['linked', 'Linked']);
     return {...result, 'linked': linked};
   }
 
@@ -1536,10 +1549,7 @@ class AuthService {
     final response = await _sendWithAuthRetry(
       useEnglishHeaders: false,
       send: (headers) => _dio
-          .delete(
-            ApiUrl.telegramUnlink,
-            options: Options(headers: headers),
-          )
+          .delete(ApiUrl.telegramUnlink, options: Options(headers: headers))
           .timeout(
             const Duration(seconds: 20),
             onTimeout: () =>
