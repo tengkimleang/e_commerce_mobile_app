@@ -38,21 +38,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     // Step 2: If the user is authenticated, sync with the server.
     if (!UserSession.isAuthenticated) return;
 
-    // Step 2a: Retry any pending toggles that failed on a previous attempt.
-    final pending = _readPendingSyncIds();
-    if (pending.isNotEmpty) {
-      final stillFailing = <String>{};
-      for (final productId in pending) {
-        try {
-          await _repository.toggleFavorite(productId);
-        } catch (_) {
-          stillFailing.add(productId);
-        }
-      }
-      await _savePendingSyncIds(stillFailing);
-    }
-
-    // Step 2b: Fetch the authoritative list of favorite IDs from the server.
+    // Step 2a: Fetch the authoritative list of favorite IDs from the server.
     // The server is the source of truth for which products are favorited;
     // local storage holds the full ProductModel data (names, images, prices).
     //
@@ -67,6 +53,40 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     }
 
     final serverIdSet = serverIds.toSet();
+    var remainingPendingSyncIds = <String>{};
+
+    // Step 2b: Retry pending sync safely.
+    //
+    // The backend endpoint is "toggle", not explicit add/remove. Replaying a
+    // raw toggle can invert state if the original request actually succeeded
+    // but the client treated it as failed (timeout / app killed / flaky network).
+    //
+    // To avoid accidental deletes, compare desired local state vs. current
+    // server state first, and only toggle when they differ.
+    final pending = _readPendingSyncIds();
+    if (pending.isNotEmpty) {
+      final stillFailing = <String>{};
+      for (final productId in pending) {
+        final shouldBeFavorite = localItems.containsKey(productId);
+        final isFavoriteOnServer = serverIdSet.contains(productId);
+
+        // Already aligned — nothing to retry.
+        if (shouldBeFavorite == isFavoriteOnServer) continue;
+
+        try {
+          await _repository.toggleFavorite(productId);
+          if (shouldBeFavorite) {
+            serverIdSet.add(productId);
+          } else {
+            serverIdSet.remove(productId);
+          }
+        } catch (_) {
+          stillFailing.add(productId);
+        }
+      }
+      await _savePendingSyncIds(stillFailing);
+      remainingPendingSyncIds = stillFailing;
+    }
 
     // Rebuild the map: keep local product data but align the set of IDs
     // with whatever the server says is favorited.
@@ -91,7 +111,13 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
       }
     }
 
-    emit(state.copyWith(itemsById: merged, isLoaded: true, pendingSyncIds: const {}));
+    emit(
+      state.copyWith(
+        itemsById: merged,
+        isLoaded: true,
+        pendingSyncIds: remainingPendingSyncIds,
+      ),
+    );
     await _persist(merged);
   }
 
@@ -205,7 +231,9 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         final normalized = item.map(
           (key, value) => MapEntry(key.toString(), value),
         );
-        final model = ProductModel.fromJson(normalized).copyWith(isFavorite: true);
+        final model = ProductModel.fromJson(
+          normalized,
+        ).copyWith(isFavorite: true);
         if (model.id.trim().isEmpty) continue;
         loaded[model.id] = model;
       }

@@ -23,6 +23,10 @@ class PinLoginView extends StatefulWidget {
 
 class _PinLoginViewState extends State<PinLoginView> {
   static const _lockUntilPrefKey = 'pin_lock_until_utc';
+  static final RegExp _timezoneSuffixPattern = RegExp(
+    r'(Z|[+\-]\d{2}:?\d{2})$',
+    caseSensitive: false,
+  );
 
   // Per-phone key so a lock on one number never affects another.
   String get _phoneLockKey => '${_lockUntilPrefKey}_${widget.phoneNumber}';
@@ -90,14 +94,13 @@ class _PinLoginViewState extends State<PinLoginView> {
       if (mounted) setState(() => _lockCheckComplete = true);
       return;
     }
-    final lockUntil = DateTime.tryParse(stored)?.toUtc();
+    final lockUntil = _parseUtcDateTime(stored);
     if (lockUntil == null) {
       await prefs.remove(_phoneLockKey);
       if (mounted) setState(() => _lockCheckComplete = true);
       return;
     }
-    final remaining =
-        lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+    final remaining = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
     if (remaining > 0) {
       // Set both flags atomically in ONE setState so there is never a frame
       // where _lockCheckComplete=true but _isPinLocked=false.
@@ -111,14 +114,22 @@ class _PinLoginViewState extends State<PinLoginView> {
       // since we already set state above).
       _lockTimer?.cancel();
       _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!mounted) { timer.cancel(); return; }
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
         if (_lockSecondsRemaining <= 1) {
           timer.cancel();
           _clearPersistedLock();
-          for (final c in _controllers) { c.clear(); }
+          for (final c in _controllers) {
+            c.clear();
+          }
           if (_focusNodes.isNotEmpty) _focusNodes.first.requestFocus();
           _lockCountdownNotifier.value = 0;
-          setState(() { _isPinLocked = false; _lockSecondsRemaining = 0; });
+          setState(() {
+            _isPinLocked = false;
+            _lockSecondsRemaining = 0;
+          });
           return;
         }
         setState(() => _lockSecondsRemaining -= 1);
@@ -201,8 +212,12 @@ class _PinLoginViewState extends State<PinLoginView> {
   /// the top-level payload and the nested 'data' object, with case variants.
   String _extractRawLockUntil(Map<String, dynamic> response) {
     const keys = [
-      'lockUntilUtc', 'LockUntilUtc', 'lock_until_utc',
-      'lockedUntil', 'lockedUntilUtc', 'pinLockUntilUtc',
+      'lockUntilUtc',
+      'LockUntilUtc',
+      'lock_until_utc',
+      'lockedUntil',
+      'lockedUntilUtc',
+      'pinLockUntilUtc',
     ];
     for (final k in keys) {
       final v = response[k]?.toString().trim() ?? '';
@@ -218,10 +233,30 @@ class _PinLoginViewState extends State<PinLoginView> {
     return '';
   }
 
+  DateTime? _parseUtcDateTime(String? rawValue) {
+    final raw = _clean(rawValue);
+    if (raw.isEmpty) return null;
+
+    // Backend sometimes sends lockUntilUtc without timezone suffix (no "Z").
+    // Treat such values as UTC wall-clock times to avoid timezone drift.
+    if (!_timezoneSuffixPattern.hasMatch(raw)) {
+      final assumedUtc = DateTime.tryParse('${raw}Z');
+      if (assumedUtc != null) return assumedUtc.toUtc();
+    }
+
+    final parsed = DateTime.tryParse(raw);
+    return parsed?.toUtc();
+  }
+
+  String _normalizeUtcIsoString(String rawValue) {
+    final parsed = _parseUtcDateTime(rawValue);
+    return parsed?.toIso8601String() ?? rawValue;
+  }
+
   int _computeLockSecondsFromResponse(Map<String, dynamic> response) {
     final raw = _extractRawLockUntil(response);
     if (raw.isEmpty) return 0;
-    final lockUntil = DateTime.tryParse(raw)?.toUtc();
+    final lockUntil = _parseUtcDateTime(raw);
     if (lockUntil == null) return 0;
     final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
     return diff > 0 ? diff : 0;
@@ -317,7 +352,9 @@ class _PinLoginViewState extends State<PinLoginView> {
   }
 
   Future<void> _submit() async {
-    if (!_isComplete || _isSubmitting || _isPinLocked || !_lockCheckComplete) return;
+    if (!_isComplete || _isSubmitting || _isPinLocked || !_lockCheckComplete) {
+      return;
+    }
 
     setState(() => _isSubmitting = true);
 
@@ -357,10 +394,9 @@ class _PinLoginViewState extends State<PinLoginView> {
           // which would reset the countdown on every app restart.
           final prefs = await SharedPreferences.getInstance();
           final existingStored = prefs.getString(_phoneLockKey);
-          final existingLockUntil =
-              existingStored != null
-                  ? DateTime.tryParse(existingStored)?.toUtc()
-                  : null;
+          final existingLockUntil = existingStored != null
+              ? _parseUtcDateTime(existingStored)
+              : null;
           final now = DateTime.now().toUtc();
 
           int remaining;
@@ -372,7 +408,10 @@ class _PinLoginViewState extends State<PinLoginView> {
             remaining = _computeLockSecondsFromResponse(response);
             final rawLockUntil = _extractRawLockUntil(response);
             if (rawLockUntil.isNotEmpty) {
-              await prefs.setString(_phoneLockKey, rawLockUntil);
+              await prefs.setString(
+                _phoneLockKey,
+                _normalizeUtcIsoString(rawLockUntil),
+              );
             } else {
               final synthetic = now
                   .add(Duration(seconds: remaining > 0 ? remaining : 15 * 60))
@@ -834,7 +873,8 @@ class _PinLoginViewState extends State<PinLoginView> {
                 child: SizedBox(
                   height: 58,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting || _isPinLocked || !_lockCheckComplete
+                    onPressed:
+                        _isSubmitting || _isPinLocked || !_lockCheckComplete
                         ? null
                         : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
@@ -940,7 +980,7 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
           const SizedBox(height: 20),
           ValueListenableBuilder<int>(
             valueListenable: widget.countdownNotifier,
-            builder: (_, seconds, __) => Text(
+            builder: (context, seconds, child) => Text(
               widget.formatCountdown(seconds),
               style: const TextStyle(
                 fontSize: 36,

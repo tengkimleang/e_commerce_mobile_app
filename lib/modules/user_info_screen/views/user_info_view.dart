@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
@@ -18,6 +19,7 @@ import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_bloc.dart';
@@ -1026,6 +1028,7 @@ class _TelegramBackupTile extends StatefulWidget {
 class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   static const _accent = Color(0xFFEC407A);
   final AuthService _authService = AuthService();
+  static final RegExp _pinPattern = RegExp(r'^\d{4}$');
 
   bool _isLoading = true;
   bool _isLinked = false;
@@ -1041,9 +1044,12 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
     try {
       final result = await _authService.checkTelegramLinkStatus();
       if (!mounted) return;
-      final errorCode =
-          (result['errorCode'] ?? '').toString().trim().toUpperCase();
-      final isAuthError = errorCode == 'AUTH401' ||
+      final errorCode = (result['errorCode'] ?? '')
+          .toString()
+          .trim()
+          .toUpperCase();
+      final isAuthError =
+          errorCode == 'AUTH401' ||
           errorCode == 'HTTP401' ||
           errorCode == 'UNAUTHORIZED';
       setState(() {
@@ -1057,9 +1063,9 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   }
 
   Future<void> _openLinkView() async {
-    final linked = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const TelegramLinkView()),
-    );
+    final linked = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => const TelegramLinkView()));
     if (linked == true && mounted) {
       setState(() => _isLinked = true);
     }
@@ -1089,6 +1095,9 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
     );
     if (confirm != true || !mounted) return;
 
+    final pinVerified = await _showPinVerificationDialog();
+    if (pinVerified != true || !mounted) return;
+
     setState(() => _isUnlinking = true);
     try {
       await _authService.unlinkTelegram();
@@ -1104,6 +1113,284 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
         const SnackBar(content: Text('Failed to remove Telegram backup.')),
       );
     }
+  }
+
+  Future<bool> _showPinVerificationDialog() async {
+    final pinController = TextEditingController();
+    bool isSubmitting = false;
+    bool hidePin = true;
+    String errorText = '';
+    bool isVerified = false;
+    bool isPinLocked = false;
+    const fallbackLockSeconds = 15 * 60;
+    int lockSecondsRemaining = 0;
+    Timer? lockTimer;
+
+    String extractRawLockUntil(Map<String, dynamic> response) {
+      const keys = [
+        'lockUntilUtc',
+        'LockUntilUtc',
+        'lock_until_utc',
+        'lockedUntil',
+        'lockedUntilUtc',
+        'pinLockUntilUtc',
+      ];
+      for (final key in keys) {
+        final value = response[key]?.toString().trim() ?? '';
+        if (value.isNotEmpty) return value;
+      }
+      final nested = response['data'];
+      if (nested is Map) {
+        for (final key in keys) {
+          final value = nested[key]?.toString().trim() ?? '';
+          if (value.isNotEmpty) return value;
+        }
+      }
+      return '';
+    }
+
+    int computeLockSeconds(Map<String, dynamic> response) {
+      final rawLockUntil = extractRawLockUntil(response);
+      if (rawLockUntil.isEmpty) return 0;
+      DateTime? lockUntil = DateTime.tryParse(rawLockUntil);
+      // Some backend responses send UTC without a zone suffix.
+      if (lockUntil == null &&
+          !rawLockUntil.endsWith('Z') &&
+          !rawLockUntil.contains('+')) {
+        lockUntil = DateTime.tryParse('${rawLockUntil}Z');
+      }
+      lockUntil = lockUntil?.toUtc();
+      if (lockUntil == null) return 0;
+      final diff = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
+      return diff > 0 ? diff : 0;
+    }
+
+    String formatCountdown(int seconds) {
+      final mins = (seconds ~/ 60).toString().padLeft(2, '0');
+      final secs = (seconds % 60).toString().padLeft(2, '0');
+      return '$mins:$secs';
+    }
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setDialogState) {
+              void safeDialogSetState(VoidCallback fn) {
+                if (!ctx.mounted) return;
+                setDialogState(fn);
+              }
+
+              void stopLockTimer() {
+                lockTimer?.cancel();
+                lockTimer = null;
+              }
+
+              void startLockTimer(int seconds) {
+                stopLockTimer();
+                lockSecondsRemaining = seconds > 0
+                    ? seconds
+                    : fallbackLockSeconds;
+                lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+                  if (!ctx.mounted || !mounted) {
+                    timer.cancel();
+                    return;
+                  }
+                  if (lockSecondsRemaining <= 1) {
+                    timer.cancel();
+                    safeDialogSetState(() {
+                      lockSecondsRemaining = 0;
+                      isPinLocked = false;
+                      errorText = '';
+                    });
+                    return;
+                  }
+                  safeDialogSetState(() => lockSecondsRemaining -= 1);
+                });
+              }
+
+              Future<void> submitPin() async {
+                final pinCode = pinController.text.trim();
+                if (!_pinPattern.hasMatch(pinCode) ||
+                    isSubmitting ||
+                    isPinLocked) {
+                  return;
+                }
+
+                final phoneNumber = UserSession.phoneNumber.trim();
+                if (phoneNumber.isEmpty) {
+                  safeDialogSetState(() {
+                    errorText = 'Unable to verify PIN. Please login again.';
+                  });
+                  return;
+                }
+
+                safeDialogSetState(() {
+                  isSubmitting = true;
+                  errorText = '';
+                });
+
+                try {
+                  final verifyResponse = await _authService.verifyPin(
+                    phoneNumber: phoneNumber,
+                    pinCode: pinCode,
+                  );
+                  if (!mounted || !ctx.mounted) return;
+
+                  final success = verifyResponse['success'] == true;
+                  final errorCode = (verifyResponse['errorCode'] ?? '')
+                      .toString()
+                      .trim()
+                      .toUpperCase();
+                  final errorMsg = (verifyResponse['errorMsg'] ?? '')
+                      .toString()
+                      .trim();
+
+                  if (!success || errorCode.isNotEmpty) {
+                    final locked = errorCode == 'PIN_LOCKED';
+                    final rawLockSeconds = locked
+                        ? computeLockSeconds(verifyResponse)
+                        : 0;
+                    final effectiveLockSeconds = locked
+                        ? (rawLockSeconds > 0
+                              ? rawLockSeconds
+                              : fallbackLockSeconds)
+                        : 0;
+                    if (locked) {
+                      startLockTimer(effectiveLockSeconds);
+                    } else {
+                      stopLockTimer();
+                    }
+                    safeDialogSetState(() {
+                      isSubmitting = false;
+                      isPinLocked = locked;
+                      lockSecondsRemaining = effectiveLockSeconds;
+                      errorText = errorMsg.isNotEmpty
+                          ? errorMsg
+                          : (locked
+                                ? 'PIN is temporarily locked. Please try again later.'
+                                : 'Incorrect PIN. Please try again.');
+                    });
+                    return;
+                  }
+
+                  stopLockTimer();
+                  isVerified = true;
+                  if (ctx.mounted) {
+                    Navigator.of(ctx).pop();
+                  }
+                } catch (_) {
+                  if (!mounted || !ctx.mounted) return;
+                  safeDialogSetState(() {
+                    isSubmitting = false;
+                    errorText =
+                        'Unable to verify PIN right now. Please try again.';
+                  });
+                }
+              }
+
+              final pin = pinController.text.trim();
+              final canSubmit =
+                  _pinPattern.hasMatch(pin) && !isSubmitting && !isPinLocked;
+
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: const Text('Enter PIN'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Enter your login PIN to remove Telegram backup.',
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: pinController,
+                      autofocus: true,
+                      keyboardType: TextInputType.number,
+                      obscureText: hidePin,
+                      maxLength: 4,
+                      enabled: !isPinLocked,
+                      textInputAction: TextInputAction.done,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                      ],
+                      onChanged: (_) {
+                        if (errorText.isNotEmpty) {
+                          safeDialogSetState(() => errorText = '');
+                        } else {
+                          safeDialogSetState(() {});
+                        }
+                      },
+                      onSubmitted: (_) {
+                        if (canSubmit) {
+                          submitPin();
+                        }
+                      },
+                      decoration: InputDecoration(
+                        hintText: '4-digit PIN',
+                        counterText: '',
+                        errorText: errorText.isEmpty ? null : errorText,
+                        suffixIcon: IconButton(
+                          onPressed: isPinLocked
+                              ? null
+                              : () => safeDialogSetState(() {
+                                  hidePin = !hidePin;
+                                }),
+                          color: isPinLocked ? Colors.grey : null,
+                          icon: Icon(
+                            hidePin ? Icons.visibility_off : Icons.visibility,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (isPinLocked) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Try again in ${formatCountdown(lockSecondsRemaining)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () => Navigator.of(ctx).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: canSubmit ? submitPin : null,
+                    style: TextButton.styleFrom(foregroundColor: _accent),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(isPinLocked ? 'Locked' : 'Confirm'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      lockTimer?.cancel();
+      pinController.dispose();
+    }
+
+    return isVerified;
   }
 
   @override
@@ -1152,10 +1439,7 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
               : TextButton(
                   onPressed: _confirmUnlink,
                   style: TextButton.styleFrom(foregroundColor: _accent),
-                  child: const Text(
-                    'Remove',
-                    style: TextStyle(fontSize: 15),
-                  ),
+                  child: const Text('Remove', style: TextStyle(fontSize: 15)),
                 ),
         ],
       );
