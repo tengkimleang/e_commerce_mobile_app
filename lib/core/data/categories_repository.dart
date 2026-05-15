@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
-import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/category_model.dart';
@@ -65,126 +64,7 @@ abstract class CategoriesRepository {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Mock — backed by local ProductData.
-// Use this while the backend is being built.
-// To switch to the real API, change the DI registration in di.dart.
-// ─────────────────────────────────────────────────────────────
-
-class MockCategoriesRepository implements CategoriesRepository {
-  @override
-  Future<List<CategoryModel>> fetchCategories() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return List.generate(ProductData.sectionTitles.length, (index) {
-      return CategoryModel(
-        id: index + 1,
-        nameEn: ProductData.sectionTitles[index],
-        nameKm: index == 0 ? 'ដឹកជញ្ជូនឥតគិតថ្លៃ' : '',
-        bannerImageUrl: ProductData.sectionImages[index],
-        displayOrder: index,
-        isActive: true,
-        promoStartAt: index == 0 ? DateTime(2026, 4, 1) : null,
-        promoEndAt: index == 0 ? DateTime(2026, 4, 30) : null,
-        previewProducts: ProductData.sectionAt(index),
-      );
-    });
-  }
-
-  @override
-  Future<(List<ProductModel>, int)> fetchCategoryProducts(
-    int categoryId, {
-    int page = 1,
-    int pageSize = 20,
-  }) async {
-    final products = ProductData.sectionAt(categoryId - 1);
-    return (products, products.length);
-  }
-
-  @override
-  Future<List<SubCategoryModel>> fetchSubCategories(int categoryId) async =>
-      const [];
-
-  @override
-  Future<(List<ProductModel>, int)> fetchSubCategoryProducts(
-    int subCategoryId, {
-    int page = 1,
-    int pageSize = 20,
-  }) async => (const <ProductModel>[], 0);
-
-  @override
-  Future<(List<ProductModel>, int)> searchProducts(
-    String keyword, {
-    int page = 1,
-    int pageSize = 20,
-  }) async {
-    final q = keyword.trim().toLowerCase();
-    final all = ProductData.allProducts;
-    final filtered = q.isEmpty
-        ? all
-        : all.where((p) => p.name.toLowerCase().contains(q)).toList();
-    final start = ((page - 1) * pageSize).clamp(0, filtered.length);
-    final end = (start + pageSize).clamp(0, filtered.length);
-    return (filtered.sublist(start, end), filtered.length);
-  }
-
-  @override
-  Future<(List<ProductModel>, int)> fetchProductsByCountry(
-    String country, {
-    int page = 1,
-    int pageSize = 20,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    final filtered = ProductData.allProducts
-        .where((p) =>
-            p.countryOfOrigin?.toLowerCase() == country.toLowerCase())
-        .toList();
-    final start = ((page - 1) * pageSize).clamp(0, filtered.length);
-    final end = (start + pageSize).clamp(0, filtered.length);
-    return (filtered.sublist(start, end), filtered.length);
-  }
-
-  @override
-  Future<List<CategoryModel>> fetchPromotionCategories(String shopId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    final all = await fetchCategories();
-    // In mock mode all categories are treated as promotion-visible.
-    // promotionDisplayOrder falls back to displayOrder for sorting.
-    final sorted = [...all]..sort(
-        (a, b) => (a.promotionDisplayOrder ?? a.displayOrder)
-            .compareTo(b.promotionDisplayOrder ?? b.displayOrder),
-      );
-    return sorted.map((c) => CategoryModel(
-      id: c.id,
-      nameEn: c.nameEn,
-      nameKm: c.nameKm,
-      bannerImageUrl: c.bannerImageUrl,
-      displayOrder: c.displayOrder,
-      isActive: c.isActive,
-      promoStartAt: c.promoStartAt,
-      promoEndAt: c.promoEndAt,
-      previewProducts: c.previewProducts,
-      showInPromotion: true,
-      promotionDisplayOrder: c.promotionDisplayOrder,
-    )).toList();
-  }
-
-  @override
-  Future<ProductModel?> fetchProductByBarcode(String code) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final trimmed = code.trim();
-    try {
-      return ProductData.allProducts.firstWhere(
-        (p) => p.barcode != null && p.barcode == trimmed,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-}
-
-// ─────────────────────────────────────────────────────────────
 // HTTP — calls the real ASP.NET Core API.
-// Switch DI registration from MockCategoriesRepository to this
-// once BE endpoints are live in Swagger.
 // ─────────────────────────────────────────────────────────────
 
 class HttpCategoriesRepository implements CategoriesRepository {
@@ -273,8 +153,9 @@ class HttpCategoriesRepository implements CategoriesRepository {
 
     // Defensive client-side sort: BE sorts, but guard against inconsistency.
     result.sort(
-      (a, b) => (a.promotionDisplayOrder ?? a.displayOrder)
-          .compareTo(b.promotionDisplayOrder ?? b.displayOrder),
+      (a, b) => (a.promotionDisplayOrder ?? a.displayOrder).compareTo(
+        b.promotionDisplayOrder ?? b.displayOrder,
+      ),
     );
     return result;
   }
@@ -421,12 +302,12 @@ class HttpCategoriesRepository implements CategoriesRepository {
       final shopId = UserSession.selectedShopId;
       final trimmed = code.trim();
       final url = ApiUrl.productByBarcode(trimmed);
-      debugPrint('[REPO] fetchProductByBarcode → code: "$trimmed" | shopId: "$shopId" | url: $url');
+      debugPrint(
+        '[REPO] fetchProductByBarcode → code: "$trimmed" | shopId: "$shopId" | url: $url',
+      );
       final response = await _dio.get(
         url,
-        queryParameters: {
-          if (shopId.isNotEmpty) 'shopId': shopId,
-        },
+        queryParameters: {if (shopId.isNotEmpty) 'shopId': shopId},
       );
       debugPrint('[REPO] Response status: ${response.statusCode}');
       debugPrint('[REPO] Response body: ${response.data}');
@@ -436,7 +317,9 @@ class HttpCategoriesRepository implements CategoriesRepository {
       if (data == null) return null;
       return ProductModel.fromJson(data);
     } on DioException catch (e) {
-      debugPrint('[REPO] DioException: ${e.response?.statusCode} | ${e.response?.data}');
+      debugPrint(
+        '[REPO] DioException: ${e.response?.statusCode} | ${e.response?.data}',
+      );
       if (e.response?.statusCode == 404) return null;
       rethrow;
     }

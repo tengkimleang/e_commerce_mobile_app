@@ -2,9 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:e_commerce_mobile_app/modules/price_checking/views/price_checking_view.dart';
-import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/wholesale_form_bloc.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/search_products.dart';
 
 class WholesaleFormView extends StatefulWidget {
   const WholesaleFormView({super.key});
@@ -394,10 +393,8 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                             onTap: () async {
                               final result = await Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (_) => PriceCheckingView(
-                                    selectionMode: true,
-                                    products: ProductData.allProducts,
-                                  ),
+                                  builder: (_) =>
+                                      const SearchProducts(selectionMode: true),
                                 ),
                               );
 
