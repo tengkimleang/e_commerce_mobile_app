@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_coordinator.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,11 @@ class _PinLoginViewState extends State<PinLoginView> {
   bool _showPin = false;
   bool _isSubmitting = false;
   bool _isSendingForgotOtp = false;
+  bool _isBiometricLoading = true;
+  bool _isBiometricSubmitting = false;
+  bool _isBiometricAvailable = false;
+  bool _didAttemptAutoBiometric = false;
+  String _biometricActionLabel = 'Use Biometric';
 
   bool _isPinLocked = false;
   int _lockSecondsRemaining = 0;
@@ -46,6 +52,8 @@ class _PinLoginViewState extends State<PinLoginView> {
   bool _lockCheckComplete = false;
   final ValueNotifier<int> _lockCountdownNotifier = ValueNotifier<int>(0);
   bool _lockDialogShown = false;
+  final BiometricLoginCoordinator _biometricCoordinator =
+      BiometricLoginCoordinator.instance;
 
   bool get _isComplete =>
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
@@ -58,6 +66,7 @@ class _PinLoginViewState extends State<PinLoginView> {
     _controllers = List.generate(4, (_) => TextEditingController());
     _focusNodes = List.generate(4, (_) => FocusNode());
     _checkPersistedLock();
+    _loadBiometricState();
   }
 
   @override
@@ -91,13 +100,19 @@ class _PinLoginViewState extends State<PinLoginView> {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_phoneLockKey);
     if (stored == null) {
-      if (mounted) setState(() => _lockCheckComplete = true);
+      if (mounted) {
+        setState(() => _lockCheckComplete = true);
+        _maybeAutoPromptBiometric();
+      }
       return;
     }
     final lockUntil = _parseUtcDateTime(stored);
     if (lockUntil == null) {
       await prefs.remove(_phoneLockKey);
-      if (mounted) setState(() => _lockCheckComplete = true);
+      if (mounted) {
+        setState(() => _lockCheckComplete = true);
+        _maybeAutoPromptBiometric();
+      }
       return;
     }
     final remaining = lockUntil.difference(DateTime.now().toUtc()).inSeconds;
@@ -140,8 +155,49 @@ class _PinLoginViewState extends State<PinLoginView> {
       });
     } else {
       await prefs.remove(_phoneLockKey);
-      if (mounted) setState(() => _lockCheckComplete = true);
+      if (mounted) {
+        setState(() => _lockCheckComplete = true);
+        _maybeAutoPromptBiometric();
+      }
     }
+  }
+
+  Future<void> _loadBiometricState() async {
+    if (mounted) {
+      setState(() => _isBiometricLoading = true);
+    }
+    final status = await _biometricCoordinator.getDeviceStatus();
+    final isEnabled = await _biometricCoordinator.isEnabledForPhone(
+      widget.phoneNumber,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _biometricActionLabel = status.actionLabel;
+      _isBiometricAvailable =
+          status.isSupported && status.hasEnrolledBiometrics && isEnabled;
+      _isBiometricLoading = false;
+    });
+    _maybeAutoPromptBiometric();
+  }
+
+  void _maybeAutoPromptBiometric() {
+    if (_didAttemptAutoBiometric ||
+        _isBiometricLoading ||
+        !_isBiometricAvailable ||
+        !_lockCheckComplete ||
+        _isPinLocked ||
+        _isSubmitting ||
+        _isBiometricSubmitting) {
+      return;
+    }
+
+    _didAttemptAutoBiometric = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _submitBiometricLogin(showMessages: false);
+      }
+    });
   }
 
   /// Removes the persisted lock (called when the countdown expires).
@@ -507,6 +563,91 @@ class _PinLoginViewState extends State<PinLoginView> {
     }
   }
 
+  Future<void> _submitBiometricLogin({required bool showMessages}) async {
+    if (_isBiometricSubmitting ||
+        _isSubmitting ||
+        _isBiometricLoading ||
+        !_isBiometricAvailable ||
+        _isPinLocked ||
+        !_lockCheckComplete) {
+      return;
+    }
+
+    setState(() => _isBiometricSubmitting = true);
+
+    try {
+      final result = await _biometricCoordinator.loginWithBiometrics(
+        phoneNumber: widget.phoneNumber,
+      );
+      if (!mounted) return;
+
+      if (result.isSuccess && result.sessionData != null) {
+        final session = result.sessionData!;
+        await UserSession.markAuthenticated(
+          fullName: session.fullName.isEmpty ? null : session.fullName,
+          phoneNumber: session.phoneNumber.isEmpty ? null : session.phoneNumber,
+          token: session.accessToken.isEmpty ? '' : session.accessToken,
+          refreshToken: session.refreshToken,
+          accessTokenExpiresInSeconds: session.accessTokenExpiresInSeconds,
+          refreshTokenExpiresInSeconds: session.refreshTokenExpiresInSeconds,
+        );
+
+        if (!mounted) return;
+        setState(() => _isBiometricSubmitting = false);
+        context.read<FavoriteBloc>().add(const FavoriteMigrationRequested());
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const IndexView()),
+          (route) => false,
+        );
+        return;
+      }
+
+      setState(() => _isBiometricSubmitting = false);
+      await _loadBiometricState();
+      if (!mounted || !showMessages || result.message.isEmpty) return;
+
+      _showErrorDialog(
+        title: result.status == BiometricFlowStatus.backendUnavailable
+            ? 'Biometric Login Not Ready'
+            : 'Biometric Login Failed',
+        message: result.message,
+        icon: Icons.fingerprint_rounded,
+        iconColor: const Color(0xFFEC407A),
+      );
+    } on DioException catch (error) {
+      if (!mounted) return;
+      setState(() => _isBiometricSubmitting = false);
+      final isNetworkError =
+          error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout;
+      if (!showMessages) return;
+      _showErrorDialog(
+        title: isNetworkError ? 'No Connection' : 'Biometric Login Failed',
+        message: isNetworkError
+            ? 'No internet connection. Please check your network and try again.'
+            : 'Unable to verify biometric login right now.',
+        icon: isNetworkError
+            ? Icons.wifi_off_rounded
+            : Icons.fingerprint_rounded,
+        iconColor: isNetworkError
+            ? Colors.orangeAccent
+            : const Color(0xFFEC407A),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isBiometricSubmitting = false);
+      if (!showMessages) return;
+      _showErrorDialog(
+        title: 'Biometric Login Failed',
+        message: error.toString().replaceFirst('Exception: ', ''),
+        icon: Icons.fingerprint_rounded,
+        iconColor: const Color(0xFFEC407A),
+      );
+    }
+  }
+
   Future<void> _showPinNotSetDialog({required String message}) async {
     if (!mounted) return;
     final shouldContinue = await showDialog<bool>(
@@ -848,6 +989,39 @@ class _PinLoginViewState extends State<PinLoginView> {
                   ),
                 ),
               ),
+              if (_isBiometricAvailable || _isBiometricLoading) ...[
+                const SizedBox(height: 18),
+                Center(
+                  child: TextButton.icon(
+                    onPressed:
+                        _isBiometricSubmitting ||
+                            _isSubmitting ||
+                            _isPinLocked ||
+                            !_lockCheckComplete ||
+                            _isBiometricLoading
+                        ? null
+                        : () => _submitBiometricLogin(showMessages: true),
+                    icon: Icon(
+                      _biometricActionLabel.contains('Face ID')
+                          ? Icons.face_rounded
+                          : Icons.fingerprint_rounded,
+                      color: const Color(0xFFEC407A),
+                    ),
+                    label: Text(
+                      _isBiometricSubmitting
+                          ? 'Scanning...'
+                          : _biometricActionLabel,
+                      style: TextStyle(
+                        color: (_isBiometricSubmitting || _isBiometricLoading)
+                            ? Colors.grey
+                            : const Color(0xFFEC407A),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               Center(
                 child: TextButton(

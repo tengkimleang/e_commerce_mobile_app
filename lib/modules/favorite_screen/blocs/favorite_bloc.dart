@@ -52,17 +52,47 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
       return;
     }
 
-    final serverIdSet = serverIds.toSet();
+    var serverIdSet = serverIds.toSet();
     var remainingPendingSyncIds = <String>{};
 
-    // Step 2b: Retry pending sync safely.
-    //
-    // The backend endpoint is "toggle", not explicit add/remove. Replaying a
-    // raw toggle can invert state if the original request actually succeeded
-    // but the client treated it as failed (timeout / app killed / flaky network).
-    //
-    // To avoid accidental deletes, compare desired local state vs. current
-    // server state first, and only toggle when they differ.
+    // Defensive recovery: if this device still has favorites saved locally but
+    // the server suddenly reports none, do not let one bad/expired auth response
+    // or backend cleanup erase the user's visible list. Re-upsert the local
+    // favorites and verify once before accepting an empty server result.
+    if (serverIdSet.isEmpty && localItems.isNotEmpty) {
+      final localIds = localItems.keys.toSet();
+      try {
+        await _repository.syncFavorites(localIds.toList());
+        final restoredServerIds = await _repository.loadFavoriteIds();
+        if (restoredServerIds != null && restoredServerIds.isNotEmpty) {
+          serverIdSet = restoredServerIds.toSet();
+        } else {
+          remainingPendingSyncIds = localIds;
+          emit(
+            state.copyWith(
+              itemsById: localItems,
+              isLoaded: true,
+              pendingSyncIds: remainingPendingSyncIds,
+            ),
+          );
+          await _savePendingSyncIds(remainingPendingSyncIds);
+          return;
+        }
+      } catch (_) {
+        remainingPendingSyncIds = localIds;
+        emit(
+          state.copyWith(
+            itemsById: localItems,
+            isLoaded: true,
+            pendingSyncIds: remainingPendingSyncIds,
+          ),
+        );
+        await _savePendingSyncIds(remainingPendingSyncIds);
+        return;
+      }
+    }
+
+    // Step 2b: Retry pending sync safely using idempotent add/remove endpoints.
     final pending = _readPendingSyncIds();
     if (pending.isNotEmpty) {
       final stillFailing = <String>{};
@@ -74,10 +104,11 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
         if (shouldBeFavorite == isFavoriteOnServer) continue;
 
         try {
-          await _repository.toggleFavorite(productId);
           if (shouldBeFavorite) {
+            await _repository.addFavorite(productId);
             serverIdSet.add(productId);
           } else {
+            await _repository.removeFavorite(productId);
             serverIdSet.remove(productId);
           }
         } catch (_) {
@@ -145,7 +176,11 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     if (!UserSession.isAuthenticated) return;
 
     try {
-      await _repository.toggleFavorite(productId);
+      if (updated.containsKey(productId)) {
+        await _repository.addFavorite(productId);
+      } else {
+        await _repository.removeFavorite(productId);
+      }
     } catch (_) {
       // API failed — add to pending set so it will be retried on next load.
       final pending = {...state.pendingSyncIds, productId};
@@ -171,7 +206,7 @@ class FavoriteBloc extends Bloc<FavoriteEvent, FavoriteState> {
     if (!UserSession.isAuthenticated) return;
 
     try {
-      await _repository.toggleFavorite(productId);
+      await _repository.removeFavorite(productId);
     } catch (_) {
       final pending = {...state.pendingSyncIds, productId};
       emit(state.copyWith(pendingSyncIds: pending));

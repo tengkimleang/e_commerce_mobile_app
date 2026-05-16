@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to let you update your profile photo.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>This app uses Face ID to let you sign in faster and protect your account.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to pin your delivery address on the map.</string>
 	<key>GMSApiKey</key>

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_coordinator.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -445,6 +446,11 @@ class _SetPinViewState extends State<SetPinView> {
 
       final resolvedSession = await _ensureSessionAfterPinSetup(response);
       if (!mounted) return;
+
+      if (widget.flow == PinSetupFlow.forgotPin) {
+        await BiometricLoginCoordinator.instance
+            .clearEnrollmentForSecurityChange();
+      }
 
       await UserSession.markAuthenticated(
         fullName: resolvedSession.fullName.isEmpty

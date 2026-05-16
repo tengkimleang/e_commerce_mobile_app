@@ -16,6 +16,9 @@ class AuthService {
   static const _forgotPinVerifyOtpEndpoint = '/auth/pin/forgot/verify-otp';
   static const _verifyPinEndpoint = '/auth/login/verify-pin';
   static const _checkLoginPhoneEndpoint = '/auth/login/check-phone';
+  static const _biometricRegisterEndpoint = '/auth/biometric/register';
+  static const _biometricLoginEndpoint = '/auth/biometric/login';
+  static const _biometricRevokeEndpoint = '/auth/biometric/revoke';
   static const _mallMembershipQrEndpoint = '/user/me/mall-qr';
   static const _avatarUploadEndpoint = '/user/me/profile';
   static const _avatarUploadLegacyEndpoint = '/user/me/avatar';
@@ -623,6 +626,118 @@ class AuthService {
 
     debugPrint(
       '[AuthService] verifyPin response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> registerBiometric({
+    required String deviceId,
+    required String platform,
+    String? deviceName,
+    String? biometricType,
+  }) async {
+    final payload = <String, dynamic>{
+      'deviceId': deviceId,
+      'platform': platform,
+    };
+    if (_asCleanString(deviceName).isNotEmpty) {
+      payload['deviceName'] = deviceName;
+    }
+    if (_asCleanString(biometricType).isNotEmpty) {
+      payload['biometricType'] = biometricType;
+    }
+
+    debugPrint(
+      '[AuthService] registerBiometric → $_baseUrl$_biometricRegisterEndpoint',
+    );
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: false,
+      send: (headers) => _dio
+          .post(
+            _biometricRegisterEndpoint,
+            data: payload,
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () =>
+                throw TimeoutException('Biometric registration timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] registerBiometric response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> loginWithBiometric({
+    required String phoneNumber,
+    required String deviceId,
+    required String biometricToken,
+  }) async {
+    debugPrint('[AuthService] loginWithBiometric → $phoneNumber');
+
+    final response = await _dio
+        .post(
+          _biometricLoginEndpoint,
+          data: {
+            'phoneNumber': phoneNumber,
+            'deviceId': deviceId,
+            'biometricToken': biometricToken,
+          },
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException('Biometric login timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] loginWithBiometric response: ${response.statusCode} → ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> revokeBiometric({String? deviceId}) async {
+    final payload = <String, dynamic>{};
+    if (_asCleanString(deviceId).isNotEmpty) {
+      payload['deviceId'] = deviceId;
+    }
+
+    debugPrint(
+      '[AuthService] revokeBiometric → $_baseUrl$_biometricRevokeEndpoint',
+    );
+
+    final accessToken = (UserSession.token ?? '').trim();
+    final response = accessToken.isEmpty
+        ? await _dio
+              .post(_biometricRevokeEndpoint, data: payload)
+              .timeout(
+                const Duration(seconds: 20),
+                onTimeout: () =>
+                    throw TimeoutException('Biometric revoke timed out'),
+              )
+        : await _sendWithAuthRetry(
+            useEnglishHeaders: false,
+            send: (headers) => _dio
+                .post(
+                  _biometricRevokeEndpoint,
+                  data: payload,
+                  options: Options(headers: headers),
+                )
+                .timeout(
+                  const Duration(seconds: 20),
+                  onTimeout: () =>
+                      throw TimeoutException('Biometric revoke timed out'),
+                ),
+          );
+
+    debugPrint(
+      '[AuthService] revokeBiometric response: ${response.statusCode} → ${response.data}',
     );
 
     return _normalizeProfileResponseWithStatus(response);

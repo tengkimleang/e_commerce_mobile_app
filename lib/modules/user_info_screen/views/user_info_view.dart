@@ -17,6 +17,8 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_ima
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/telegram_link_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/biometric/biometric_auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_coordinator.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -253,28 +255,7 @@ class UserInfoView extends StatelessWidget {
                                   height: 30,
                                   color: Color(0xFFD7D1D6),
                                 ),
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Login with Face ID:',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Color(0xFFB0AAB3),
-                                        ),
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: true,
-                                      activeThumbColor: accent,
-                                      activeTrackColor: const Color(0xFFF9DCEA),
-                                      inactiveTrackColor: const Color(
-                                        0xFFF9DCEA,
-                                      ),
-                                      onChanged: (_) {},
-                                    ),
-                                  ],
-                                ),
+                                _BiometricLoginTile(phoneNumber: rawPhone),
                                 const Divider(
                                   height: 30,
                                   color: Color(0xFFD7D1D6),
@@ -694,6 +675,127 @@ class UserInfoView extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const OrderHistoryView()),
       );
     }
+  }
+}
+
+class _BiometricLoginTile extends StatefulWidget {
+  const _BiometricLoginTile({required this.phoneNumber});
+
+  final String phoneNumber;
+
+  @override
+  State<_BiometricLoginTile> createState() => _BiometricLoginTileState();
+}
+
+class _BiometricLoginTileState extends State<_BiometricLoginTile> {
+  final BiometricLoginCoordinator _coordinator =
+      BiometricLoginCoordinator.instance;
+
+  DeviceBiometricStatus? _deviceStatus;
+  bool _isEnabled = false;
+  bool _isLoading = true;
+  bool _isBusy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadState();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BiometricLoginTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.phoneNumber.trim() != widget.phoneNumber.trim()) {
+      _loadState();
+    }
+  }
+
+  Future<void> _loadState() async {
+    setState(() => _isLoading = true);
+    final status = await _coordinator.getDeviceStatus();
+    final enabled = widget.phoneNumber.trim().isNotEmpty
+        ? await _coordinator.isEnabledForPhone(widget.phoneNumber)
+        : false;
+
+    if (!mounted) return;
+    setState(() {
+      _deviceStatus = status;
+      _isEnabled = enabled;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _onToggleChanged(bool nextValue) async {
+    if (_isBusy || _isLoading) return;
+
+    setState(() => _isBusy = true);
+    if (nextValue) {
+      final result = await _coordinator.enableBiometricLogin(
+        phoneNumber: widget.phoneNumber,
+      );
+      if (mounted && result.message.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: result.isSuccess
+                ? const Color(0xFF4CAF50)
+                : const Color(0xFF5F5A63),
+          ),
+        );
+      }
+    } else {
+      await _coordinator.disableBiometricLogin();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Biometric login has been disabled.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+
+    if (!mounted) return;
+    await _loadState();
+    if (!mounted) return;
+    setState(() => _isBusy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _deviceStatus;
+    final label = status?.settingsLabel ?? 'Login with Biometric:';
+    final canEnable =
+        status?.isSupported == true && widget.phoneNumber.trim().isNotEmpty;
+    final canDisable = _isEnabled;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+          ),
+        ),
+        if (_isBusy || _isLoading)
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2.2),
+          ),
+        if (_isBusy || _isLoading) const SizedBox(width: 10),
+        Switch(
+          value: _isEnabled,
+          activeThumbColor: const Color(0xFFEC407A),
+          activeTrackColor: const Color(0xFFF9DCEA),
+          inactiveTrackColor: const Color(0xFFF9DCEA),
+          onChanged: (_isBusy || _isLoading || (!canEnable && !canDisable))
+              ? null
+              : _onToggleChanged,
+        ),
+      ],
+    );
   }
 }
 

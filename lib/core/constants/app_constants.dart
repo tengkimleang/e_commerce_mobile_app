@@ -40,10 +40,14 @@ class ApiUrl {
   static String productByBarcode(String code) => '/products/by-barcode/$code';
 
   // ── Favorites ──
-  // GET  /favorites                 → list of favorited product IDs for the authenticated user (no query params)
-  // POST /favorites                 → toggle (add if absent, remove if present); returns { "action": "added" | "removed" }
-  // POST /favorites/sync            → bulk-upsert local guest favorites on first login; returns { "insertedCount": N }
+  // GET    /favorites              → list of favorited product IDs for the authenticated user
+  // PUT    /favorites/{productId}  → idempotently add a favorite
+  // DELETE /favorites/{productId}  → idempotently remove a favorite
+  // POST   /favorites              → legacy toggle; avoid for new FE writes
+  // POST   /favorites/sync         → bulk-upsert local guest favorites on first login
   static const favorites = '/favorites';
+  static String favoriteByProductId(String productId) =>
+      '/favorites/$productId';
   static const favoritesSync = '/favorites/sync';
 
   // ── Orders ──

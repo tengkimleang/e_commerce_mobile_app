@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_coordinator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,15 +89,25 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       });
       _lockTimer?.cancel();
       _lockTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!mounted) { timer.cancel(); return; }
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
         if (_lockSecondsRemaining <= 1) {
           timer.cancel();
           _clearPersistedLock();
-          for (final c in _oldControllers) { c.clear(); }
-          for (final c in _newControllers) { c.clear(); }
+          for (final c in _oldControllers) {
+            c.clear();
+          }
+          for (final c in _newControllers) {
+            c.clear();
+          }
           if (_oldFocusNodes.isNotEmpty) _oldFocusNodes.first.requestFocus();
           _lockCountdownNotifier.value = 0;
-          setState(() { _isPinLocked = false; _lockSecondsRemaining = 0; });
+          setState(() {
+            _isPinLocked = false;
+            _lockSecondsRemaining = 0;
+          });
           return;
         }
         setState(() => _lockSecondsRemaining -= 1);
@@ -178,8 +189,12 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
   /// the top-level payload and the nested 'data' object, with case variants.
   String _extractRawLockUntil(Map<String, dynamic> response) {
     const keys = [
-      'lockUntilUtc', 'LockUntilUtc', 'lock_until_utc',
-      'lockedUntil', 'lockedUntilUtc', 'pinLockUntilUtc',
+      'lockUntilUtc',
+      'LockUntilUtc',
+      'lock_until_utc',
+      'lockedUntil',
+      'lockedUntilUtc',
+      'pinLockUntilUtc',
     ];
     for (final k in keys) {
       final v = response[k]?.toString().trim() ?? '';
@@ -204,10 +219,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
     return diff > 0 ? diff : 0;
   }
 
-  bool get _isOldComplete =>
-      _oldControllers.every((c) => c.text.length == 1);
-  bool get _isNewComplete =>
-      _newControllers.every((c) => c.text.length == 1);
+  bool get _isOldComplete => _oldControllers.every((c) => c.text.length == 1);
+  bool get _isNewComplete => _newControllers.every((c) => c.text.length == 1);
   bool get _isFormComplete => _isOldComplete && _isNewComplete;
 
   String get _oldPin => _oldControllers.map((c) => c.text).join();
@@ -252,11 +265,16 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
 
       if (!mounted) return;
 
-      final errorCode = (result['errorCode'] as String? ?? '').trim().toUpperCase();
+      final errorCode = (result['errorCode'] as String? ?? '')
+          .trim()
+          .toUpperCase();
       final errorMsg = (result['errorMsg'] as String? ?? '').trim();
       final success = result['success'] == true && errorCode.isEmpty;
 
       if (success) {
+        await BiometricLoginCoordinator.instance
+            .clearEnrollmentForSecurityChange();
+        if (!mounted) return;
         setState(() => _isSubmitting = false);
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -339,7 +357,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      final isNetwork = e.type == DioExceptionType.connectionError ||
+      final isNetwork =
+          e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout;
@@ -356,7 +375,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       setState(() => _isSubmitting = false);
       _showErrorDialog(
         title: 'No Connection',
-        message: 'Request timed out. Please check your connection and try again.',
+        message:
+            'Request timed out. Please check your connection and try again.',
         icon: Icons.wifi_off_rounded,
         iconColor: Colors.orangeAccent,
       );
@@ -420,7 +440,11 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
             ),
             const SizedBox(height: 20),
           ],
@@ -432,7 +456,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFEC407A),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               child: const Text('OK'),
             ),
@@ -453,13 +480,17 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       children: List.generate(
         controllers.length,
         (index) => Padding(
-          padding: EdgeInsets.only(right: index == controllers.length - 1 ? 0 : 12),
+          padding: EdgeInsets.only(
+            right: index == controllers.length - 1 ? 0 : 12,
+          ),
           child: SizedBox(
             width: 64,
             child: _PinDigitField(
               controller: controllers[index],
               focusNode: focusNodes[index],
-              textInputAction: (index == controllers.length - 1 && controllers == _newControllers)
+              textInputAction:
+                  (index == controllers.length - 1 &&
+                      controllers == _newControllers)
                   ? TextInputAction.done
                   : TextInputAction.next,
               autofocus: autofocusFirst && index == 0,
@@ -483,7 +514,11 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.chevron_left, size: 34, color: Color(0xFF7A7A7A)),
+                icon: const Icon(
+                  Icons.chevron_left,
+                  size: 34,
+                  color: Color(0xFF7A7A7A),
+                ),
               ),
             ),
             Expanded(
@@ -516,7 +551,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Old PIN',
-                        style: TextStyle(fontSize: 16, color: Color(0xFFEC407A)),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFFEC407A),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -531,7 +569,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'New PIN',
-                        style: TextStyle(fontSize: 16, color: Color(0xFFEC407A)),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFFEC407A),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -553,10 +594,18 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
         child: SizedBox(
           height: 48,
           child: ElevatedButton(
-            onPressed: (_isFormComplete && !_isSubmitting && !_isPinLocked && _lockCheckComplete) ? _submit : null,
+            onPressed:
+                (_isFormComplete &&
+                    !_isSubmitting &&
+                    !_isPinLocked &&
+                    _lockCheckComplete)
+                ? _submit
+                : null,
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.resolveWith((states) {
-                if (states.contains(WidgetState.disabled)) return const Color(0xFFA6A6A8);
+                if (states.contains(WidgetState.disabled)) {
+                  return const Color(0xFFA6A6A8);
+                }
                 return const Color(0xFFEC407A);
               }),
               foregroundColor: WidgetStateProperty.all(Colors.white),
@@ -574,7 +623,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       color: Colors.white,
                     ),
                   )
-                : const Text('SUBMIT', style: TextStyle(fontSize: 15, letterSpacing: 1.2)),
+                : const Text(
+                    'SUBMIT',
+                    style: TextStyle(fontSize: 15, letterSpacing: 1.2),
+                  ),
           ),
         ),
       ),

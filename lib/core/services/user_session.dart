@@ -40,6 +40,8 @@ class UserSession {
       _fullName.isNotEmpty ? _fullName : _phoneNumber;
   static String? get token => _token;
   static String? get refreshToken => _refreshToken;
+  static String get lastKnownFullName => _lastKnownFullName;
+  static String get lastKnownPhone => _lastKnownPhone;
   static DateTime? get accessTokenExpiresAt =>
       _toDateTime(_accessTokenExpiryEpochMs);
   static DateTime? get refreshTokenExpiresAt =>
