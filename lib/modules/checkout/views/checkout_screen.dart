@@ -711,7 +711,7 @@ class _PlaceOrderButton extends StatelessWidget {
         return AlertDialog(
           title: const Text('Confirm Order'),
           content: const Text(
-            'Please confirm your order. You can cancel only while the order is in REQUESTING status. '
+            'Please confirm your order. '
             'After staff approval, cancellation may no longer be available.',
           ),
           actions: [
