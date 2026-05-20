@@ -340,7 +340,14 @@ class UserInfoRepository {
     }
 
     final host = imageUri.host.toLowerCase();
-    if (host == 'localhost' || host == '127.0.0.1') {
+    const localOnlyHosts = {
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0',
+      '10.0.2.2',
+      '::1',
+    };
+    if (localOnlyHosts.contains(host)) {
       return imageUri
           .replace(
             scheme: baseUri.scheme,

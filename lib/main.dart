@@ -18,6 +18,7 @@ import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
 import 'package:e_commerce_mobile_app/modules/address/repositories/address_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/services/profile_image_pick_recovery.dart';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -31,11 +32,18 @@ Future<void> main() async {
   await initializeDependenciesInjection();
   await UserSession.init();
   await registerPartnerPrivilegeModuleDi();
-  runApp(const MyApp());
+  final initialRoute = UserSession.isAuthenticated
+      ? (await ProfileImagePickRecovery.hasPendingPick()
+            ? AppRoutes.profile
+            : AppRoutes.index)
+      : AppRoutes.login;
+  runApp(MyApp(initialRoute: initialRoute));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.initialRoute});
+
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +78,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Chipmong Retail',
         theme: AppTheme.light,
-        initialRoute: UserSession.isAuthenticated
-            ? AppRoutes.index
-            : AppRoutes.login,
+        initialRoute: initialRoute,
         onGenerateRoute: onGenerateRoute,
       ),
     );

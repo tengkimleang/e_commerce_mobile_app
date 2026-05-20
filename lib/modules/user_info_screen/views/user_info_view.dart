@@ -14,6 +14,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_langua
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/change_pin_old_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/services/profile_image_pick_recovery.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/telegram_link_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/login_view.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
@@ -29,18 +30,42 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_e
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_state.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
 
-class UserInfoView extends StatelessWidget {
+class UserInfoView extends StatefulWidget {
   final bool showBottomNavigation;
-  static final AuthService _authService = AuthService();
 
   const UserInfoView({super.key, this.showBottomNavigation = true});
+
+  @override
+  State<UserInfoView> createState() => _UserInfoViewState();
+}
+
+class _UserInfoViewState extends State<UserInfoView> {
+  static final AuthService _authService = AuthService();
+
+  late final UserInfoBloc _bloc;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _bloc = UserInfoBloc()..add(const LoadUserInfo());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _recoverLostProfileImage();
+    });
+  }
+
+  @override
+  void dispose() {
+    _bloc.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
 
-    return BlocProvider(
-      create: (_) => UserInfoBloc()..add(const LoadUserInfo()),
+    return BlocProvider.value(
+      value: _bloc,
       child: BlocBuilder<UserInfoBloc, UserInfoState>(
         builder: (context, state) {
           final userInfo = state is UserInfoUpdated
@@ -357,7 +382,7 @@ class UserInfoView extends StatelessWidget {
                 ],
               ),
             ),
-            bottomNavigationBar: showBottomNavigation
+            bottomNavigationBar: widget.showBottomNavigation
                 ? SupermarketBottomNavigation(
                     selectedIndex: 4,
                     onTap: (index) => _onBottomNavTap(context, index),
@@ -380,7 +405,7 @@ class UserInfoView extends StatelessWidget {
     if (trimmed.isEmpty || trimmed == current) return;
 
     if (!context.mounted) return;
-    context.read<UserInfoBloc>().add(UpdateUsername(trimmed));
+    _bloc.add(UpdateUsername(trimmed));
   }
 
   String _formatPhoneNumber(String rawPhone) {
@@ -416,7 +441,7 @@ class UserInfoView extends StatelessWidget {
       selectedDate.day,
     );
     if (!context.mounted) return;
-    context.read<UserInfoBloc>().add(UpdateDateOfBirth(newDate));
+    _bloc.add(UpdateDateOfBirth(newDate));
   }
 
   Future<void> _openEditLanguage(
@@ -430,7 +455,7 @@ class UserInfoView extends StatelessWidget {
 
     if (selectedCode == null || selectedCode == currentCode) return;
     if (!context.mounted) return;
-    context.read<UserInfoBloc>().add(UpdateLanguage(selectedCode));
+    _bloc.add(UpdateLanguage(selectedCode));
   }
 
   Future<void> _openReceivingAddress(
@@ -446,7 +471,7 @@ class UserInfoView extends StatelessWidget {
 
     final trimmed = updatedAddress.trim();
     if (trimmed == currentAddress.trim()) return;
-    context.read<UserInfoBloc>().add(UpdateAddress(trimmed));
+    _bloc.add(UpdateAddress(trimmed));
   }
 
   Future<void> _openChangePin(BuildContext context) async {
@@ -462,16 +487,56 @@ class UserInfoView extends StatelessWidget {
     final source = await showProfileImageSourceBottomSheet(context);
     if (source == null) return;
 
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: source,
-      imageQuality: 85,
-      maxWidth: 1200,
-    );
+    await ProfileImagePickRecovery.markPending();
+    XFile? picked;
+    try {
+      picked = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1200,
+      );
+    } catch (e) {
+      await ProfileImagePickRecovery.clearPending();
+      debugPrint('[UserInfoView] profile image picker failed: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open selected image.')),
+        );
+      }
+      return;
+    }
 
+    await ProfileImagePickRecovery.clearPending();
     if (picked == null) return;
     if (!context.mounted) return;
-    context.read<UserInfoBloc>().add(UpdateProfileImage(picked.path));
+    _bloc.add(UpdateProfileImage(picked.path));
+  }
+
+  Future<void> _recoverLostProfileImage() async {
+    final hasPendingPick = await ProfileImagePickRecovery.hasPendingPick();
+    if (!hasPendingPick) return;
+
+    try {
+      final response = await _imagePicker.retrieveLostData();
+      if (response.isEmpty) return;
+
+      final file =
+          response.file ??
+          ((response.files?.isNotEmpty ?? false)
+              ? response.files!.first
+              : null);
+      if (response.exception != null) {
+        debugPrint(
+          '[UserInfoView] lost profile image picker data failed: ${response.exception}',
+        );
+      }
+      if (!mounted || file == null) return;
+      _bloc.add(UpdateProfileImage(file.path));
+    } catch (e) {
+      debugPrint('[UserInfoView] retrieveLostData failed: $e');
+    } finally {
+      await ProfileImagePickRecovery.clearPending();
+    }
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
