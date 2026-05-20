@@ -1,0 +1,553 @@
+import 'dart:async';
+
+import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_model.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
+import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
+import 'package:flutter/material.dart';
+
+class ShopCategoryProductView extends StatefulWidget {
+  const ShopCategoryProductView({
+    super.key,
+    required this.category,
+    ShopByCategoryRepository? repository,
+  }) : _repository = repository;
+
+  final ShopByCategoryModel category;
+  final ShopByCategoryRepository? _repository;
+
+  @override
+  State<ShopCategoryProductView> createState() =>
+      _ShopCategoryProductViewState();
+}
+
+class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
+  static const _accent = Color(0xFFEC407A);
+  static const _pageSize = 20;
+
+  late final ShopByCategoryRepository _repository;
+  final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
+
+  final List<ProductModel> _products = [];
+  List<SubCategoryModel> _subCategories = [];
+
+  Timer? _searchDebounce;
+  int _selectedTabIndex = 0;
+  int _page = 1;
+  int _total = 0;
+  int _requestSerial = 0;
+  bool _loadingSubCategories = false;
+  bool _loadingProducts = false;
+  bool _loadingMore = false;
+  bool _searchActive = false;
+  String? _subCategoryError;
+  String? _productError;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget._repository ?? di<ShopByCategoryRepository>();
+    _scrollController.addListener(_onScroll);
+    _searchController.addListener(_onSearchChanged);
+    _loadSubCategories();
+    _fetchFirstPage();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  SubCategoryModel? get _selectedSubCategory {
+    if (_selectedTabIndex == 0) return null;
+    final index = _selectedTabIndex - 1;
+    if (index < 0 || index >= _subCategories.length) return null;
+    return _subCategories[index];
+  }
+
+  String get _keyword => _searchController.text.trim();
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 240) {
+      _fetchNextPage();
+    }
+  }
+
+  void _onSearchChanged() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), _fetchFirstPage);
+  }
+
+  Future<void> _loadSubCategories() async {
+    setState(() {
+      _loadingSubCategories = true;
+      _subCategoryError = null;
+    });
+
+    try {
+      final subCategories = List<SubCategoryModel>.of(
+        await _repository.fetchSubCategories(widget.category.id),
+      );
+      subCategories.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+      if (!mounted) return;
+      setState(() {
+        _subCategories = subCategories;
+        if (_selectedTabIndex > _subCategories.length) {
+          _selectedTabIndex = 0;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _subCategoryError = 'Failed to load subcategories';
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loadingSubCategories = false);
+      }
+    }
+  }
+
+  Future<void> _fetchFirstPage() async {
+    final requestId = ++_requestSerial;
+    setState(() {
+      _loadingProducts = true;
+      _loadingMore = false;
+      _productError = null;
+      _page = 1;
+      _total = 0;
+      _products.clear();
+    });
+
+    try {
+      final (items, total) = await _fetchProductsPage(page: 1);
+      if (!mounted || requestId != _requestSerial) return;
+      setState(() {
+        _products.addAll(items);
+        _total = total;
+        _page = 2;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _requestSerial) return;
+      setState(() {
+        _productError = 'Failed to load products';
+      });
+    } finally {
+      if (mounted && requestId == _requestSerial) {
+        setState(() => _loadingProducts = false);
+      }
+    }
+  }
+
+  Future<void> _fetchNextPage() async {
+    if (_loadingProducts || _loadingMore) return;
+    if (_total > 0 && _products.length >= _total) return;
+
+    final requestId = _requestSerial;
+    setState(() => _loadingMore = true);
+    try {
+      final (items, total) = await _fetchProductsPage(page: _page);
+      if (!mounted || requestId != _requestSerial) return;
+      setState(() {
+        _products.addAll(items);
+        _total = total;
+        _page++;
+      });
+    } catch (_) {
+      if (!mounted || requestId != _requestSerial) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load more products')),
+      );
+    } finally {
+      if (mounted && requestId == _requestSerial) {
+        setState(() => _loadingMore = false);
+      }
+    }
+  }
+
+  Future<(List<ProductModel>, int)> _fetchProductsPage({required int page}) {
+    final selectedSubCategory = _selectedSubCategory;
+    return _repository.fetchProducts(
+      widget.category.id,
+      subCategoryId: selectedSubCategory?.id,
+      page: page,
+      pageSize: _pageSize,
+      keyword: _keyword,
+    );
+  }
+
+  Future<void> _onRefresh() async {
+    await Future.wait([_loadSubCategories(), _fetchFirstPage()]);
+  }
+
+  void _selectTab(int index) {
+    if (_selectedTabIndex == index) return;
+    setState(() => _selectedTabIndex = index);
+    _fetchFirstPage();
+  }
+
+  void _activateSearch() {
+    setState(() => _searchActive = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
+
+  void _deactivateSearch() {
+    final hadKeyword = _keyword.isNotEmpty;
+    _searchFocusNode.unfocus();
+    setState(() {
+      _searchActive = false;
+      _searchController.clear();
+    });
+    _searchDebounce?.cancel();
+    if (hadKeyword) _fetchFirstPage();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6F6F6),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _CategoryProductHeader(
+              title: widget.category.displayTitle,
+              searchActive: _searchActive,
+              searchController: _searchController,
+              searchFocusNode: _searchFocusNode,
+              onBack: () => Navigator.of(context).maybePop(),
+              onActivateSearch: _activateSearch,
+              onDeactivateSearch: _deactivateSearch,
+            ),
+            _buildSubCategoryTabs(),
+            Expanded(
+              child: RefreshIndicator(
+                color: _accent,
+                onRefresh: _onRefresh,
+                child: _buildProductContent(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubCategoryTabs() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 56,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _subCategories.length + 1,
+            separatorBuilder: (context, index) => const SizedBox(width: 22),
+            itemBuilder: (context, index) {
+              final label = index == 0 ? 'All' : _subCategories[index - 1].name;
+              return _SubCategoryTab(
+                label: label,
+                selected: _selectedTabIndex == index,
+                onTap: () => _selectTab(index),
+              );
+            },
+          ),
+        ),
+        if (_loadingSubCategories)
+          const LinearProgressIndicator(
+            minHeight: 2,
+            color: _accent,
+            backgroundColor: Colors.transparent,
+          )
+        else if (_subCategoryError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _subCategoryError!,
+                    style: const TextStyle(color: Colors.black45),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _loadSubCategories,
+                  child: const Text('Retry', style: TextStyle(color: _accent)),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProductContent() {
+    if (_loadingProducts && _products.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: _accent));
+    }
+
+    if (_productError != null && _products.isEmpty) {
+      return _ScrollableMessage(
+        icon: Icons.error_outline,
+        message: _productError!,
+        actionLabel: 'Retry',
+        onAction: _fetchFirstPage,
+      );
+    }
+
+    if (_products.isEmpty) {
+      return const _ScrollableMessage(
+        icon: Icons.inventory_2_outlined,
+        message: 'No products found',
+      );
+    }
+
+    return GridView.builder(
+      key: const ValueKey('shop-category-product-grid'),
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: _products.length + (_loadingMore ? 1 : 0),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+        childAspectRatio: 0.80,
+      ),
+      itemBuilder: (context, index) {
+        if (index >= _products.length) {
+          return const Center(child: CircularProgressIndicator(color: _accent));
+        }
+
+        final product = _products[index];
+        return ProductCard(
+          product: product,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ProductDetailView(
+                product: product,
+                relatedProducts: _products,
+                loadSubCategorySuggestions: false,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CategoryProductHeader extends StatelessWidget {
+  const _CategoryProductHeader({
+    required this.title,
+    required this.searchActive,
+    required this.searchController,
+    required this.searchFocusNode,
+    required this.onBack,
+    required this.onActivateSearch,
+    required this.onDeactivateSearch,
+  });
+
+  final String title;
+  final bool searchActive;
+  final TextEditingController searchController;
+  final FocusNode searchFocusNode;
+  final VoidCallback onBack;
+  final VoidCallback onActivateSearch;
+  final VoidCallback onDeactivateSearch;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 64,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 52,
+            child: IconButton(
+              onPressed: onBack,
+              icon: const Icon(
+                Icons.chevron_left,
+                color: Color(0xFF6A6A6A),
+                size: 30,
+              ),
+            ),
+          ),
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 180),
+              child: searchActive
+                  ? _SearchField(
+                      controller: searchController,
+                      focusNode: searchFocusNode,
+                    )
+                  : Text(
+                      title,
+                      key: const ValueKey('shop-category-title'),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF1D1B24),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+            ),
+          ),
+          SizedBox(
+            width: 52,
+            child: IconButton(
+              onPressed: searchActive ? onDeactivateSearch : onActivateSearch,
+              icon: Icon(
+                searchActive ? Icons.close : Icons.search,
+                color: const Color(0xFFEC407A),
+                size: 25,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({required this.controller, required this.focusNode});
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('shop-category-search-container'),
+      height: 42,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFEC407A), width: 1.4),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          const Icon(Icons.search, color: Color(0xFFEC407A), size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              key: const ValueKey('shop-category-search-field'),
+              controller: controller,
+              focusNode: focusNode,
+              textInputAction: TextInputAction.search,
+              decoration: const InputDecoration(
+                hintText: 'Search products',
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SubCategoryTab extends StatelessWidget {
+  const _SubCategoryTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Center(
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: selected ? const Color(0xFFEC407A) : const Color(0xFF35323A),
+            fontSize: 17,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScrollableMessage extends StatelessWidget {
+  const _ScrollableMessage({
+    required this.icon,
+    required this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: Colors.black38, size: 44),
+                  const SizedBox(height: 10),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.black54),
+                  ),
+                  if (actionLabel != null && onAction != null) ...[
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: onAction,
+                      child: Text(
+                        actionLabel!,
+                        style: const TextStyle(color: Color(0xFFEC407A)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

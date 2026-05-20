@@ -30,12 +30,17 @@ class ApiUrl {
 
   // ── Categories & Products ──
   static const categories = '/categories';
+  static const shopByCategories = '/shop-by-categories';
   static const products = '/products';
   static String categoryProducts(int id) => '/categories/$id/products';
   static String categorySubCategories(int categoryId) =>
       '/categories/$categoryId/subcategories';
   static String subCategoryProducts(int subCategoryId) =>
       '/subcategories/$subCategoryId/products';
+  static String shopByCategorySubCategories(int shopByCategoryId) =>
+      '/shop-by-categories/$shopByCategoryId/subcategories';
+  static String shopByCategoryProducts(int shopByCategoryId) =>
+      '/shop-by-categories/$shopByCategoryId/products';
   static String productDetail(int id) => '/products/$id';
   static String productByBarcode(String code) => '/products/by-barcode/$code';
 

@@ -7,6 +7,7 @@ import '../blocs/customer_loyalty_state.dart';
 import '../../price_checking/views/price_checking_view.dart';
 import 'widgets/loyalty_action_cards.dart';
 import 'widgets/partner_qr_sheet.dart';
+import 'widgets/shop_by_category_section.dart';
 import 'widgets/shop_by_country_section.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
@@ -35,6 +36,8 @@ class CustomerLoyaltySection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const ShopByCategorySection(),
+              const SizedBox(height: 24),
               ShopByCountrySection(),
               const SizedBox(height: 24),
               LoyaltyActionCards(

@@ -19,11 +19,13 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.da
 class ProductDetailView extends StatefulWidget {
   final ProductModel product;
   final List<ProductModel> relatedProducts;
+  final bool loadSubCategorySuggestions;
 
   const ProductDetailView({
     super.key,
     required this.product,
     this.relatedProducts = const [],
+    this.loadSubCategorySuggestions = true,
   });
 
   @override
@@ -41,7 +43,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   Future<void> _loadSuggestions() async {
     final subCategoryId = widget.product.subCategoryId;
-    if (subCategoryId != null) {
+    if (widget.loadSubCategorySuggestions && subCategoryId != null) {
       try {
         final (items, _) = await di<CategoriesRepository>()
             .fetchSubCategoryProducts(subCategoryId, pageSize: 20);
@@ -211,18 +213,23 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                     return;
                                   }
                                   if (!context.mounted) return;
-                                  context.read<CartBloc>().add(AddToCart(product));
+                                  context.read<CartBloc>().add(
+                                    AddToCart(product),
+                                  );
                                 },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                product.isOutOfStock ? Colors.grey[400] : accent,
+                            backgroundColor: product.isOutOfStock
+                                ? Colors.grey[400]
+                                : accent,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32),
                             ),
                           ),
                           child: Text(
-                            product.isOutOfStock ? 'Out of Stock' : 'Add to cart',
+                            product.isOutOfStock
+                                ? 'Out of Stock'
+                                : 'Add to cart',
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -649,7 +656,9 @@ class _RelatedProductCard extends StatelessWidget {
                                       return;
                                     }
                                     if (!context.mounted) return;
-                                    context.read<CartBloc>().add(AddToCart(product));
+                                    context.read<CartBloc>().add(
+                                      AddToCart(product),
+                                    );
                                   },
                             icon: Icon(
                               quantity > 0

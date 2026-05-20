@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -23,7 +24,14 @@ Future<void> initializeDependenciesInjection() async {
   });
 
   // Categories repository — wired to the real ASP.NET Core API.
-  di.registerSingleton<CategoriesRepository>(HttpCategoriesRepository(di<Dio>()));
+  di.registerSingleton<CategoriesRepository>(
+    HttpCategoriesRepository(di<Dio>()),
+  );
+
+  // Shop-by-category repository — independent curated category API.
+  di.registerSingleton<ShopByCategoryRepository>(
+    HttpShopByCategoryRepository(di<Dio>()),
+  );
 
   // Shop/Branch repository — fetches the live store list from GET /stores.
   di.registerSingleton<ShopRepository>(ShopRepository(di<Dio>()));
