@@ -52,9 +52,9 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
     final activeCategories = _categories
         .where((category) => category.isActive)
         .toList();
-    final title = widget.title.trim().isEmpty
-        ? 'Shop by category'
-        : widget.title.trim();
+    final title = _formatHeaderTitle(
+      widget.title.trim().isEmpty ? 'Shop by category' : widget.title.trim(),
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -77,15 +77,19 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
                     ),
                   ),
                   Expanded(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF1D1B24),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF1D1B24),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.12,
+                        ),
                       ),
                     ),
                   ),
@@ -168,6 +172,21 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
   String get _effectiveShopId => widget.shopId.trim().isNotEmpty
       ? widget.shopId.trim()
       : UserSession.selectedShopId.trim();
+
+  String _formatHeaderTitle(String title) {
+    final hasLetters = RegExp(r'[A-Za-z]').hasMatch(title);
+    if (!hasLetters || title != title.toUpperCase()) return title;
+
+    return title
+        .split(' ')
+        .where((part) => part.isNotEmpty)
+        .map((part) {
+          if (!RegExp(r'[A-Za-z]').hasMatch(part)) return part;
+          final lower = part.toLowerCase();
+          return '${lower[0].toUpperCase()}${lower.substring(1)}';
+        })
+        .join(' ');
+  }
 }
 
 class _ShopByCategoryLoadError extends StatelessWidget {

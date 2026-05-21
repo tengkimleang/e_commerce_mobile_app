@@ -396,16 +396,20 @@ class _CategoryProductHeader extends StatelessWidget {
                       controller: searchController,
                       focusNode: searchFocusNode,
                     )
-                  : Text(
-                      title,
-                      key: const ValueKey('shop-category-title'),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF1D1B24),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text(
+                        title,
+                        key: const ValueKey('shop-category-title'),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF1D1B24),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          height: 1.12,
+                        ),
                       ),
                     ),
             ),
