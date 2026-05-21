@@ -737,6 +737,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           builder: (_) => OtpView(
             phoneNumber: widget.phoneNumber,
             channel: requestResult['channel'] as String? ?? 'sms',
+            deliveryMessage: requestResult['deliveryMessage'] as String?,
           ),
         ),
       );
@@ -789,6 +790,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             phoneNumber: widget.phoneNumber,
             flow: AuthFlow.forgotPin,
             channel: result['channel'] as String? ?? 'sms',
+            deliveryMessage: result['deliveryMessage'] as String?,
           ),
         ),
       );

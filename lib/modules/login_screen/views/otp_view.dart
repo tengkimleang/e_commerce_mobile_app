@@ -14,9 +14,14 @@ class OtpView extends StatefulWidget {
   final String phoneNumber;
   final String? fullName;
   final AuthFlow flow;
+
   /// Which channel the OTP was delivered on: 'sms' or 'telegram'.
   /// Defaults to 'sms'. Set by the caller after receiving the requestOtp response.
   final String channel;
+
+  /// Optional backend-provided delivery message. When empty, the view falls
+  /// back to a friendly message based on [channel].
+  final String? deliveryMessage;
 
   const OtpView({
     super.key,
@@ -24,6 +29,7 @@ class OtpView extends StatefulWidget {
     this.fullName,
     this.flow = AuthFlow.login,
     this.channel = 'sms',
+    this.deliveryMessage,
   });
 
   @override
@@ -43,6 +49,8 @@ class _OtpViewState extends State<OtpView> {
   bool _isResending = false;
   int _resendSeconds = 0;
   Timer? _resendTimer;
+  late String _otpChannel;
+  late String _deliveryMessage;
 
   bool get _isSignupFlow => widget.flow == AuthFlow.signup;
   bool get _isForgotPinFlow => widget.flow == AuthFlow.forgotPin;
@@ -52,6 +60,8 @@ class _OtpViewState extends State<OtpView> {
   @override
   void initState() {
     super.initState();
+    _otpChannel = _normalizeOtpChannel(widget.channel);
+    _deliveryMessage = widget.deliveryMessage?.trim() ?? '';
     _controllers = List.generate(4, (_) => TextEditingController());
     _focusNodes = List.generate(4, (_) => FocusNode());
     if (_isPinResetFlow) {
@@ -75,6 +85,28 @@ class _OtpViewState extends State<OtpView> {
       _controllers.every((controller) => controller.text.trim().isNotEmpty);
 
   String get _otpCode => _controllers.map((c) => c.text).join();
+
+  bool get _isTelegramOtp => _otpChannel == 'telegram';
+
+  String get _otpDeliveryMessage {
+    if (_deliveryMessage.isNotEmpty) return _deliveryMessage;
+    if (_isTelegramOtp) {
+      return 'Your OTP has been sent to Telegram. Please check your Telegram chat and enter the 4-digit code below.';
+    }
+    return 'Your OTP has been sent by SMS to ${widget.phoneNumber}. Please check your phone and enter the 4-digit code below.';
+  }
+
+  String get _resendConfirmationMessage {
+    if (_isTelegramOtp) {
+      return 'OTP has been sent again to your Telegram.';
+    }
+    return 'OTP has been sent again to ${widget.phoneNumber}.';
+  }
+
+  String _normalizeOtpChannel(String? channel) {
+    final normalized = (channel ?? '').trim().toLowerCase();
+    return normalized == 'telegram' ? 'telegram' : 'sms';
+  }
 
   String _pickFirstNonEmpty(Iterable<dynamic> candidates) {
     for (final candidate in candidates) {
@@ -101,6 +133,46 @@ class _OtpViewState extends State<OtpView> {
       }
     }
     return 0;
+  }
+
+  String _extractDeliveryChannel(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    return _pickFirstNonEmpty([
+      data['channel'],
+      data['Channel'],
+      data['otpChannel'],
+      data['OtpChannel'],
+      nestedMap?['channel'],
+      nestedMap?['Channel'],
+      nestedMap?['otpChannel'],
+      nestedMap?['OtpChannel'],
+    ]);
+  }
+
+  String _extractDeliveryMessage(Map<String, dynamic> data) {
+    final nestedMap = _toStringDynamicMap(data['data']);
+    return _pickFirstNonEmpty([
+      data['deliveryMessage'],
+      data['DeliveryMessage'],
+      data['otpDeliveryMessage'],
+      data['OtpDeliveryMessage'],
+      data['otpMessage'],
+      data['OtpMessage'],
+      data['message'],
+      data['Message'],
+      data['errorMsg'],
+      data['ErrorMsg'],
+      nestedMap?['deliveryMessage'],
+      nestedMap?['DeliveryMessage'],
+      nestedMap?['otpDeliveryMessage'],
+      nestedMap?['OtpDeliveryMessage'],
+      nestedMap?['otpMessage'],
+      nestedMap?['OtpMessage'],
+      nestedMap?['message'],
+      nestedMap?['Message'],
+      nestedMap?['errorMsg'],
+      nestedMap?['ErrorMsg'],
+    ]);
   }
 
   String _resolveLoginVerifyMessage({
@@ -296,13 +368,21 @@ class _OtpViewState extends State<OtpView> {
         return;
       }
 
-      setState(() => _isResending = false);
+      final responseChannel = _extractDeliveryChannel(requestResult);
+      final responseMessage = _extractDeliveryMessage(requestResult);
+      setState(() {
+        _isResending = false;
+        if (responseChannel.isNotEmpty) {
+          _otpChannel = _normalizeOtpChannel(responseChannel);
+        }
+        _deliveryMessage = responseMessage;
+      });
       _clearOtpInputs();
       _startResendCooldown();
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('OTP has been sent again.')));
+      ).showSnackBar(SnackBar(content: Text(_resendConfirmationMessage)));
     } on DioException catch (e) {
       if (!mounted) return;
       setState(() => _isResending = false);
@@ -829,13 +909,48 @@ class _OtpViewState extends State<OtpView> {
                 ),
               ),
               const SizedBox(height: 8),
-              Center(
-                child: Text(
-                  widget.channel == 'telegram'
-                      ? 'Please enter the 4-digit code sent to your Telegram'
-                      : 'Please enter the 4-digit code sent to ${widget.phoneNumber}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEC407A).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _isTelegramOtp
+                            ? Icons.send_rounded
+                            : Icons.sms_outlined,
+                        size: 18,
+                        color: const Color(0xFFEC407A),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _otpDeliveryMessage,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),

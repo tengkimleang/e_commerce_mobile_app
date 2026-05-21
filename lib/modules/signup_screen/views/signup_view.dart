@@ -116,6 +116,8 @@ class _SignupViewState extends State<SignupView> {
             phoneNumber: phone,
             fullName: fullName,
             flow: AuthFlow.signup,
+            channel: requestResult['channel'] as String? ?? 'sms',
+            deliveryMessage: requestResult['deliveryMessage'] as String?,
           ),
         ),
       );

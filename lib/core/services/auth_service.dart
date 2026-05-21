@@ -483,12 +483,32 @@ class AuthService {
       'message',
     ]);
     final sent = _readBoolField(data, ['sent', 'Sent']);
+    final channel = _readStringFromPayloadAndData(data, [
+      'channel',
+      'Channel',
+      'otpChannel',
+      'OtpChannel',
+    ]);
+    final deliveryMessage = _readStringFromPayloadAndData(data, [
+      'deliveryMessage',
+      'DeliveryMessage',
+      'otpDeliveryMessage',
+      'OtpDeliveryMessage',
+      'otpMessage',
+      'OtpMessage',
+      'message',
+      'Message',
+      'errorMsg',
+      'ErrorMsg',
+    ]);
 
     return {
       ...data,
       'errorCode': errorCode,
       'errorMsg': errorMsg,
       'sent': sent,
+      'channel': channel.isEmpty ? 'sms' : channel,
+      'deliveryMessage': deliveryMessage,
     };
   }
 
@@ -559,7 +579,24 @@ class AuthService {
     final sent = _readBoolField(data, ['sent', 'Sent']);
     // 'channel' is 'sms' or 'telegram' — set by the backend when OTP
     // falls back to Telegram because Plasgate returned 403 or is disabled.
-    final channel = _readStringField(data, ['channel', 'Channel']);
+    final channel = _readStringFromPayloadAndData(data, [
+      'channel',
+      'Channel',
+      'otpChannel',
+      'OtpChannel',
+    ]);
+    final deliveryMessage = _readStringFromPayloadAndData(data, [
+      'deliveryMessage',
+      'DeliveryMessage',
+      'otpDeliveryMessage',
+      'OtpDeliveryMessage',
+      'otpMessage',
+      'OtpMessage',
+      'message',
+      'Message',
+      'errorMsg',
+      'ErrorMsg',
+    ]);
 
     return {
       ...data,
@@ -567,6 +604,7 @@ class AuthService {
       'errorMsg': errorMsg,
       'sent': sent,
       'channel': channel.isEmpty ? 'sms' : channel,
+      'deliveryMessage': deliveryMessage,
     };
   }
 
@@ -863,8 +901,29 @@ class AuthService {
       return requestOtp(phoneNumber);
     }
     // Ensure 'channel' key is always present (defaults to 'sms').
-    final channel = _readStringField(normalized, ['channel', 'Channel']);
-    return {...normalized, 'channel': channel.isEmpty ? 'sms' : channel};
+    final channel = _readStringFromPayloadAndData(normalized, [
+      'channel',
+      'Channel',
+      'otpChannel',
+      'OtpChannel',
+    ]);
+    final deliveryMessage = _readStringFromPayloadAndData(normalized, [
+      'deliveryMessage',
+      'DeliveryMessage',
+      'otpDeliveryMessage',
+      'OtpDeliveryMessage',
+      'otpMessage',
+      'OtpMessage',
+      'message',
+      'Message',
+      'errorMsg',
+      'ErrorMsg',
+    ]);
+    return {
+      ...normalized,
+      'channel': channel.isEmpty ? 'sms' : channel,
+      'deliveryMessage': deliveryMessage,
+    };
   }
 
   Future<Map<String, dynamic>> verifyForgotPinOtp({
