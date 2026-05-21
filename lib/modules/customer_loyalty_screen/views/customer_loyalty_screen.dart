@@ -1,4 +1,3 @@
-import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/customer_loyalty_bloc.dart';
@@ -11,14 +10,9 @@ import 'widgets/shop_by_category_section.dart';
 import 'widgets/shop_by_country_section.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
-  final List<ProductItem> products;
   final bool isGuest;
 
-  const CustomerLoyaltySection({
-    super.key,
-    this.products = const [],
-    this.isGuest = false,
-  });
+  const CustomerLoyaltySection({super.key, this.isGuest = false});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +54,7 @@ class CustomerLoyaltySection extends StatelessWidget {
                   );
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => PriceCheckingView(products: products),
+                      builder: (_) => const PriceCheckingView(),
                     ),
                   );
                 },

@@ -709,10 +709,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
             //Customer Loyalty Section
             SizedBox(height: 20),
-            CustomerLoyaltySection(
-              products: _getAllProducts(),
-              isGuest: _isGuest,
-            ),
+            CustomerLoyaltySection(isGuest: _isGuest),
 
             const SizedBox(height: 24),
             Padding(
@@ -1032,8 +1029,6 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       );
     });
   }
-
-  List<ProductModel> _getAllProducts() => ProductData.allProducts;
 
   void _openCategoryProducts({
     required String title,
