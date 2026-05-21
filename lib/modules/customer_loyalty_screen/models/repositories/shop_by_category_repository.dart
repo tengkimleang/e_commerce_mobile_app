@@ -8,7 +8,7 @@ import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/sho
 import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_model.dart';
 
 abstract class ShopByCategoryRepository {
-  Future<List<ShopByCategoryModel>> fetchCategories();
+  Future<List<ShopByCategoryModel>> fetchCategories({String? shopId});
 
   Future<List<SubCategoryModel>> fetchSubCategories(int shopByCategoryId);
 
@@ -27,11 +27,13 @@ class HttpShopByCategoryRepository implements ShopByCategoryRepository {
   final Dio _dio;
 
   @override
-  Future<List<ShopByCategoryModel>> fetchCategories() async {
-    final shopId = UserSession.selectedShopId;
+  Future<List<ShopByCategoryModel>> fetchCategories({String? shopId}) async {
+    final selectedShopId = (shopId ?? UserSession.selectedShopId).trim();
     final response = await _dio.get(
       ApiUrl.shopByCategories,
-      queryParameters: {if (shopId.isNotEmpty) 'shopId': shopId},
+      queryParameters: {
+        if (selectedShopId.isNotEmpty) 'shopId': selectedShopId,
+      },
     );
     final body = _parseBody(response);
     _checkApiError(body);

@@ -11,8 +11,15 @@ import 'widgets/shop_by_country_section.dart';
 
 class CustomerLoyaltySection extends StatelessWidget {
   final bool isGuest;
+  final String shopId;
+  final String shopName;
 
-  const CustomerLoyaltySection({super.key, this.isGuest = false});
+  const CustomerLoyaltySection({
+    super.key,
+    this.isGuest = false,
+    this.shopId = '',
+    this.shopName = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,7 @@ class CustomerLoyaltySection extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const ShopByCategorySection(),
+              ShopByCategorySection(shopId: shopId, shopName: shopName),
               const SizedBox(height: 24),
               ShopByCountrySection(),
               const SizedBox(height: 24),

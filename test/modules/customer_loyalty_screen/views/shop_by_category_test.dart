@@ -7,6 +7,7 @@ import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/rep
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_category_product_view.dart';
+import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/widgets/shop_by_category_section.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/widgets/shop_category_card.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
@@ -120,6 +121,56 @@ void main() {
     expect(find.byType(ShopCategoryCard), findsOneWidget);
   });
 
+  testWidgets('shop by category rail reloads when branch changes', (
+    tester,
+  ) async {
+    const senSokCategory = ShopByCategoryModel(
+      id: 2,
+      titleEn: 'Sen Sok Special',
+      titleKm: '',
+      imageUrl: '',
+      displayOrder: 1,
+    );
+    final repository = _FakeShopByCategoryRepository(
+      categoriesByShop: const {
+        'shop_271': [_category],
+        'shop_sen_sok': [senSokCategory],
+      },
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ShopByCategorySection(
+            shopId: 'shop_271',
+            shopName: '271',
+            repository: repository,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dairy & Non Dairy'), findsOneWidget);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ShopByCategorySection(
+            shopId: 'shop_sen_sok',
+            shopName: 'Sen Sok',
+            repository: repository,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.categoryCalls, ['shop_271', 'shop_sen_sok']);
+    expect(find.text('Dairy & Non Dairy'), findsNothing);
+    expect(find.text('Sen Sok Special'), findsOneWidget);
+  });
+
   testWidgets('home places Shop by category before Shop by country', (
     tester,
   ) async {
@@ -213,16 +264,22 @@ const _cheeseProduct = ProductModel(
 );
 
 class _FakeShopByCategoryRepository implements ShopByCategoryRepository {
-  _FakeShopByCategoryRepository({List<ProductModel>? categoryProducts})
-    : _categoryProducts = categoryProducts ?? const [_allMilkProduct];
+  _FakeShopByCategoryRepository({
+    List<ProductModel>? categoryProducts,
+    Map<String, List<ShopByCategoryModel>>? categoriesByShop,
+  }) : _categoryProducts = categoryProducts ?? const [_allMilkProduct],
+       _categoriesByShop = categoriesByShop ?? const {};
 
   final List<ProductModel> _categoryProducts;
+  final Map<String, List<ShopByCategoryModel>> _categoriesByShop;
+  final categoryCalls = <String?>[];
   final productCalls = <_ProductCall>[];
 
   @override
-  Future<List<ShopByCategoryModel>> fetchCategories() async => const [
-    _category,
-  ];
+  Future<List<ShopByCategoryModel>> fetchCategories({String? shopId}) async {
+    categoryCalls.add(shopId);
+    return _categoriesByShop[shopId] ?? const [_category];
+  }
 
   @override
   Future<(List<ProductModel>, int)> fetchProducts(

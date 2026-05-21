@@ -8,9 +8,15 @@ import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/widg
 import 'package:flutter/material.dart';
 
 class ShopByCategorySection extends StatefulWidget {
-  const ShopByCategorySection({super.key, ShopByCategoryRepository? repository})
-    : _repository = repository;
+  const ShopByCategorySection({
+    super.key,
+    this.shopId,
+    this.shopName,
+    ShopByCategoryRepository? repository,
+  }) : _repository = repository;
 
+  final String? shopId;
+  final String? shopName;
   final ShopByCategoryRepository? _repository;
 
   @override
@@ -25,6 +31,7 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
   bool _loading = true;
   String? _error;
   String _loadedShopId = '';
+  int _loadSerial = 0;
 
   @override
   void initState() {
@@ -34,17 +41,27 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
   }
 
   @override
+  void didUpdateWidget(covariant ShopByCategorySection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_effectiveShopId != _normalizeShopId(oldWidget.shopId)) {
+      _loadCategories();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentShopId = UserSession.selectedShopId;
-    if (_loadedShopId != currentShopId && !_loading) {
+    final currentShopId = _effectiveShopId;
+    final isCurrentShopLoaded = _loadedShopId == currentShopId;
+    if (!isCurrentShopLoaded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _loadedShopId != UserSession.selectedShopId) {
+        if (mounted && _loadedShopId != _effectiveShopId) {
           _loadCategories();
         }
       });
     }
 
-    if (_loading) return const _ShopByCategorySkeleton();
+    if (_loading || !isCurrentShopLoaded)
+      return const _ShopByCategorySkeleton();
     if (_error != null) return _ShopByCategoryError(onRetry: _loadCategories);
     if (_categories.isEmpty) return const SizedBox.shrink();
 
@@ -109,39 +126,55 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
   }
 
   Future<void> _loadCategories() async {
-    final shopId = UserSession.selectedShopId;
+    final shopId = _effectiveShopId;
+    final requestId = ++_loadSerial;
     setState(() {
       _loading = true;
       _error = null;
       _loadedShopId = shopId;
+      _categories = [];
     });
 
     try {
-      final categories = await _repository.fetchCategories();
-      if (!mounted) return;
+      final categories = await _repository.fetchCategories(shopId: shopId);
+      if (!mounted || requestId != _loadSerial || shopId != _effectiveShopId) {
+        return;
+      }
       setState(() {
         _categories = categories;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _loadSerial || shopId != _effectiveShopId) {
+        return;
+      }
       setState(() {
         _error = e.toString();
       });
     } finally {
-      if (mounted) {
+      if (mounted && requestId == _loadSerial && shopId == _effectiveShopId) {
         setState(() => _loading = false);
       }
     }
   }
 
+  String get _effectiveShopId => _normalizeShopId(widget.shopId).isNotEmpty
+      ? _normalizeShopId(widget.shopId)
+      : UserSession.selectedShopId.trim();
+
+  String get _effectiveShopName => (widget.shopName ?? '').trim().isNotEmpty
+      ? widget.shopName!.trim()
+      : UserSession.selectedShopName.trim();
+
+  String _normalizeShopId(String? shopId) => (shopId ?? '').trim();
+
   void _openAllCategories(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ShopByCategoryView(
-          categories: _categories,
-          title: UserSession.selectedShopName.trim().isEmpty
+          shopId: _effectiveShopId,
+          title: _effectiveShopName.isEmpty
               ? 'Shop by category'
-              : UserSession.selectedShopName.trim(),
+              : _effectiveShopName,
         ),
       ),
     );
