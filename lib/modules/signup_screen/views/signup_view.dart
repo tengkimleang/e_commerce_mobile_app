@@ -2,6 +2,7 @@ import 'dart:async' show TimeoutException;
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/utils/otp_request_message.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
 import 'package:flutter/gestures.dart';
@@ -91,6 +92,9 @@ class _SignupViewState extends State<SignupView> {
       );
       final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
       final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
+      final deliveryMessage = (requestResult['deliveryMessage'] ?? '')
+          .toString()
+          .trim();
       final sent = requestResult['sent'] == true;
 
       if (errorCode.isNotEmpty || !sent) {
@@ -99,7 +103,12 @@ class _SignupViewState extends State<SignupView> {
 
         _showErrorDialog(
           title: 'Request Failed',
-          message: errorMsg.isEmpty ? 'Request OTP failed.' : errorMsg,
+          message: resolveOtpRequestFailureMessage(
+            errorCode: errorCode,
+            errorMsg: errorMsg,
+            deliveryMessage: deliveryMessage,
+            fallback: 'Request OTP failed.',
+          ),
           icon: Icons.error_outline_rounded,
           iconColor: const Color(0xFFEC407A),
         );
@@ -117,7 +126,7 @@ class _SignupViewState extends State<SignupView> {
             fullName: fullName,
             flow: AuthFlow.signup,
             channel: requestResult['channel'] as String? ?? 'sms',
-            deliveryMessage: requestResult['deliveryMessage'] as String?,
+            deliveryMessage: deliveryMessage,
           ),
         ),
       );

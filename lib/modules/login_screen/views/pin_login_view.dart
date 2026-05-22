@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_coordinator.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/utils/otp_request_message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
@@ -718,14 +719,17 @@ class _PinLoginViewState extends State<PinLoginView> {
       if (!mounted) return;
       final errorCode = _clean(requestResult['errorCode']);
       final errorMsg = _clean(requestResult['errorMsg']);
+      final deliveryMessage = _clean(requestResult['deliveryMessage']);
       final sent = requestResult['sent'] == true;
       if (errorCode.isNotEmpty || !sent) {
         setState(() => _isSendingForgotOtp = false);
         _showErrorDialog(
           title: 'Request Failed',
-          message: errorMsg.isEmpty
-              ? 'Unable to request OTP right now.'
-              : errorMsg,
+          message: resolveOtpRequestFailureMessage(
+            errorCode: errorCode,
+            errorMsg: errorMsg,
+            deliveryMessage: deliveryMessage,
+          ),
           icon: Icons.error_outline_rounded,
           iconColor: const Color(0xFFEC407A),
         );
@@ -737,7 +741,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           builder: (_) => OtpView(
             phoneNumber: widget.phoneNumber,
             channel: requestResult['channel'] as String? ?? 'sms',
-            deliveryMessage: requestResult['deliveryMessage'] as String?,
+            deliveryMessage: deliveryMessage,
           ),
         ),
       );
@@ -766,6 +770,7 @@ class _PinLoginViewState extends State<PinLoginView> {
 
       final errorCode = _clean(result['errorCode']);
       final errorMsg = _clean(result['errorMsg']);
+      final deliveryMessage = _clean(result['deliveryMessage']);
       final sent = result['sent'] == true;
       final success = result['success'] == true;
       final didSend = sent || success;
@@ -774,9 +779,12 @@ class _PinLoginViewState extends State<PinLoginView> {
         setState(() => _isSendingForgotOtp = false);
         _showErrorDialog(
           title: 'Request Failed',
-          message: errorMsg.isEmpty
-              ? 'Unable to send OTP for PIN reset.'
-              : errorMsg,
+          message: resolveOtpRequestFailureMessage(
+            errorCode: errorCode,
+            errorMsg: errorMsg,
+            deliveryMessage: deliveryMessage,
+            fallback: 'Unable to send OTP for PIN reset.',
+          ),
           icon: Icons.error_outline_rounded,
           iconColor: const Color(0xFFEC407A),
         );
@@ -790,7 +798,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             phoneNumber: widget.phoneNumber,
             flow: AuthFlow.forgotPin,
             channel: result['channel'] as String? ?? 'sms',
-            deliveryMessage: result['deliveryMessage'] as String?,
+            deliveryMessage: deliveryMessage,
           ),
         ),
       );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/utils/otp_request_message.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/set_pin_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -351,6 +352,7 @@ class _OtpViewState extends State<OtpView> {
             );
       final errorCode = (requestResult['errorCode'] ?? '').toString().trim();
       final errorMsg = (requestResult['errorMsg'] ?? '').toString().trim();
+      final deliveryMessage = _extractDeliveryMessage(requestResult);
       final sent = requestResult['sent'] == true;
       final success = requestResult['success'] == true;
       final didSend = sent || success;
@@ -361,7 +363,12 @@ class _OtpViewState extends State<OtpView> {
         setState(() => _isResending = false);
         _showErrorDialog(
           title: 'Request Failed',
-          message: errorMsg.isEmpty ? 'Request OTP failed.' : errorMsg,
+          message: resolveOtpRequestFailureMessage(
+            errorCode: errorCode,
+            errorMsg: errorMsg,
+            deliveryMessage: deliveryMessage,
+            fallback: 'Request OTP failed.',
+          ),
           icon: Icons.error_outline_rounded,
           iconColor: const Color(0xFFEC407A),
         );
@@ -369,13 +376,12 @@ class _OtpViewState extends State<OtpView> {
       }
 
       final responseChannel = _extractDeliveryChannel(requestResult);
-      final responseMessage = _extractDeliveryMessage(requestResult);
       setState(() {
         _isResending = false;
         if (responseChannel.isNotEmpty) {
           _otpChannel = _normalizeOtpChannel(responseChannel);
         }
-        _deliveryMessage = responseMessage;
+        _deliveryMessage = deliveryMessage;
       });
       _clearOtpInputs();
       _startResendCooldown();
