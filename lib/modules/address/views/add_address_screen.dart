@@ -125,8 +125,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (perm == LocationPermission.denied) {
       perm = await Geolocator.requestPermission();
     }
-    if (perm == LocationPermission.denied)
+    if (perm == LocationPermission.denied) {
       throw _LocationException('Location permission denied.');
+    }
     if (perm == LocationPermission.deniedForever) {
       throw _LocationException('Location permission permanently denied.');
     }

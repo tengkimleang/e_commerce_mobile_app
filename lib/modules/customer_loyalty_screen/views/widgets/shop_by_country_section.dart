@@ -66,11 +66,12 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
             .fetchProductsByCountry(_selected!, pageSize: 50);
         result = products;
       }
-      if (mounted)
+      if (mounted) {
         setState(() {
           _products = result;
           _isLoading = false;
         });
+      }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }

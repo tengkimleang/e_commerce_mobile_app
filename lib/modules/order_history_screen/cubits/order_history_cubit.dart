@@ -27,12 +27,13 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
       summary: summary,
       status: _statusFromSummary(summary),
     );
-    emit(OrderHistoryState(orders: [next, ...state.orders]));
+    emit(OrderHistoryState(orders: [next, ...state.orders], isLoading: false));
   }
 
   Future<void> loadOrders({int page = 1, int pageSize = 20}) async {
     final repository = _ordersRepository;
     if (repository == null || !UserSession.isAuthenticated) return;
+    emit(state.copyWith(isLoading: true));
     try {
       final summaries = await repository.fetchOrders(
         page: page,
@@ -46,10 +47,11 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
             ),
           )
           .toList(growable: false);
-      emit(state.copyWith(orders: entries));
+      emit(state.copyWith(orders: entries, isLoading: false));
     } catch (_) {
       // Keep current/fallback UI when backend history fetch fails.
       debugPrint('[OrderHistoryCubit] loadOrders failed.');
+      emit(state.copyWith(isLoading: false));
     }
   }
 

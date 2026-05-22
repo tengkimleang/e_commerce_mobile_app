@@ -233,7 +233,7 @@ class AddressGeocodingService {
 
     try {
       final queryParameters = <String, dynamic>{
-        if (sessionToken != null) 'sessionToken': sessionToken,
+        'sessionToken': ?sessionToken,
       };
 
       final response = await _dio.get<Map<String, dynamic>>(

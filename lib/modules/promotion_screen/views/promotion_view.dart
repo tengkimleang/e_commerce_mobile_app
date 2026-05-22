@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -22,16 +23,14 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_v
 class PromotionView extends StatelessWidget {
   final bool showBottomNavigation;
 
-  const PromotionView({
-    super.key,
-    this.showBottomNavigation = true,
-  });
+  const PromotionView({super.key, this.showBottomNavigation = true});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<PromotionBloc>(
-      create: (_) => PromotionBloc(di<CategoriesRepository>())
-        ..add(LoadPromotionSections(UserSession.selectedShopId)),
+      create: (_) =>
+          PromotionBloc(di<CategoriesRepository>())
+            ..add(LoadPromotionSections(UserSession.selectedShopId)),
       child: _PromotionScaffold(showBottomNavigation: showBottomNavigation),
     );
   }
@@ -85,14 +84,18 @@ class _PromotionScaffold extends StatelessWidget {
             child: BlocBuilder<PromotionBloc, PromotionState>(
               builder: (context, state) {
                 if (state is PromotionLoading || state is PromotionInitial) {
-                  return _PromotionLoadingShimmer();
+                  return const _PromotionLoadingSkeleton();
                 }
                 if (state is PromotionError) {
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Failed to load promotions',
@@ -172,9 +175,9 @@ class _PromotionScaffold extends StatelessWidget {
     }
 
     if (index == 2) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const QrCodeView()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const QrCodeView()));
       return;
     }
 
@@ -193,39 +196,43 @@ class _PromotionScaffold extends StatelessWidget {
   }
 }
 
-class _PromotionLoadingShimmer extends StatelessWidget {
+class _PromotionLoadingSkeleton extends StatelessWidget {
+  const _PromotionLoadingSkeleton();
+
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
-      itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(height: 24),
-      itemBuilder: (_, __) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
+    return AppSkeleton(
+      child: ListView.separated(
+        key: const ValueKey('promotion-list-skeleton'),
+        padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
+        itemCount: 3,
+        separatorBuilder: (_, __) => const SizedBox(height: 24),
+        itemBuilder: (_, sectionIndex) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 180,
-              height: 18,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  SkeletonBox(width: 180, height: 18, radius: 8),
+                  Spacer(),
+                  SkeletonBox(width: 62, height: 14, radius: 6),
+                ],
               ),
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 290,
               child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: 4,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (_, __) => Container(
-                  width: 164,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+                itemBuilder: (_, index) => SizedBox(
+                  width: index == 0 ? 164 : 168,
+                  child: index == 0
+                      ? const SkeletonBox(height: double.infinity, radius: 14)
+                      : const SkeletonProductCard(),
                 ),
               ),
             ),
@@ -518,5 +525,3 @@ class _PromotionProductCard extends StatelessWidget {
     );
   }
 }
-
-

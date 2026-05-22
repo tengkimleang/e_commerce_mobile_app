@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
@@ -25,13 +26,18 @@ class OrderHistoryView extends StatefulWidget {
 }
 
 class _OrderHistoryViewState extends State<OrderHistoryView> {
+  static const _orderSkeletonMinDuration = Duration(milliseconds: 650);
+
   Timer? _refreshTimer;
+  int _orderSkeletonSerial = 0;
+  DateTime? _orderSkeletonStartedAt;
+  bool _showOrderSkeleton = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadOrders();
+      unawaited(_loadOrders(showSkeleton: true));
       _startAutoRefresh();
     });
   }
@@ -42,16 +48,38 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
     super.dispose();
   }
 
-  void _loadOrders() {
+  Future<void> _loadOrders({bool showSkeleton = true}) async {
     if (!mounted || !UserSession.isAuthenticated) return;
-    context.read<OrderHistoryCubit>().loadOrders();
+
+    final serial = ++_orderSkeletonSerial;
+    if (showSkeleton) {
+      setState(() {
+        _showOrderSkeleton = true;
+        _orderSkeletonStartedAt = DateTime.now();
+      });
+    }
+
+    await context.read<OrderHistoryCubit>().loadOrders();
+    if (!mounted || serial != _orderSkeletonSerial || !showSkeleton) return;
+
+    final startedAt = _orderSkeletonStartedAt;
+    if (startedAt != null) {
+      final elapsed = DateTime.now().difference(startedAt);
+      final remaining = _orderSkeletonMinDuration - elapsed;
+      if (remaining > Duration.zero) {
+        await Future<void>.delayed(remaining);
+      }
+    }
+
+    if (!mounted || serial != _orderSkeletonSerial) return;
+    setState(() => _showOrderSkeleton = false);
   }
 
   void _startAutoRefresh() {
     if (!UserSession.isAuthenticated) return;
     _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-      _loadOrders();
+      unawaited(_loadOrders(showSkeleton: false));
     });
   }
 
@@ -102,12 +130,16 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
                 final orders = useFallback
                     ? OrderHistoryCubit.fallbackOrders
                     : state.orders;
+                if (_showOrderSkeleton || (state.isLoading && orders.isEmpty)) {
+                  return const _OrderHistorySkeletonList();
+                }
+
                 if (orders.isEmpty) {
                   return const Center(child: _EmptyOrderState());
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () async => _loadOrders(),
+                  onRefresh: () => _loadOrders(showSkeleton: true),
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
@@ -197,6 +229,65 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
     return normalized == 'REQUESTING' ||
         normalized == 'PICKING' ||
         normalized == 'DELIVERING';
+  }
+}
+
+class _OrderHistorySkeletonList extends StatelessWidget {
+  const _OrderHistorySkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeleton(
+      child: ListView.separated(
+        key: const ValueKey('order-history-list-skeleton'),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+        itemCount: 5,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (_, __) => const _OrderCardSkeleton(),
+      ),
+    );
+  }
+}
+
+class _OrderCardSkeleton extends StatelessWidget {
+  const _OrderCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: SkeletonBox(height: 20, radius: 6)),
+              SizedBox(width: 20),
+              SkeletonBox(width: 86, height: 30, radius: 18),
+            ],
+          ),
+          SizedBox(height: 12),
+          SkeletonBox(width: 150, height: 16, radius: 6),
+          SizedBox(height: 12),
+          SkeletonBox(width: 128, height: 18, radius: 6),
+          SizedBox(height: 12),
+          SkeletonBox(width: 174, height: 13, radius: 6),
+        ],
+      ),
+    );
   }
 }
 

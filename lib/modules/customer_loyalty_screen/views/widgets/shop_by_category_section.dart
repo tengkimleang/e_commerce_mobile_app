@@ -61,8 +61,9 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
       });
     }
 
-    if (_loading || !isCurrentShopLoaded)
+    if (_loading || !isCurrentShopLoaded) {
       return const _ShopByCategorySkeleton();
+    }
     if (_error != null) return _ShopByCategoryError(onRetry: _loadCategories);
     if (_categories.isEmpty) return const SizedBox.shrink();
 
