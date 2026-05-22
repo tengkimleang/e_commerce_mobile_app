@@ -5,7 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../../../core/maps/address_geocoding_service.dart';
+import '../../../core/maps/address_search_view.dart';
 
 class MapReceivingAddressResult {
   const MapReceivingAddressResult({
@@ -42,7 +42,6 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   String _resolvedAddress = '';
   bool _isLocating = false;
   bool _isResolvingAddress = false;
-  bool _isSearching = false;
 
   LatLng get _mapCenter => _selectedCenter ?? _fallbackCenter;
   bool get _hasLocation => _selectedCenter != null;
@@ -190,30 +189,29 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     await controller.animateCamera(CameraUpdate.zoomTo(nextZoom));
   }
 
-  Future<void> _searchAddress() async {
-    if (_isSearching) return;
-    final query = _searchController.text.trim();
-    if (query.isEmpty) return;
-
-    setState(() => _isSearching = true);
-    try {
-      final target = await AddressGeocodingService.instance.search(query);
-      if (target == null) {
-        throw const _LocationException('Address was not found.');
-      }
-      if (!mounted) return;
-      setState(() => _selectedCenter = target);
-      await _moveCamera(target);
-      await _resolveAddress(target);
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address not found. Try more specific keywords.'),
+  Future<void> _openAddressSearch() async {
+    final selection = await Navigator.of(context).push<AddressSearchSelection>(
+      MaterialPageRoute(
+        builder: (_) => AddressSearchView(
+          initialQuery: _searchController.text,
+          origin: _mapCenter,
         ),
-      );
-    } finally {
-      if (mounted) setState(() => _isSearching = false);
+      ),
+    );
+
+    if (selection == null || !mounted) return;
+
+    final resolved = selection.address.trim();
+    setState(() {
+      _searchController.text = selection.searchText;
+      _selectedCenter = selection.location;
+      _resolvedAddress = resolved.isEmpty
+          ? _latLngFallback(selection.location)
+          : resolved;
+    });
+    await _moveCamera(selection.location);
+    if (resolved.isEmpty) {
+      await _resolveAddress(selection.location);
     }
   }
 
@@ -354,26 +352,19 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             color: Colors.transparent,
             child: TextField(
               controller: _searchController,
+              readOnly: true,
+              showCursor: false,
               textInputAction: TextInputAction.search,
-              onSubmitted: (_) => _searchAddress(),
+              onTap: _openAddressSearch,
               decoration: InputDecoration(
                 hintText: 'Search here',
                 filled: true,
                 fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: _isSearching
-                    ? const Padding(
-                        padding: EdgeInsets.all(14),
-                        child: SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : IconButton(
-                        onPressed: _searchAddress,
-                        icon: const Icon(Icons.arrow_forward_rounded),
-                      ),
+                suffixIcon: IconButton(
+                  onPressed: _openAddressSearch,
+                  icon: const Icon(Icons.arrow_forward_rounded),
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 14,
