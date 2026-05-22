@@ -46,6 +46,37 @@ void main() {
     expect(repository.productCalls.last, const _ProductCall(1, 10, ''));
   });
 
+  testWidgets('category product screen shows skeleton while first page loads', (
+    tester,
+  ) async {
+    final repository = _FakeShopByCategoryRepository(
+      delay: const Duration(milliseconds: 100),
+    );
+    await _pumpProductView(tester, repository, settle: false);
+
+    expect(
+      find.byKey(const ValueKey('shop-product-grid-skeleton')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('shop-category-tabs-skeleton')),
+      findsOneWidget,
+    );
+
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('shop-product-grid-skeleton')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('shop-category-tabs-skeleton')),
+      findsNothing,
+    );
+    expect(find.text('All Milk Product'), findsOneWidget);
+  });
+
   testWidgets('category product screen searches within the active tab', (
     tester,
   ) async {
@@ -136,6 +167,7 @@ void main() {
         'shop_271': [_category],
         'shop_sen_sok': [senSokCategory],
       },
+      categoryDelaysByShop: const {'shop_sen_sok': Duration(milliseconds: 100)},
     );
 
     await tester.pumpWidget(
@@ -164,6 +196,16 @@ void main() {
         ),
       ),
     );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('shop-by-category-section-skeleton')),
+      findsOneWidget,
+    );
+    expect(find.text('Dairy & Non Dairy'), findsNothing);
+    expect(find.text('Sen Sok Special'), findsNothing);
+
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
 
     expect(repository.categoryCalls, ['shop_271', 'shop_sen_sok']);
@@ -203,6 +245,7 @@ Future<void> _pumpProductView(
   WidgetTester tester,
   _FakeShopByCategoryRepository repository, {
   _FakeLegacyCategoriesRepository? legacyRepository,
+  bool settle = true,
 }) async {
   di.registerSingleton<ShopByCategoryRepository>(repository);
   di.registerSingleton<CategoriesRepository>(
@@ -221,7 +264,11 @@ Future<void> _pumpProductView(
       ),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
 }
 
 Widget _withAppProviders({
@@ -267,17 +314,24 @@ class _FakeShopByCategoryRepository implements ShopByCategoryRepository {
   _FakeShopByCategoryRepository({
     List<ProductModel>? categoryProducts,
     Map<String, List<ShopByCategoryModel>>? categoriesByShop,
+    Map<String, Duration>? categoryDelaysByShop,
+    Duration delay = Duration.zero,
   }) : _categoryProducts = categoryProducts ?? const [_allMilkProduct],
-       _categoriesByShop = categoriesByShop ?? const {};
+       _categoriesByShop = categoriesByShop ?? const {},
+       _categoryDelaysByShop = categoryDelaysByShop ?? const {},
+       _delay = delay;
 
   final List<ProductModel> _categoryProducts;
   final Map<String, List<ShopByCategoryModel>> _categoriesByShop;
+  final Map<String, Duration> _categoryDelaysByShop;
+  final Duration _delay;
   final categoryCalls = <String?>[];
   final productCalls = <_ProductCall>[];
 
   @override
   Future<List<ShopByCategoryModel>> fetchCategories({String? shopId}) async {
     categoryCalls.add(shopId);
+    await _wait(_categoryDelaysByShop[shopId] ?? _delay);
     return _categoriesByShop[shopId] ?? const [_category];
   }
 
@@ -290,6 +344,7 @@ class _FakeShopByCategoryRepository implements ShopByCategoryRepository {
     String keyword = '',
   }) async {
     productCalls.add(_ProductCall(shopByCategoryId, subCategoryId, keyword));
+    await _wait(_delay);
     if (subCategoryId != null) {
       const items = [_cheeseProduct];
       return (items, items.length);
@@ -310,9 +365,16 @@ class _FakeShopByCategoryRepository implements ShopByCategoryRepository {
   Future<List<SubCategoryModel>> fetchSubCategories(
     int shopByCategoryId,
   ) async {
+    await _wait(_delay);
     return const [
       SubCategoryModel(id: 10, name: 'CHEESE', imageUrl: '', displayOrder: 1),
     ];
+  }
+
+  Future<void> _wait(Duration duration) async {
+    if (duration > Duration.zero) {
+      await Future<void>.delayed(duration);
+    }
   }
 }
 

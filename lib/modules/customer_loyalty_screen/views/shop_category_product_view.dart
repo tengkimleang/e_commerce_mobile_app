@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
@@ -272,27 +273,34 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
   }
 
   Widget _buildSubCategoryTabs() {
+    final showTabSkeleton = _loadingSubCategories && _subCategories.isEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           height: 56,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _subCategories.length + 1,
-            separatorBuilder: (context, index) => const SizedBox(width: 22),
-            itemBuilder: (context, index) {
-              final label = index == 0 ? 'All' : _subCategories[index - 1].name;
-              return _SubCategoryTab(
-                label: label,
-                selected: _selectedTabIndex == index,
-                onTap: () => _selectTab(index),
-              );
-            },
-          ),
+          child: showTabSkeleton
+              ? const _SubCategoryTabsSkeleton()
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _subCategories.length + 1,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 22),
+                  itemBuilder: (context, index) {
+                    final label = index == 0
+                        ? 'All'
+                        : _subCategories[index - 1].name;
+                    return _SubCategoryTab(
+                      label: label,
+                      selected: _selectedTabIndex == index,
+                      onTap: () => _selectTab(index),
+                    );
+                  },
+                ),
         ),
-        if (_loadingSubCategories)
+        if (_loadingSubCategories && !showTabSkeleton)
           const LinearProgressIndicator(
             minHeight: 2,
             color: _accent,
@@ -322,7 +330,7 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
 
   Widget _buildProductContent() {
     if (_loadingProducts && _products.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: _accent));
+      return SkeletonProductGrid(controller: _scrollController);
     }
 
     if (_productError != null && _products.isEmpty) {
@@ -346,7 +354,7 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
       controller: _scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-      itemCount: _products.length + (_loadingMore ? 1 : 0),
+      itemCount: _products.length + (_loadingMore ? 2 : 0),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 14,
@@ -355,7 +363,7 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
       ),
       itemBuilder: (context, index) {
         if (index >= _products.length) {
-          return const Center(child: CircularProgressIndicator(color: _accent));
+          return const SkeletonProductCard();
         }
 
         final product = _products[index];
@@ -668,6 +676,30 @@ class _SubCategoryTab extends StatelessWidget {
             color: selected ? const Color(0xFFEC407A) : const Color(0xFF35323A),
             fontSize: 17,
             fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SubCategoryTabsSkeleton extends StatelessWidget {
+  const _SubCategoryTabsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeleton(
+      child: ListView.separated(
+        key: const ValueKey('shop-category-tabs-skeleton'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: 4,
+        separatorBuilder: (context, index) => const SizedBox(width: 22),
+        itemBuilder: (context, index) => Center(
+          child: SkeletonBox(
+            width: index == 0 ? 42 : 88,
+            height: 18,
+            radius: 6,
           ),
         ),
       ),

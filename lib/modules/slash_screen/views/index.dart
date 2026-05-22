@@ -7,6 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/repositories/user_info_repository.dart';
 import '../../chipmong_screen/views/chipmong_mall_screen.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
 import '../../user_info_screen/views/edit_language_view.dart';
@@ -21,8 +23,11 @@ class IndexView extends StatefulWidget {
 
 class _IndexViewState extends State<IndexView> {
   final AuthService _authService = AuthService();
+  final UserInfoRepository _userInfoRepository = UserInfoRepository();
   String _languageCode = 'en';
   String? _profileImagePath;
+  String _profileImageUrl = '';
+  UserInfoModel? _userInfo;
   final GlobalKey _menuButtonKey = GlobalKey();
   bool get _isAuthenticated => UserSession.isAuthenticated;
   String get _languageLabel => _languageCode == 'km' ? 'Khmer' : 'English';
@@ -30,6 +35,45 @@ class _IndexViewState extends State<IndexView> {
   String get _displayName {
     final name = UserSession.displayName.trim();
     return name.isEmpty ? 'User' : name;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    UserInfoRepository.userInfoChanges.addListener(_handleUserInfoChanged);
+    _loadProfileImage();
+  }
+
+  @override
+  void dispose() {
+    UserInfoRepository.userInfoChanges.removeListener(_handleUserInfoChanged);
+    super.dispose();
+  }
+
+  void _handleUserInfoChanged() {
+    final userInfo = UserInfoRepository.userInfoChanges.value;
+    if (!mounted || userInfo == null) return;
+
+    setState(() {
+      _userInfo = userInfo;
+      _profileImagePath = userInfo.profileImagePath;
+      _profileImageUrl = userInfo.profileImageUrl;
+    });
+  }
+
+  Future<void> _loadProfileImage() async {
+    if (!_isAuthenticated) return;
+
+    final userInfo = await _userInfoRepository.loadUserInfo(
+      fallbackLanguageCode: _languageCode,
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _userInfo = userInfo;
+      _profileImagePath = userInfo.profileImagePath;
+      _profileImageUrl = userInfo.profileImageUrl;
+    });
   }
 
   Future<void> _openLanguageSelector() async {
@@ -152,6 +196,24 @@ class _IndexViewState extends State<IndexView> {
     if (!mounted || pickedFile == null) return;
 
     setState(() => _profileImagePath = pickedFile.path);
+
+    final current =
+        (_userInfo ??
+                await _userInfoRepository.loadUserInfo(
+                  fallbackLanguageCode: _languageCode,
+                ))
+            .copyWith(profileImagePath: pickedFile.path);
+    final updated = await _userInfoRepository.uploadProfileImage(
+      current: current,
+      localPath: pickedFile.path,
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _userInfo = updated;
+      _profileImagePath = updated.profileImagePath;
+      _profileImageUrl = updated.profileImageUrl;
+    });
   }
 
   Future<void> _showLogoutBottomSheet() async {
@@ -263,6 +325,7 @@ class _IndexViewState extends State<IndexView> {
                 ? _GreetingHeader(
                     displayName: _displayName,
                     profileImagePath: _profileImagePath,
+                    profileImageUrl: _profileImageUrl,
                   )
                 : InkWell(
                     onTap: () {
@@ -487,13 +550,22 @@ class _GreetingHeader extends StatelessWidget {
   const _GreetingHeader({
     required this.displayName,
     required this.profileImagePath,
+    required this.profileImageUrl,
   });
 
   final String displayName;
   final String? profileImagePath;
+  final String profileImageUrl;
 
   @override
   Widget build(BuildContext context) {
+    final imagePath = profileImagePath?.trim() ?? '';
+    final imageUrl = profileImageUrl.trim();
+    final token = (UserSession.token ?? '').trim();
+    final imageHeaders = token.isEmpty
+        ? null
+        : <String, String>{'Authorization': 'Bearer $token'};
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,23 +583,11 @@ class _GreetingHeader extends StatelessWidget {
               color: Color(0xFFE8B6CE),
               shape: BoxShape.circle,
             ),
-            child: profileImagePath == null
-                ? const Icon(Icons.person, color: Colors.white, size: 42)
-                : ClipOval(
-                    child: Image.file(
-                      File(profileImagePath!),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      errorBuilder: (_, error, stackTrace) {
-                        return const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 42,
-                        );
-                      },
-                    ),
-                  ),
+            child: _GreetingAvatarImage(
+              imagePath: imagePath,
+              imageUrl: imageUrl,
+              imageHeaders: imageHeaders,
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -542,5 +602,52 @@ class _GreetingHeader extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _GreetingAvatarImage extends StatelessWidget {
+  const _GreetingAvatarImage({
+    required this.imagePath,
+    required this.imageUrl,
+    required this.imageHeaders,
+  });
+
+  final String imagePath;
+  final String imageUrl;
+  final Map<String, String>? imageHeaders;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imagePath.isNotEmpty && File(imagePath).existsSync()) {
+      return ClipOval(
+        child: Image.file(
+          File(imagePath),
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (_, error, stackTrace) => _fallbackIcon(),
+        ),
+      );
+    }
+
+    if (imageUrl.isNotEmpty) {
+      return ClipOval(
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          httpHeaders: imageHeaders,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          placeholder: (_, _) => Container(color: const Color(0xFFE8B6CE)),
+          errorWidget: (_, _, _) => _fallbackIcon(),
+        ),
+      );
+    }
+
+    return _fallbackIcon();
+  }
+
+  Widget _fallbackIcon() {
+    return const Icon(Icons.person, color: Colors.white, size: 42);
   }
 }

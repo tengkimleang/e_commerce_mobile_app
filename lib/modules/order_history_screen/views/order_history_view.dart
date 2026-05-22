@@ -243,7 +243,7 @@ class _OrderCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF151515),
                       ),
@@ -257,7 +257,7 @@ class _OrderCard extends StatelessWidget {
               Text(
                 'Order: # ${order.orderNumber}',
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   color: Color(0xFF3A3A3A),
                   fontWeight: FontWeight.w500,
                 ),
@@ -279,12 +279,12 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                style: const TextStyle(fontSize: 20, height: 1.2),
+                style: const TextStyle(fontSize: 17, height: 1.2),
               ),
               const SizedBox(height: 8),
               Text(
                 dateText,
-                style: const TextStyle(fontSize: 14, color: Color(0xFF7D7D7D)),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF7D7D7D)),
               ),
             ],
           ),
@@ -358,7 +358,7 @@ class _OrderStatusChip extends StatelessWidget {
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontSize: 13,
             ),
           ),
         ],

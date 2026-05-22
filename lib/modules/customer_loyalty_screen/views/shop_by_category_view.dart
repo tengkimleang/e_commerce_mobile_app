@@ -1,5 +1,6 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_category_product_view.dart';
@@ -99,7 +100,7 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
             ),
             Expanded(
               child: _loading || !isCurrentShopLoaded
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const _ShopByCategoryGridSkeleton()
                   : _error != null
                   ? _ShopByCategoryLoadError(onRetry: _loadCategories)
                   : activeCategories.isEmpty
@@ -200,6 +201,28 @@ class _ShopByCategoryLoadError extends StatelessWidget {
       child: TextButton(
         onPressed: onRetry,
         child: const Text('Failed to load categories. Retry'),
+      ),
+    );
+  }
+}
+
+class _ShopByCategoryGridSkeleton extends StatelessWidget {
+  const _ShopByCategoryGridSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeleton(
+      child: GridView.builder(
+        key: const ValueKey('shop-by-category-grid-skeleton'),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
+        itemCount: 9,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 0.78,
+        ),
+        itemBuilder: (context, index) => const SkeletonCategoryCard(),
       ),
     );
   }

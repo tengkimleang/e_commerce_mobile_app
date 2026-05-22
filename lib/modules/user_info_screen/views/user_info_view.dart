@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
 import 'package:e_commerce_mobile_app/modules/location_screen/views/receiving_address_view.dart';
@@ -40,14 +41,18 @@ class UserInfoView extends StatefulWidget {
 }
 
 class _UserInfoViewState extends State<UserInfoView> {
+  static const _profileSkeletonMinDuration = Duration(milliseconds: 650);
   static final AuthService _authService = AuthService();
 
   late final UserInfoBloc _bloc;
   final ImagePicker _imagePicker = ImagePicker();
+  late final DateTime _profileSkeletonStartedAt;
+  bool _showProfileSkeleton = true;
 
   @override
   void initState() {
     super.initState();
+    _profileSkeletonStartedAt = DateTime.now();
     _bloc = UserInfoBloc()..add(const LoadUserInfo());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _recoverLostProfileImage();
@@ -66,8 +71,26 @@ class _UserInfoViewState extends State<UserInfoView> {
 
     return BlocProvider.value(
       value: _bloc,
-      child: BlocBuilder<UserInfoBloc, UserInfoState>(
+      child: BlocConsumer<UserInfoBloc, UserInfoState>(
+        listener: (context, state) {
+          if (state is UserInfoUpdated && _showProfileSkeleton) {
+            unawaited(_hideProfileSkeletonAfterMinimum());
+          }
+        },
         builder: (context, state) {
+          if (_showProfileSkeleton) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF3F3F3),
+              body: const SafeArea(child: _UserInfoPageSkeleton()),
+              bottomNavigationBar: widget.showBottomNavigation
+                  ? SupermarketBottomNavigation(
+                      selectedIndex: 4,
+                      onTap: (index) => _onBottomNavTap(context, index),
+                    )
+                  : null,
+            );
+          }
+
           final userInfo = state is UserInfoUpdated
               ? state.userInfo
               : state is UserInfoInitial
@@ -392,6 +415,16 @@ class _UserInfoViewState extends State<UserInfoView> {
         },
       ),
     );
+  }
+
+  Future<void> _hideProfileSkeletonAfterMinimum() async {
+    final elapsed = DateTime.now().difference(_profileSkeletonStartedAt);
+    final remaining = _profileSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+    if (!mounted || !_showProfileSkeleton) return;
+    setState(() => _showProfileSkeleton = false);
   }
 
   Future<void> _openEditUsername(BuildContext context, String current) async {
@@ -843,12 +876,7 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
             style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
           ),
         ),
-        if (_isBusy || _isLoading)
-          const SizedBox(
-            width: 18,
-            height: 18,
-            child: CircularProgressIndicator(strokeWidth: 2.2),
-          ),
+        if (_isBusy || _isLoading) const SkeletonBox(width: 18, height: 18),
         if (_isBusy || _isLoading) const SizedBox(width: 10),
         Switch(
           value: _isEnabled,
@@ -859,6 +887,133 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
               ? null
               : _onToggleChanged,
         ),
+      ],
+    );
+  }
+}
+
+class _UserInfoPageSkeleton extends StatelessWidget {
+  const _UserInfoPageSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeleton(
+      child: SingleChildScrollView(
+        key: const ValueKey('user-info-page-skeleton'),
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      SkeletonCircle(size: 30),
+                      SizedBox(width: 18),
+                      SkeletonCircle(size: 30),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  SkeletonCircle(size: 108),
+                  SizedBox(height: 18),
+                  SkeletonBox(width: 150, height: 16, radius: 6),
+                  SizedBox(height: 10),
+                  SkeletonBox(width: 178, height: 15, radius: 6),
+                  SizedBox(height: 12),
+                  Row(
+                    children: [
+                      SkeletonCircle(size: 42),
+                      SizedBox(width: 10),
+                      SkeletonBox(width: 70, height: 16, radius: 6),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  SizedBox(height: 10),
+                  SkeletonBox(width: 174, height: 18, radius: 6),
+                  SizedBox(height: 18),
+                  _SkeletonInfoRow(),
+                  Divider(height: 28, color: Color(0xFFD7D1D6)),
+                  _SkeletonInfoRow(),
+                  Divider(height: 28, color: Color(0xFFD7D1D6)),
+                  _SkeletonInfoRow(),
+                  Divider(height: 28, color: Color(0xFFD7D1D6)),
+                  _SkeletonInfoRow(),
+                  SizedBox(height: 12),
+                  Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                  SizedBox(height: 20),
+                  SkeletonBox(width: 168, height: 18, radius: 6),
+                  SizedBox(height: 18),
+                  _SkeletonInfoRow(showTrailing: false),
+                  Divider(height: 30, color: Color(0xFFD7D1D6)),
+                  SkeletonBox(width: 152, height: 18, radius: 6),
+                  SizedBox(height: 18),
+                  Divider(thickness: 8, color: Color(0xFFEDEAF1)),
+                  SizedBox(height: 20),
+                  SkeletonBox(width: 154, height: 18, radius: 6),
+                  SizedBox(height: 18),
+                  _SkeletonInfoRow(),
+                  Divider(height: 30, color: Color(0xFFD7D1D6)),
+                  _SkeletonInfoRow(),
+                  Divider(height: 30, color: Color(0xFFD7D1D6)),
+                  _SkeletonInfoRow(showTrailing: false),
+                  SizedBox(height: 24),
+                  SkeletonBox(height: 52, radius: 14),
+                  SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SkeletonInfoRow extends StatelessWidget {
+  const _SkeletonInfoRow({this.showTrailing = true});
+
+  final bool showTrailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SkeletonBox(width: 122, height: 14, radius: 6),
+              SizedBox(height: 8),
+              SkeletonBox(width: 178, height: 15, radius: 6),
+            ],
+          ),
+        ),
+        if (showTrailing) const SkeletonCircle(size: 30),
       ],
     );
   }
@@ -951,7 +1106,9 @@ class _HeaderCard extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: Border.all(color: accent, width: 2),
                     ),
-                    child: profileImagePath.isNotEmpty
+                    child:
+                        profileImagePath.isNotEmpty &&
+                            File(profileImagePath).existsSync()
                         ? ClipOval(
                             child: Image.file(
                               File(profileImagePath),
@@ -1301,22 +1458,16 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Telegram OTP Backup:',
-                style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
-              ),
-            ),
-            SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: _accent),
-            ),
-          ],
+      return const AppSkeleton(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              SkeletonBox(width: 164, height: 15, radius: 6),
+              Spacer(),
+              SkeletonBox(width: 56, height: 18, radius: 6),
+            ],
+          ),
         ),
       );
     }

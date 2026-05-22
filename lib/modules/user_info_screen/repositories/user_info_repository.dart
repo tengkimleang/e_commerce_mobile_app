@@ -10,6 +10,8 @@ class UserInfoRepository {
     : _authService = authService ?? AuthService();
 
   final AuthService _authService;
+  static final ValueNotifier<UserInfoModel?> userInfoChanges =
+      ValueNotifier<UserInfoModel?>(null);
 
   static const _cacheNameKey = 'user_info_cache_name';
   static const _cacheDobKey = 'user_info_cache_date_of_birth';
@@ -185,10 +187,7 @@ class UserInfoRepository {
         _firstNonEmpty([data['profileImageUrl'], response['profileImageUrl']]),
       );
 
-      final remote = draft.copyWith(
-        profileImageUrl: profileImageUrl,
-        clearProfileImagePath: profileImageUrl.isNotEmpty,
-      );
+      final remote = draft.copyWith(profileImageUrl: profileImageUrl);
       await cacheUserInfo(remote);
       return remote;
     } catch (e) {
@@ -233,6 +232,8 @@ class UserInfoRepository {
     } else {
       await prefs.setString(_cacheOwnerKey, owner);
     }
+
+    userInfoChanges.value = model;
   }
 
   Future<UserInfoModel> _loadCachedUserInfo({

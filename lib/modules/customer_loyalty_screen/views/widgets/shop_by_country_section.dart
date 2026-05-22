@@ -1,6 +1,7 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_by_country_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -16,19 +17,19 @@ class _Country {
 // Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
 
 const _countries = [
-  _Country(name: 'Cambodia',      flag: '🇰🇭'),
-  _Country(name: 'Canada',        flag: '🇨🇦'),
-  _Country(name: 'Egypt',         flag: '🇪🇬'),
-  _Country(name: 'South Korea',   flag: '🇰🇷'),
-  _Country(name: 'Japan',         flag: '🇯🇵'),
-  _Country(name: 'China',         flag: '🇨🇳'),
-  _Country(name: 'Singapore',     flag: '🇸🇬'),
-  _Country(name: 'Italy',         flag: '🇮🇹'),
-  _Country(name: 'Spain',         flag: '🇪🇸'),
-  _Country(name: 'Indonesia',     flag: '🇮🇩'),
-  _Country(name: 'Argentina',     flag: '🇦🇷'),
+  _Country(name: 'Cambodia', flag: '🇰🇭'),
+  _Country(name: 'Canada', flag: '🇨🇦'),
+  _Country(name: 'Egypt', flag: '🇪🇬'),
+  _Country(name: 'South Korea', flag: '🇰🇷'),
+  _Country(name: 'Japan', flag: '🇯🇵'),
+  _Country(name: 'China', flag: '🇨🇳'),
+  _Country(name: 'Singapore', flag: '🇸🇬'),
+  _Country(name: 'Italy', flag: '🇮🇹'),
+  _Country(name: 'Spain', flag: '🇪🇸'),
+  _Country(name: 'Indonesia', flag: '🇮🇩'),
+  _Country(name: 'Argentina', flag: '🇦🇷'),
   _Country(name: 'United States', flag: '🇺🇸'),
-  _Country(name: 'France',        flag: '🇫🇷'),
+  _Country(name: 'France', flag: '🇫🇷'),
 ];
 
 class ShopByCountrySection extends StatefulWidget {
@@ -55,15 +56,21 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
       final List<ProductModel> result;
       if (_selected == null) {
         // "All" — use search with empty keyword to get all products
-        final (products, _) = await di<CategoriesRepository>()
-            .searchProducts('', pageSize: 100);
+        final (products, _) = await di<CategoriesRepository>().searchProducts(
+          '',
+          pageSize: 100,
+        );
         result = products;
       } else {
         final (products, _) = await di<CategoriesRepository>()
             .fetchProductsByCountry(_selected!, pageSize: 50);
         result = products;
       }
-      if (mounted) setState(() { _products = result; _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _products = result;
+          _isLoading = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -95,9 +102,8 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
               GestureDetector(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => ShopByCountryView(
-                      initialCountry: _selected,
-                    ),
+                    builder: (_) =>
+                        ShopByCountryView(initialCountry: _selected),
                   ),
                 ),
                 child: Row(
@@ -135,18 +141,20 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                   _loadProducts();
                 },
               ),
-              ..._countries.map((c) => Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: _Chip(
-                      flag: c.flag,
-                      label: c.name.toUpperCase(),
-                      selected: _selected == c.name,
-                      onTap: () {
-                        setState(() => _selected = c.name);
-                        _loadProducts();
-                      },
-                    ),
-                  )),
+              ..._countries.map(
+                (c) => Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: _Chip(
+                    flag: c.flag,
+                    label: c.name.toUpperCase(),
+                    selected: _selected == c.name,
+                    onTap: () {
+                      setState(() => _selected = c.name);
+                      _loadProducts();
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -156,34 +164,51 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
         SizedBox(
           height: 260,
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const _CountryProductSkeletonList()
               : _filtered.isEmpty
-                  ? const Center(child: Text('No products'))
-                  : ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
-                      itemBuilder: (context, index) {
-                        final product = _filtered[index];
-                        return SizedBox(
-                          width: 160,
-                          child: ProductCard(
-                            product: product,
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => ProductDetailView(
-                                  product: product,
-                                  relatedProducts: _products,
-                                ),
-                              ),
+              ? const Center(child: Text('No products'))
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _filtered.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final product = _filtered[index];
+                    return SizedBox(
+                      width: 160,
+                      child: ProductCard(
+                        product: product,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailView(
+                              product: product,
+                              relatedProducts: _products,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
         ),
       ],
+    );
+  }
+}
+
+class _CountryProductSkeletonList extends StatelessWidget {
+  const _CountryProductSkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      key: const ValueKey('shop-by-country-products-skeleton'),
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 3,
+      separatorBuilder: (context, index) => const SizedBox(width: 12),
+      itemBuilder: (context, index) =>
+          const SizedBox(width: 160, child: SkeletonProductCard()),
     );
   }
 }
@@ -212,9 +237,7 @@ class _Chip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? accent : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? accent : Colors.grey.shade300,
-          ),
+          border: Border.all(color: selected ? accent : Colors.grey.shade300),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

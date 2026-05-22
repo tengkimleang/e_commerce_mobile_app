@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
@@ -40,6 +41,8 @@ class SupermarketMainView extends StatefulWidget {
 }
 
 class _SupermarketMainViewState extends State<SupermarketMainView> {
+  static const _branchSkeletonMinDuration = Duration(milliseconds: 700);
+
   final PageController _controller = PageController();
   int _current = 0;
   late final Timer _timer;
@@ -47,6 +50,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   ShopOption? _selectedShop;
   int _partnerCurrent = 0;
   int _selectedIndex = 0;
+  int _homeSkeletonSerial = 0;
+  DateTime? _homeSkeletonStartedAt;
+  bool _showHomeSkeleton = false;
   bool _showLaunchPopup = false;
   late String _launchImage;
   Timer? _launchTimer;
@@ -405,16 +411,51 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       }
     }
 
-    if (isIdentical) return;
+    if (isIdentical && !_showHomeSkeleton) return;
 
     setState(() {
-      _sliderImages = images;
-      _current = 0;
+      if (!isIdentical) {
+        _sliderImages = images;
+        _current = 0;
+      }
+      _showHomeSkeleton = false;
     });
 
-    if (_controller.hasClients && images.isNotEmpty) {
+    if (!isIdentical && _controller.hasClients && images.isNotEmpty) {
       _controller.jumpToPage(0);
     }
+  }
+
+  Future<void> _applyLoadedCategories(List<CategoryModel> categories) async {
+    final serial = _homeSkeletonSerial;
+    final startedAt = _homeSkeletonStartedAt;
+
+    if (_showHomeSkeleton && startedAt != null) {
+      final elapsed = DateTime.now().difference(startedAt);
+      final remaining = _branchSkeletonMinDuration - elapsed;
+      if (remaining > Duration.zero) {
+        await Future<void>.delayed(remaining);
+      }
+      if (!mounted || serial != _homeSkeletonSerial) return;
+    }
+
+    _applySliderImages(categories);
+  }
+
+  Future<void> _finishHomeSkeletonAfterMinimum() async {
+    final serial = _homeSkeletonSerial;
+    final startedAt = _homeSkeletonStartedAt;
+
+    if (!_showHomeSkeleton || startedAt == null) return;
+
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = _branchSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+
+    if (!mounted || serial != _homeSkeletonSerial || !_showHomeSkeleton) return;
+    setState(() => _showHomeSkeleton = false);
   }
 
   @override
@@ -443,7 +484,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
         BlocListener<SupermarketCategoryBloc, SupermarketCategoryState>(
           listener: (context, state) {
             if (state is CategoriesLoaded) {
-              _applySliderImages(state.categories);
+              unawaited(_applyLoadedCategories(state.categories));
+            } else if (state is CategoriesError && _showHomeSkeleton) {
+              unawaited(_finishHomeSkeletonAfterMinimum());
             }
           },
         ),
@@ -583,289 +626,22 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Search Bar (opens dedicated search view)
-            Container(
-              color: const Color(0xFFEC407A),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  // Tappable search pill
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SearchProducts(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Row(
-                            children: [
-                              Icon(Icons.search, color: Color(0xFFEC407A)),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Search products, brands and more',
-                                  style: TextStyle(color: Colors.grey),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
+      body: BlocBuilder<SupermarketCategoryBloc, SupermarketCategoryState>(
+        builder: (context, categoryState) {
+          return Column(
+            children: [
+              _buildSearchBar(context),
+              Expanded(
+                child:
+                    _showHomeSkeleton ||
+                        categoryState is CategoriesInitial ||
+                        categoryState is CategoriesLoading
+                    ? const SkeletonShopHomeContent()
+                    : _buildHomeContent(context, categoryState),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
-              child: SizedBox(
-                height: 300,
-                child: _sliderImages.isEmpty
-                    ? ClipRRect(
-                        borderRadius: const BorderRadius.all(
-                          Radius.circular(5),
-                        ),
-                        child: Container(color: Colors.grey[200]),
-                      )
-                    : Stack(
-                        children: [
-                          PageView.builder(
-                            controller: _controller,
-                            itemCount: _sliderImages.length,
-                            onPageChanged: (i) => setState(() => _current = i),
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () =>
-                                    _showBannerImagePopup(context, index),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.all(
-                                      Radius.circular(5),
-                                    ),
-                                    child: CachedNetworkImage(
-                                      imageUrl: _sliderImages[index],
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      placeholder: (_, placeholderUrl) =>
-                                          Container(color: Colors.grey[200]),
-                                      errorWidget: (_, failedImageUrl, error) =>
-                                          Container(
-                                            color: Colors.grey[300],
-                                            child: const Icon(
-                                              Icons.broken_image,
-                                              size: 48,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-            BlocBuilder<SupermarketCategoryBloc, SupermarketCategoryState>(
-              builder: (context, state) {
-                if (state is CategoriesLoaded) {
-                  return Column(children: _buildCategoryRows(state.categories));
-                }
-                if (state is CategoriesError) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      state.message,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-
-            //Customer Loyalty Section
-            SizedBox(height: 20),
-            CustomerLoyaltySection(
-              key: ValueKey(
-                _selectedShop?.shopId ?? UserSession.selectedShopId,
-              ),
-              isGuest: _isGuest,
-              shopId: _selectedShop?.shopId ?? UserSession.selectedShopId,
-              shopName:
-                  _selectedShop?.storeName ?? UserSession.selectedShopName,
-            ),
-
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Partner Privileges',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 160,
-              child: PageView.builder(
-                controller: _partnerController,
-                itemCount: _partnerImages.length,
-                onPageChanged: (i) => setState(() => _partnerCurrent = i),
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16),
-                    child: GestureDetector(
-                      onTap: () =>
-                          _showPartnerPopup(context, _partnerImages[index]),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: CachedNetworkImage(
-                          imageUrl: _partnerImages[index],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          placeholder: (c, s) =>
-                              Container(color: Colors.grey[200]),
-                          errorWidget: (c, s, e) =>
-                              Container(color: Colors.grey[300]),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(_partnerImages.length, (i) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _partnerCurrent == i ? 12 : 8,
-                    height: _partnerCurrent == i ? 12 : 8,
-                    decoration: BoxDecoration(
-                      color: _partnerCurrent == i
-                          ? Colors.black87
-                          : Colors.black26,
-                      shape: BoxShape.circle,
-                    ),
-                  );
-                }),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: InkWell(
-                onTap: () async {
-                  if (_isGuest) {
-                    await showAuthRequiredDialog(context);
-                    return;
-                  }
-                  if (!context.mounted) return;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const BecomePartnerView(),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(14),
-                child: Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.horizontal(
-                              left: Radius.circular(14),
-                            ),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFEC407A), Color(0xFFEA2E6D)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Column(
-                            // crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Wholesale Price',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'High quality products\nwith special price',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      ClipRRect(
-                        borderRadius: const BorderRadius.horizontal(
-                          right: Radius.circular(14),
-                        ),
-                        child: Image.asset(
-                          'assets/images/woman.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          // errorBuilder: (c, e, s) => Container(color: Colors.grey[200], width: 120, height: 120),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: SupermarketBottomNavigation(
         selectedIndex: _selectedIndex,
@@ -995,8 +771,283 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     }
     UserSession.setSelectedShop(selected.shopId, name: selected.storeName);
     context.read<CartBloc>().add(ChangeCartBranch(selected.shopId));
-    setState(() => _selectedShop = selected);
+    setState(() {
+      _homeSkeletonSerial++;
+      _homeSkeletonStartedAt = DateTime.now();
+      _selectedShop = selected;
+      _sliderImages = [];
+      _current = 0;
+      _showHomeSkeleton = true;
+    });
     context.read<SupermarketCategoryBloc>().add(LoadCategories());
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      color: const Color(0xFFEC407A),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SearchProducts()),
+                );
+              },
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: Color(0xFFEC407A)),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Search products, brands and more',
+                          style: TextStyle(color: Colors.grey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeContent(
+    BuildContext context,
+    SupermarketCategoryState categoryState,
+  ) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
+            child: SizedBox(
+              height: 300,
+              child: _sliderImages.isEmpty
+                  ? const AppSkeleton(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(5)),
+                        child: SkeletonBox(height: double.infinity, radius: 5),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        PageView.builder(
+                          controller: _controller,
+                          itemCount: _sliderImages.length,
+                          onPageChanged: (i) => setState(() => _current = i),
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () =>
+                                  _showBannerImagePopup(context, index),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(5),
+                                  ),
+                                  child: CachedNetworkImage(
+                                    imageUrl: _sliderImages[index],
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    placeholder: (_, placeholderUrl) =>
+                                        Container(color: Colors.grey[200]),
+                                    errorWidget: (_, failedImageUrl, error) =>
+                                        Container(
+                                          color: Colors.grey[300],
+                                          child: const Icon(
+                                            Icons.broken_image,
+                                            size: 48,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (categoryState is CategoriesLoaded)
+            Column(children: _buildCategoryRows(categoryState.categories))
+          else if (categoryState is CategoriesError)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                categoryState.message,
+                style: const TextStyle(color: Colors.grey),
+              ),
+            ),
+          const SizedBox(height: 20),
+          CustomerLoyaltySection(
+            key: ValueKey(_selectedShop?.shopId ?? UserSession.selectedShopId),
+            isGuest: _isGuest,
+            shopId: _selectedShop?.shopId ?? UserSession.selectedShopId,
+            shopName: _selectedShop?.storeName ?? UserSession.selectedShopName,
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Partner Privileges',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 160,
+            child: PageView.builder(
+              controller: _partnerController,
+              itemCount: _partnerImages.length,
+              onPageChanged: (i) => setState(() => _partnerCurrent = i),
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16),
+                  child: GestureDetector(
+                    onTap: () =>
+                        _showPartnerPopup(context, _partnerImages[index]),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: CachedNetworkImage(
+                        imageUrl: _partnerImages[index],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (c, s) =>
+                            Container(color: Colors.grey[200]),
+                        errorWidget: (c, s, e) =>
+                            Container(color: Colors.grey[300]),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(_partnerImages.length, (i) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _partnerCurrent == i ? 12 : 8,
+                  height: _partnerCurrent == i ? 12 : 8,
+                  decoration: BoxDecoration(
+                    color: _partnerCurrent == i
+                        ? Colors.black87
+                        : Colors.black26,
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: InkWell(
+              onTap: () async {
+                if (_isGuest) {
+                  await showAuthRequiredDialog(context);
+                  return;
+                }
+                if (!context.mounted) return;
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BecomePartnerView()),
+                );
+              },
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: Colors.white,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.horizontal(
+                            left: Radius.circular(14),
+                          ),
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFEC407A), Color(0xFFEA2E6D)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Wholesale Price',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'High quality products\nwith special price',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    ClipRRect(
+                      borderRadius: const BorderRadius.horizontal(
+                        right: Radius.circular(14),
+                      ),
+                      child: Image.asset(
+                        'assets/images/woman.png',
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> _buildCategoryRows(List<CategoryModel> categories) {
