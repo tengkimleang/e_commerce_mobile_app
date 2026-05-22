@@ -20,9 +20,14 @@ class MapReceivingAddressResult {
 }
 
 class MapReceivingAddressView extends StatefulWidget {
-  const MapReceivingAddressView({super.key, this.initialAddress = ''});
+  const MapReceivingAddressView({
+    super.key,
+    this.initialAddress = '',
+    this.startWithCurrentLocation = true,
+  });
 
   final String initialAddress;
+  final bool startWithCurrentLocation;
 
   @override
   State<MapReceivingAddressView> createState() =>
@@ -50,6 +55,11 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   void initState() {
     super.initState();
     _resolvedAddress = widget.initialAddress.trim();
+    if (widget.startWithCurrentLocation) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _useCurrentLocation(),
+      );
+    }
   }
 
   @override
@@ -144,7 +154,14 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
 
   Future<Position?> _lastKnownPosition() async {
     try {
-      return await Geolocator.getLastKnownPosition();
+      final position = await Geolocator.getLastKnownPosition();
+      if (position == null) return null;
+
+      final timestamp = position.timestamp;
+      final age = DateTime.now().difference(timestamp).abs();
+      if (age > const Duration(minutes: 10)) return null;
+
+      return position;
     } catch (_) {
       return null;
     }
@@ -159,6 +176,9 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+    if (_selectedCenter != null) {
+      _moveCamera(_selectedCenter!);
+    }
   }
 
   Future<void> _moveCamera(LatLng center, {double zoom = _defaultZoom}) async {

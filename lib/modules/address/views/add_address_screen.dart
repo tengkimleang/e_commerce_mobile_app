@@ -152,7 +152,14 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   Future<Position?> _lastKnownPosition() async {
     try {
-      return await Geolocator.getLastKnownPosition();
+      final position = await Geolocator.getLastKnownPosition();
+      if (position == null) return null;
+
+      final timestamp = position.timestamp;
+      final age = DateTime.now().difference(timestamp).abs();
+      if (age > const Duration(minutes: 10)) return null;
+
+      return position;
     } catch (_) {
       return null;
     }

@@ -219,7 +219,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
         title: const Text(
           'Search Address',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: 19,
             fontWeight: FontWeight.w700,
             color: _textColor,
           ),
@@ -228,7 +228,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(28, 20, 28, 18),
+            padding: const EdgeInsets.fromLTRB(28, 14, 28, 16),
             child: _buildSearchField(),
           ),
           Expanded(child: _buildSuggestions(query)),
@@ -250,7 +250,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
         textInputAction: TextInputAction.search,
         onSubmitted: (_) => _submitSearch(),
         style: const TextStyle(
-          fontSize: 21,
+          fontSize: 18,
           color: _textColor,
           fontWeight: FontWeight.w400,
         ),
@@ -261,8 +261,8 @@ class _AddressSearchViewState extends State<AddressSearchView> {
               ? const Padding(
                   padding: EdgeInsets.all(15),
                   child: SizedBox(
-                    width: 18,
-                    height: 18,
+                    width: 16,
+                    height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 )
@@ -274,8 +274,8 @@ class _AddressSearchViewState extends State<AddressSearchView> {
                         color: Color(0xFF9B99A3),
                       )),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 22,
-            vertical: 20,
+            horizontal: 20,
+            vertical: 14,
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -321,9 +321,9 @@ class _AddressSearchViewState extends State<AddressSearchView> {
       children: [
         ListView.separated(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
           itemCount: _suggestions.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 8),
+          separatorBuilder: (_, _) => const SizedBox(height: 4),
           itemBuilder: (context, index) {
             final suggestion = _suggestions[index];
             return _AddressSuggestionTile(
@@ -356,21 +356,21 @@ class _AddressSuggestionTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
-              width: 96,
+              width: 84,
               child: Column(
                 children: [
                   const CircleAvatar(
-                    radius: 24,
+                    radius: 21,
                     backgroundColor: Color(0xFFEDEDF0),
                     child: Icon(
                       Icons.access_time_rounded,
                       color: Colors.black,
-                      size: 34,
+                      size: 28,
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -378,7 +378,7 @@ class _AddressSuggestionTile extends StatelessWidget {
                     _formatDistance(suggestion.distanceMeters),
                     style: const TextStyle(
                       color: Color(0xFF696774),
-                      fontSize: 13,
+                      fontSize: 12,
                       height: 1.1,
                     ),
                   ),
@@ -392,9 +392,9 @@ class _AddressSuggestionTile extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFF34313B),
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w400,
-                  height: 1.35,
+                  height: 1.3,
                 ),
               ),
             ),
