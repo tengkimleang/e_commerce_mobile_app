@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/maps/address_geocoding_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../blocs/address_bloc.dart';
 import '../blocs/address_event.dart';
@@ -66,7 +67,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       _selectedCenter = LatLng(existing.latitude, existing.longitude);
       _resolvedAddress = existing.address;
     } else if (widget.startWithCurrentLocation) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _useCurrentLocation());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _useCurrentLocation(),
+      );
     }
   }
 
@@ -85,7 +88,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (_isLocating) return;
     setState(() => _isLocating = true);
 
-    LatLng center = _fallbackCenter;
+    LatLng? center;
     String? warning;
 
     try {
@@ -93,18 +96,24 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       center = LatLng(pos.latitude, pos.longitude);
     } catch (e) {
       warning = _friendlyError(e);
+      debugPrint('Could not get current location: $e');
     } finally {
       if (mounted) setState(() => _isLocating = false);
     }
 
     if (!mounted) return;
-    setState(() => _selectedCenter = center);
-    await _moveCamera(center);
-    await _resolveAddress(center);
+
+    if (center != null) {
+      setState(() => _selectedCenter = center);
+      await _moveCamera(center);
+      await _resolveAddress(center);
+    } else {
+      await _moveCamera(_selectedCenter ?? _fallbackCenter);
+    }
 
     if (warning != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not get location. Move the pin to your address.')),
+        SnackBar(content: Text('$warning Tap the map to select your address.')),
       );
     }
   }
@@ -117,13 +126,37 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (perm == LocationPermission.denied) {
       perm = await Geolocator.requestPermission();
     }
-    if (perm == LocationPermission.denied) throw _LocationException('Location permission denied.');
+    if (perm == LocationPermission.denied)
+      throw _LocationException('Location permission denied.');
     if (perm == LocationPermission.deniedForever) {
       throw _LocationException('Location permission permanently denied.');
     }
-    return Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
+    try {
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
+    } on TimeoutException {
+      final lastKnown = await _lastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+      throw _LocationException(
+        'Location timed out. Please make sure GPS is on.',
+      );
+    } catch (_) {
+      final lastKnown = await _lastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+      rethrow;
+    }
+  }
+
+  Future<Position?> _lastKnownPosition() async {
+    try {
+      return await Geolocator.getLastKnownPosition();
+    } catch (_) {
+      return null;
+    }
   }
 
   String _friendlyError(Object e) {
@@ -170,16 +203,18 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (query.isEmpty) return;
     setState(() => _isSearching = true);
     try {
-      final locs = await locationFromAddress(query);
-      if (locs.isEmpty) throw Exception('Not found');
-      final target = LatLng(locs.first.latitude, locs.first.longitude);
+      final target = await AddressGeocodingService.instance.search(query);
+      if (target == null) throw Exception('Not found');
+      if (!mounted) return;
       setState(() => _selectedCenter = target);
       await _moveCamera(target);
       await _resolveAddress(target);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Address not found. Try more specific keywords.')),
+          const SnackBar(
+            content: Text('Address not found. Try more specific keywords.'),
+          ),
         );
       }
     } finally {
@@ -191,7 +226,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     if (!mounted) return;
     setState(() => _isResolvingAddress = true);
     try {
-      final placemarks = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+      final placemarks = await placemarkFromCoordinates(
+        pos.latitude,
+        pos.longitude,
+      );
       final place = placemarks.isEmpty ? null : placemarks.first;
       if (!mounted) return;
       setState(() => _resolvedAddress = _formatPlacemark(place, pos));
@@ -262,7 +300,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 22,
+            color: Colors.black87,
+          ),
         ),
         title: Text(
           isEditing ? 'Edit address' : 'Add address',
@@ -292,7 +334,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     target: _mapCenter,
                     zoom: _defaultZoom,
                   ),
-                  minMaxZoomPreference: const MinMaxZoomPreference(_minZoom, _maxZoom),
+                  minMaxZoomPreference: const MinMaxZoomPreference(
+                    _minZoom,
+                    _maxZoom,
+                  ),
                   zoomGesturesEnabled: true,
                   scrollGesturesEnabled: true,
                   rotateGesturesEnabled: true,
@@ -340,14 +385,19 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                               child: SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             )
                           : IconButton(
                               onPressed: _searchAddress,
                               icon: const Icon(Icons.arrow_forward_rounded),
                             ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 14,
+                      ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide.none,
                         borderRadius: BorderRadius.circular(28),
@@ -366,9 +416,15 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 bottom: 16,
                 child: Column(
                   children: [
-                    _MapControlButton(icon: Icons.add_rounded, onTap: () => _zoomMap(1)),
+                    _MapControlButton(
+                      icon: Icons.add_rounded,
+                      onTap: () => _zoomMap(1),
+                    ),
                     const SizedBox(height: 10),
-                    _MapControlButton(icon: Icons.remove_rounded, onTap: () => _zoomMap(-1)),
+                    _MapControlButton(
+                      icon: Icons.remove_rounded,
+                      onTap: () => _zoomMap(-1),
+                    ),
                     const SizedBox(height: 10),
                     _MapControlButton(
                       icon: Icons.my_location_rounded,
@@ -409,7 +465,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 2),
-                        child: Icon(Icons.place_rounded, color: AppColors.primary, size: 20),
+                        child: Icon(
+                          Icons.place_rounded,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -417,10 +477,12 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                           _isResolvingAddress
                               ? 'Detecting address...'
                               : (_resolvedAddress.isEmpty
-                                  ? 'Tap the map to select your location'
-                                  : _resolvedAddress),
+                                    ? 'Tap the map to select your location'
+                                    : _resolvedAddress),
                           style: TextStyle(
-                            color: (!_isResolvingAddress && _resolvedAddress.isEmpty)
+                            color:
+                                (!_isResolvingAddress &&
+                                    _resolvedAddress.isEmpty)
                                 ? const Color(0xFFB0AFBA)
                                 : const Color(0xFF34313B),
                             fontSize: 14,
@@ -448,7 +510,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     hintText: 'Enter phone number',
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[\d\s\+\-\(\)]')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'[\d\s\+\-\(\)]'),
+                      ),
                     ],
                     onChanged: (_) => setState(() {}),
                   ),
@@ -478,15 +542,23 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                           width: 22,
                           height: 22,
                           decoration: BoxDecoration(
-                            color: _isDefault ? AppColors.primary : Colors.white,
+                            color: _isDefault
+                                ? AppColors.primary
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                              color: _isDefault ? AppColors.primary : const Color(0xFFCCCCCC),
+                              color: _isDefault
+                                  ? AppColors.primary
+                                  : const Color(0xFFCCCCCC),
                               width: 1.5,
                             ),
                           ),
                           child: _isDefault
-                              ? const Icon(Icons.check, color: Colors.white, size: 16)
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 16,
+                                )
                               : null,
                         ),
                         const SizedBox(width: 12),
@@ -556,7 +628,12 @@ class _FormLabel extends StatelessWidget {
           color: Color(0xFF1D1B24),
         ),
         children: required
-            ? const [TextSpan(text: '*', style: TextStyle(color: AppColors.primary))]
+            ? const [
+                TextSpan(
+                  text: '*',
+                  style: TextStyle(color: AppColors.primary),
+                ),
+              ]
             : [],
       ),
     );
@@ -591,7 +668,10 @@ class _FormTextField extends StatelessWidget {
         hintStyle: const TextStyle(color: Color(0xFFB0AFBA), fontSize: 14),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFE5E5EA)),
@@ -632,17 +712,25 @@ class _LabelSelector extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.08)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : const Color(0xFFE5E5EA),
+                  color: isSelected
+                      ? AppColors.primary
+                      : const Color(0xFFE5E5EA),
                   width: isSelected ? 1.5 : 1,
                 ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, color: isSelected ? AppColors.primary : Colors.black54, size: 20),
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.primary : Colors.black54,
+                    size: 20,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     text,

@@ -5,6 +5,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../../core/maps/address_geocoding_service.dart';
+
 class MapReceivingAddressResult {
   const MapReceivingAddressResult({
     required this.address,
@@ -64,7 +66,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     if (_isLocating) return;
     setState(() => _isLocating = true);
 
-    LatLng center = _fallbackCenter;
+    LatLng? center;
     String? locationWarning;
 
     try {
@@ -72,20 +74,25 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
       center = LatLng(position.latitude, position.longitude);
     } catch (error) {
       locationWarning = _mapLocationError(error);
+      debugPrint('Could not get current location: $error');
     } finally {
       if (mounted) setState(() => _isLocating = false);
     }
 
     if (!mounted) return;
 
-    setState(() => _selectedCenter = center);
-    await _moveCamera(center);
-    await _resolveAddress(center);
+    if (center != null) {
+      setState(() => _selectedCenter = center);
+      await _moveCamera(center);
+      await _resolveAddress(center);
+    } else {
+      await _moveCamera(_selectedCenter ?? _fallbackCenter);
+    }
 
     if (locationWarning != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not get current location. Move the map pin to your address.'),
+        SnackBar(
+          content: Text('$locationWarning Tap the map to select your address.'),
         ),
       );
     }
@@ -116,9 +123,32 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
       );
     }
 
-    return Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
+    try {
+      return await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 12),
+        ),
+      );
+    } on TimeoutException {
+      final lastKnown = await _lastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+      throw const _LocationException(
+        'Location timed out. Please make sure GPS is on.',
+      );
+    } catch (_) {
+      final lastKnown = await _lastKnownPosition();
+      if (lastKnown != null) return lastKnown;
+      rethrow;
+    }
+  }
+
+  Future<Position?> _lastKnownPosition() async {
+    try {
+      return await Geolocator.getLastKnownPosition();
+    } catch (_) {
+      return null;
+    }
   }
 
   String _mapLocationError(Object error) {
@@ -136,7 +166,9 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     final controller = _mapController;
     if (controller == null) return;
     await controller.animateCamera(
-      CameraUpdate.newCameraPosition(CameraPosition(target: center, zoom: zoom)),
+      CameraUpdate.newCameraPosition(
+        CameraPosition(target: center, zoom: zoom),
+      ),
     );
   }
 
@@ -165,9 +197,10 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
 
     setState(() => _isSearching = true);
     try {
-      final locations = await locationFromAddress(query);
-      if (locations.isEmpty) throw const _LocationException('Address was not found.');
-      final target = LatLng(locations.first.latitude, locations.first.longitude);
+      final target = await AddressGeocodingService.instance.search(query);
+      if (target == null) {
+        throw const _LocationException('Address was not found.');
+      }
       if (!mounted) return;
       setState(() => _selectedCenter = target);
       await _moveCamera(target);
@@ -175,7 +208,9 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address not found. Try more specific keywords.')),
+        const SnackBar(
+          content: Text('Address not found. Try more specific keywords.'),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSearching = false);
@@ -186,12 +221,17 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
     if (!mounted) return;
     setState(() => _isResolvingAddress = true);
     try {
-      final placemarks = await placemarkFromCoordinates(center.latitude, center.longitude);
+      final placemarks = await placemarkFromCoordinates(
+        center.latitude,
+        center.longitude,
+      );
       final place = placemarks.isEmpty ? null : placemarks.first;
       final formatted = _formatPlacemark(place);
       if (!mounted) return;
       setState(() {
-        _resolvedAddress = formatted.isEmpty ? _latLngFallback(center) : formatted;
+        _resolvedAddress = formatted.isEmpty
+            ? _latLngFallback(center)
+            : formatted;
       });
     } catch (_) {
       if (!mounted) return;
@@ -275,7 +315,10 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
               target: _mapCenter,
               zoom: _defaultZoom,
             ),
-            minMaxZoomPreference: const MinMaxZoomPreference(_minZoom, _maxZoom),
+            minMaxZoomPreference: const MinMaxZoomPreference(
+              _minZoom,
+              _maxZoom,
+            ),
             zoomGesturesEnabled: true,
             scrollGesturesEnabled: true,
             rotateGesturesEnabled: true,
@@ -331,7 +374,10 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                         onPressed: _searchAddress,
                         icon: const Icon(Icons.arrow_forward_rounded),
                       ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 14,
+                ),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide.none,
                   borderRadius: BorderRadius.circular(28),
@@ -351,9 +397,15 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
           bottom: 16,
           child: Column(
             children: [
-              _MapControlButton(icon: Icons.add_rounded, onTap: () => _zoomMap(1)),
+              _MapControlButton(
+                icon: Icons.add_rounded,
+                onTap: () => _zoomMap(1),
+              ),
               const SizedBox(height: 10),
-              _MapControlButton(icon: Icons.remove_rounded, onTap: () => _zoomMap(-1)),
+              _MapControlButton(
+                icon: Icons.remove_rounded,
+                onTap: () => _zoomMap(-1),
+              ),
               const SizedBox(height: 10),
               _MapControlButton(
                 icon: Icons.my_location_rounded,
@@ -404,10 +456,12 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                       _isResolvingAddress
                           ? 'Detecting address...'
                           : (_resolvedAddress.trim().isEmpty
-                              ? 'Tap the map to select your location'
-                              : _resolvedAddress),
+                                ? 'Tap the map to select your location'
+                                : _resolvedAddress),
                       style: TextStyle(
-                        color: (!_isResolvingAddress && _resolvedAddress.trim().isEmpty)
+                        color:
+                            (!_isResolvingAddress &&
+                                _resolvedAddress.trim().isEmpty)
                             ? const Color(0xFFB0AFBA)
                             : const Color(0xFF34313B),
                         fontSize: 15,
