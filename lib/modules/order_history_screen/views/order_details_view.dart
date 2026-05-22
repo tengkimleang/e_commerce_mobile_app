@@ -12,10 +12,12 @@ class OrderDetailsView extends StatefulWidget {
     super.key,
     required this.entry,
     this.ordersRepository,
+    this.showCancelAction = true,
   });
 
   final OrderHistoryEntry entry;
   final OrdersRepository? ordersRepository;
+  final bool showCancelAction;
 
   @override
   State<OrderDetailsView> createState() => _OrderDetailsViewState();
@@ -92,7 +94,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
 
   bool get _canCancelByCustomer {
     final code = _resolvedStatusCode;
-    return code == 'REQUESTING';
+    return widget.showCancelAction && code == 'REQUESTING';
   }
 
   Future<void> _cancelOrderByCustomer() async {
