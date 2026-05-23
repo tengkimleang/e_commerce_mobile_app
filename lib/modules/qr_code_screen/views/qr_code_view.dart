@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
@@ -26,8 +28,12 @@ class QrCodeView extends StatefulWidget {
 }
 
 class _QrCodeViewState extends State<QrCodeView> {
+  static const _qrSkeletonMinDuration = Duration(milliseconds: 650);
+
   late final UserInfoRepository _userInfoRepository;
   late Future<_SupermarketQrProfile> _profileFuture;
+  late final DateTime _qrSkeletonStartedAt;
+  bool _showQrSkeleton = true;
 
   bool get _guestMode => widget.isGuest ?? UserSession.isGuest;
 
@@ -35,7 +41,9 @@ class _QrCodeViewState extends State<QrCodeView> {
   void initState() {
     super.initState();
     _userInfoRepository = UserInfoRepository();
+    _qrSkeletonStartedAt = DateTime.now();
     _profileFuture = _loadProfile();
+    unawaited(_profileFuture.whenComplete(_hideQrSkeletonAfterMinimum));
   }
 
   Future<_SupermarketQrProfile> _loadProfile() async {
@@ -80,59 +88,37 @@ class _QrCodeViewState extends State<QrCodeView> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
-      body: FutureBuilder<_SupermarketQrProfile>(
-        future: _profileFuture,
-        builder: (context, snapshot) {
-          final profile = snapshot.data ?? _SupermarketQrProfile.fromSession();
-          final username = profile.isGuest ? '' : profile.username;
-          final phone = profile.isGuest ? '' : profile.phone;
-          final points = profile.points.toString();
-          final usernameLabel = profile.isGuest
-              ? '--------------------'
-              : username;
-          final phoneLabel = profile.isGuest ? '--------------------' : phone;
+      body: Column(
+        children: [
+          _QrHeader(accent: accent),
+          Expanded(
+            child: FutureBuilder<_SupermarketQrProfile>(
+              future: _profileFuture,
+              builder: (context, snapshot) {
+                if (_showQrSkeleton ||
+                    snapshot.connectionState == ConnectionState.waiting) {
+                  return const _QrCodeSkeletonBody();
+                }
 
-          final qrData = Uri.encodeComponent(
-            'user:$username;phone:$phone;points:$points',
-          );
-          final qrUrl =
-              'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
+                final profile =
+                    snapshot.data ?? _SupermarketQrProfile.fromSession();
+                final username = profile.isGuest ? '' : profile.username;
+                final phone = profile.isGuest ? '' : profile.phone;
+                final points = profile.points.toString();
+                final usernameLabel = profile.isGuest
+                    ? '--------------------'
+                    : username;
+                final phoneLabel = profile.isGuest
+                    ? '--------------------'
+                    : phone;
 
-          return Column(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(26),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.09),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: SizedBox(
-                    height: 86,
-                    child: Center(
-                      child: Text(
-                        'QR Code',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 21,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
+                final qrData = Uri.encodeComponent(
+                  'user:$username;phone:$phone;points:$points',
+                );
+                final qrUrl =
+                    'https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=$qrData';
+
+                return SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
                   child: Column(
                     children: [
@@ -141,6 +127,16 @@ class _QrCodeViewState extends State<QrCodeView> {
                         width: 300,
                         height: 300,
                         fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const AppSkeleton(
+                            child: SkeletonBox(
+                              width: 300,
+                              height: 300,
+                              radius: 6,
+                            ),
+                          );
+                        },
                         errorBuilder: (context, error, stackTrace) => Container(
                           width: 300,
                           height: 300,
@@ -179,11 +175,11 @@ class _QrCodeViewState extends State<QrCodeView> {
                       ),
                     ],
                   ),
-                ),
-              ),
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
@@ -192,6 +188,16 @@ class _QrCodeViewState extends State<QrCodeView> {
             )
           : null,
     );
+  }
+
+  Future<void> _hideQrSkeletonAfterMinimum() async {
+    final elapsed = DateTime.now().difference(_qrSkeletonStartedAt);
+    final remaining = _qrSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+    if (!mounted || !_showQrSkeleton) return;
+    setState(() => _showQrSkeleton = false);
   }
 
   void _onBottomNavTap(BuildContext context, int index) {
@@ -223,6 +229,101 @@ class _QrCodeViewState extends State<QrCodeView> {
         MaterialPageRoute(builder: (_) => const UserInfoView()),
       );
     }
+  }
+}
+
+class _QrHeader extends StatelessWidget {
+  const _QrHeader({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(26)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.09),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 86,
+          child: Center(
+            child: Text(
+              'QR Code',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w700,
+                fontSize: 21,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QrCodeSkeletonBody extends StatelessWidget {
+  const _QrCodeSkeletonBody();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSkeleton(
+      child: SingleChildScrollView(
+        key: const ValueKey('qr-code-screen-skeleton'),
+        padding: const EdgeInsets.fromLTRB(20, 48, 20, 24),
+        child: Column(
+          children: [
+            const SkeletonBox(width: 300, height: 300, radius: 6),
+            const SizedBox(height: 34),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDEDED),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              child: const Column(
+                children: [
+                  _QrInfoRowSkeleton(),
+                  SizedBox(height: 10),
+                  _DashedDivider(),
+                  SizedBox(height: 10),
+                  _QrInfoRowSkeleton(),
+                  SizedBox(height: 10),
+                  _DashedDivider(),
+                  SizedBox(height: 10),
+                  _QrInfoRowSkeleton(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QrInfoRowSkeleton extends StatelessWidget {
+  const _QrInfoRowSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        SkeletonBox(width: 124, height: 14, radius: 6),
+        Spacer(),
+        SkeletonBox(width: 96, height: 14, radius: 6),
+      ],
+    );
   }
 }
 

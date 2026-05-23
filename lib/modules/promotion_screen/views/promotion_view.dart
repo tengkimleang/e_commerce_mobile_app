@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -36,10 +38,27 @@ class PromotionView extends StatelessWidget {
   }
 }
 
-class _PromotionScaffold extends StatelessWidget {
+class _PromotionScaffold extends StatefulWidget {
   final bool showBottomNavigation;
 
   const _PromotionScaffold({required this.showBottomNavigation});
+
+  @override
+  State<_PromotionScaffold> createState() => _PromotionScaffoldState();
+}
+
+class _PromotionScaffoldState extends State<_PromotionScaffold> {
+  static const _promotionSkeletonMinDuration = Duration(milliseconds: 650);
+
+  int _promotionSkeletonSerial = 0;
+  DateTime? _promotionSkeletonStartedAt;
+  bool _showPromotionSkeleton = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _startPromotionSkeleton();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,9 +100,21 @@ class _PromotionScaffold extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: BlocBuilder<PromotionBloc, PromotionState>(
-              builder: (context, state) {
+            child: BlocConsumer<PromotionBloc, PromotionState>(
+              listener: (context, state) {
                 if (state is PromotionLoading || state is PromotionInitial) {
+                  _startPromotionSkeleton();
+                  return;
+                }
+
+                if (state is PromotionLoaded || state is PromotionError) {
+                  unawaited(_hidePromotionSkeletonAfterMinimum());
+                }
+              },
+              builder: (context, state) {
+                if (_showPromotionSkeleton ||
+                    state is PromotionLoading ||
+                    state is PromotionInitial) {
                   return const _PromotionLoadingSkeleton();
                 }
                 if (state is PromotionError) {
@@ -103,9 +134,12 @@ class _PromotionScaffold extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         TextButton(
-                          onPressed: () => context.read<PromotionBloc>().add(
-                            LoadPromotionSections(UserSession.selectedShopId),
-                          ),
+                          onPressed: () {
+                            _startPromotionSkeleton();
+                            context.read<PromotionBloc>().add(
+                              LoadPromotionSections(UserSession.selectedShopId),
+                            );
+                          },
                           child: const Text(
                             'Retry',
                             style: TextStyle(color: accent),
@@ -155,13 +189,37 @@ class _PromotionScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: showBottomNavigation
+      bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
               selectedIndex: 1,
               onTap: (index) => _onBottomNavTap(context, index),
             )
           : null,
     );
+  }
+
+  void _startPromotionSkeleton() {
+    _promotionSkeletonSerial++;
+    _promotionSkeletonStartedAt = DateTime.now();
+    if (!_showPromotionSkeleton && mounted) {
+      setState(() => _showPromotionSkeleton = true);
+    }
+  }
+
+  Future<void> _hidePromotionSkeletonAfterMinimum() async {
+    final serial = _promotionSkeletonSerial;
+    final startedAt = _promotionSkeletonStartedAt;
+
+    if (!_showPromotionSkeleton || startedAt == null) return;
+
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = _promotionSkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+
+    if (!mounted || serial != _promotionSkeletonSerial) return;
+    setState(() => _showPromotionSkeleton = false);
   }
 
   void _onBottomNavTap(BuildContext context, int index) {

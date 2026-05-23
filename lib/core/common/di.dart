@@ -3,6 +3,7 @@ import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
+import 'package:e_commerce_mobile_app/modules/notification_screen/repositories/notification_promotions_repository.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -38,6 +39,11 @@ Future<void> initializeDependenciesInjection() async {
 
   // Favorites repository — syncs user favorites with the backend.
   di.registerSingleton<FavoritesRepository>(HttpFavoritesRepository(di<Dio>()));
+
+  // Notification promotions — admin-managed promotion feed.
+  di.registerSingleton<NotificationPromotionsRepository>(
+    HttpNotificationPromotionsRepository(di<Dio>()),
+  );
 
   //repository
   // di.registerFactory(() => UserRepository());
