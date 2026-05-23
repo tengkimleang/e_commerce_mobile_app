@@ -36,11 +36,58 @@ class HttpNotificationPromotionsRepository
     final items = rawItems is List<dynamic> ? rawItems : const <dynamic>[];
     final result = items
         .whereType<Map<String, dynamic>>()
-        .map(NotificationPromotionEntry.fromJson)
+        .map(_promotionFromJson)
         .toList();
 
     result.sort(_comparePromotions);
     return result;
+  }
+
+  NotificationPromotionEntry _promotionFromJson(Map<String, dynamic> json) {
+    final normalized = Map<String, dynamic>.from(json);
+    normalized['imageUrl'] = _normalizePublicUrl(
+      (json['imageUrl'] as String?) ?? '',
+    );
+    return NotificationPromotionEntry.fromJson(normalized);
+  }
+
+  String _normalizePublicUrl(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return '';
+
+    final baseUri = Uri.tryParse(ApiUrl.baseUrl);
+    if (baseUri == null || !baseUri.hasScheme || baseUri.host.isEmpty) {
+      return value;
+    }
+
+    final imageUri = Uri.tryParse(value);
+    if (imageUri == null) {
+      return baseUri.resolve(value).toString();
+    }
+
+    if (!imageUri.hasScheme) {
+      return baseUri.resolveUri(imageUri).toString();
+    }
+
+    final host = imageUri.host.toLowerCase();
+    const localOnlyHosts = {
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0',
+      '10.0.2.2',
+      '::1',
+    };
+    if (localOnlyHosts.contains(host)) {
+      return imageUri
+          .replace(
+            scheme: baseUri.scheme,
+            host: baseUri.host,
+            port: baseUri.hasPort ? baseUri.port : null,
+          )
+          .toString();
+    }
+
+    return imageUri.toString();
   }
 
   int _comparePromotions(

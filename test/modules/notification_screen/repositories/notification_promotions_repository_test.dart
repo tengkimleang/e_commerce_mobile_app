@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/models/notification_promotion_entry.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/repositories/notification_promotions_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -83,5 +84,43 @@ void main() {
     final repository = HttpNotificationPromotionsRepository(dio);
 
     expect(() => repository.fetchPromotions(), throwsA(isA<Exception>()));
+  });
+
+  test('normalizes relative promotion image urls with API base url', () async {
+    final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.resolve(
+            Response<dynamic>(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'data': {
+                  'items': [
+                    {
+                      'id': 'content-1',
+                      'type': 'content',
+                      'title': 'Content Promo',
+                      'description': 'Content description',
+                      'imageUrl': '/uploads/promotions/content.jpg',
+                      'displayOrder': 1,
+                    },
+                  ],
+                },
+              },
+            ),
+          );
+        },
+      ),
+    );
+
+    final repository = HttpNotificationPromotionsRepository(dio);
+    final items = await repository.fetchPromotions(shopId: 'shop-1');
+
+    expect(
+      items.single.imageUrl,
+      '${ApiUrl.baseUrl}/uploads/promotions/content.jpg',
+    );
   });
 }
