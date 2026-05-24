@@ -19,7 +19,6 @@ import 'package:e_commerce_mobile_app/modules/address/repositories/address_repos
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/services/profile_image_pick_recovery.dart';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,7 +57,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (_) =>
               SupermarketCategoryBloc(di<CategoriesRepository>())
-                ..add(LoadCategories()),
+                ..add(LoadCategories(UserSession.selectedShopId)),
         ),
         BlocProvider(
           create: (_) =>

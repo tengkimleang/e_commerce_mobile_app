@@ -10,6 +10,16 @@
             "type": "dart"
         },
         {
+            "name": "e_commerce_mobile_app (iPhone local BE)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "4c27c0871a07bdfda179a9876c9a6fcf0942ed1d",
+            "toolArgs": [
+                "--dart-define",
+                "API_BASE_URL=http://192.168.100.75:5058"
+            ]
+        },
+        {
             "name": "e_commerce_mobile_app (profile mode)",
             "request": "launch",
             "type": "dart",

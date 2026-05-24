@@ -261,159 +261,170 @@ class _SignupViewState extends State<SignupView> {
 
   @override
   Widget build(BuildContext context) {
+    final isShortScreen = MediaQuery.sizeOf(context).height < 700;
+    final logoSize = isShortScreen ? 126.0 : 180.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Center(
-                child: SizedBox(
-                  width: 180,
-                  height: 180,
-                  child: Image.network(
-                    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1OJzt6aExDeNZVojWp3jWz4CUcDC2Y4Nggg&s',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              const Text('Phone number', style: TextStyle(fontSize: 15)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) =>
-                    setState(() => _isPhoneValid = _isValidPhone(value.trim())),
-                decoration: InputDecoration(
-                  hintText: 'Enter phone number',
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  errorText:
-                      (!_isPhoneValid && _phoneController.text.isNotEmpty)
-                      ? 'Please enter a valid phone number'
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text('Full name', style: TextStyle(fontSize: 15)),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _fullNameController,
-                onChanged: (_) => setState(() {
-                  _showFullNameError = false;
-                }),
-                decoration: InputDecoration(
-                  hintText: 'Enter full name',
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  errorText: _showFullNameError
-                      ? 'Please enter your full name'
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 20),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    height: 1.4,
-                  ),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.only(
+            bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
                   children: [
-                    const TextSpan(
-                      text: 'By clicking Next button you are agreeing to the ',
-                    ),
-                    TextSpan(
-                      text: 'Terms of Use',
-                      style: const TextStyle(
-                        color: Color(0xFFEC407A),
-                        decoration: TextDecoration.underline,
-                      ),
-                      recognizer: _termsTapRecognizer,
-                    ),
-                    const TextSpan(text: ' and the '),
-                    TextSpan(
-                      text: 'Privacy Policy',
-                      style: const TextStyle(
-                        color: Color(0xFFEC407A),
-                        decoration: TextDecoration.underline,
-                      ),
-                      recognizer: _privacyTapRecognizer,
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
                     ),
                   ],
                 ),
-              ),
-              const Spacer(),
-              Builder(
-                builder: (context) {
-                  final isButtonEnabled =
-                      _isPhoneValid &&
-                      _fullNameController.text.trim().isNotEmpty &&
-                      !_isSubmitting;
-
-                  return SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: isButtonEnabled ? _submit : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC407A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.2,
-                              ),
-                            )
-                          : const Text(
-                              'NEXT',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                SizedBox(height: isShortScreen ? 0 : 8),
+                Center(
+                  child: SizedBox(
+                    width: logoSize,
+                    height: logoSize,
+                    child: Image.network(
+                      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1OJzt6aExDeNZVojWp3jWz4CUcDC2Y4Nggg&s',
+                      fit: BoxFit.contain,
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 12 : 18),
+                const Text('Phone number', style: TextStyle(fontSize: 15)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (value) => setState(
+                    () => _isPhoneValid = _isValidPhone(value.trim()),
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Enter phone number',
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    errorText:
+                        (!_isPhoneValid && _phoneController.text.isNotEmpty)
+                        ? 'Please enter a valid phone number'
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Full name', style: TextStyle(fontSize: 15)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _fullNameController,
+                  onChanged: (_) => setState(() {
+                    _showFullNameError = false;
+                  }),
+                  decoration: InputDecoration(
+                    hintText: 'Enter full name',
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    errorText: _showFullNameError
+                        ? 'Please enter your full name'
+                        : null,
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 14 : 20),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text:
+                            'By clicking Next button you are agreeing to the ',
+                      ),
+                      TextSpan(
+                        text: 'Terms of Use',
+                        style: const TextStyle(
+                          color: Color(0xFFEC407A),
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: _termsTapRecognizer,
+                      ),
+                      const TextSpan(text: ' and the '),
+                      TextSpan(
+                        text: 'Privacy Policy',
+                        style: const TextStyle(
+                          color: Color(0xFFEC407A),
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: _privacyTapRecognizer,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 20 : 40),
+                Builder(
+                  builder: (context) {
+                    final isButtonEnabled =
+                        _isPhoneValid &&
+                        _fullNameController.text.trim().isNotEmpty &&
+                        !_isSubmitting;
+
+                    return SizedBox(
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: isButtonEnabled ? _submit : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEC407A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.2,
+                                ),
+                              )
+                            : const Text(
+                                'NEXT',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),

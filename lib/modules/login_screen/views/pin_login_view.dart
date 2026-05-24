@@ -904,191 +904,205 @@ class _PinLoginViewState extends State<PinLoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final isShortScreen = MediaQuery.sizeOf(context).height < 700;
+    final headerIconSize = isShortScreen ? 58.0 : 82.0;
+    final titleFontSize = isShortScreen ? 26.0 : 34.0;
+    final pinBoxSize = isShortScreen ? 54.0 : 64.0;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.chevron_left, size: 28),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Icon(
-                Icons.lock_outline_rounded,
-                size: 82,
-                color: Color(0xFFEC407A),
-              ),
-              const SizedBox(height: 24),
-              const Center(
-                child: Text(
-                  'Enter your PIN Code',
-                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w700),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  'Please enter the PIN Code to login for ${widget.phoneNumber}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, color: Colors.black54),
-                ),
-              ),
-              const SizedBox(height: 28),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _controllers.length,
-                  (index) => Container(
-                    margin: EdgeInsets.only(right: index == 3 ? 0 : 12),
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: _isPinLocked
-                          ? Colors.grey[200]
-                          : const Color(0xFFF5F7FB),
-                      borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: EdgeInsets.only(
+            bottom: 16 + MediaQuery.viewInsetsOf(context).bottom,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.chevron_left, size: 28),
                     ),
-                    child: Center(
-                      child: TextField(
-                        controller: _controllers[index],
-                        focusNode: _focusNodes[index],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
+                  ],
+                ),
+                SizedBox(height: isShortScreen ? 8 : 24),
+                Icon(
+                  Icons.lock_outline_rounded,
+                  size: headerIconSize,
+                  color: const Color(0xFFEC407A),
+                ),
+                SizedBox(height: isShortScreen ? 14 : 24),
+                Center(
+                  child: Text(
+                    'Enter your PIN Code',
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 8 : 12),
+                Center(
+                  child: Text(
+                    'Please enter the PIN Code to login for ${widget.phoneNumber}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 15, color: Colors.black54),
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 18 : 28),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _controllers.length,
+                    (index) => Container(
+                      margin: EdgeInsets.only(right: index == 3 ? 0 : 10),
+                      width: pinBoxSize,
+                      height: pinBoxSize,
+                      decoration: BoxDecoration(
+                        color: _isPinLocked
+                            ? Colors.grey[200]
+                            : const Color(0xFFF5F7FB),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: TextField(
+                          controller: _controllers[index],
+                          focusNode: _focusNodes[index],
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          obscureText: !_showPin,
+                          maxLength: 1,
+                          enabled: _lockCheckComplete && !_isPinLocked,
+                          decoration: const InputDecoration(
+                            counterText: '',
+                            border: InputBorder.none,
+                          ),
+                          onChanged: (value) => _onChanged(index, value),
                         ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        obscureText: !_showPin,
-                        maxLength: 1,
-                        enabled: _lockCheckComplete && !_isPinLocked,
-                        decoration: const InputDecoration(
-                          counterText: '',
-                          border: InputBorder.none,
-                        ),
-                        onChanged: (value) => _onChanged(index, value),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Center(
-                child: GestureDetector(
-                  onTap: _isPinLocked
-                      ? null
-                      : () => setState(() => _showPin = !_showPin),
-                  child: Text(
-                    'Show PIN',
-                    style: TextStyle(
-                      color: _isPinLocked
-                          ? Colors.grey[400]
-                          : const Color(0xFFEC407A),
-                      fontSize: 16,
+                Center(
+                  child: GestureDetector(
+                    onTap: _isPinLocked
+                        ? null
+                        : () => setState(() => _showPin = !_showPin),
+                    child: Text(
+                      'Show PIN',
+                      style: TextStyle(
+                        color: _isPinLocked
+                            ? Colors.grey[400]
+                            : const Color(0xFFEC407A),
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (_isBiometricAvailable || _isBiometricLoading) ...[
-                const SizedBox(height: 18),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                        _isBiometricSubmitting ||
-                            _isSubmitting ||
-                            _isPinLocked ||
-                            !_lockCheckComplete ||
-                            _isBiometricLoading
-                        ? null
-                        : () => _submitBiometricLogin(showMessages: true),
-                    icon: Icon(
-                      _biometricActionLabel.contains('Face ID')
-                          ? Icons.face_rounded
-                          : Icons.fingerprint_rounded,
-                      color: const Color(0xFFEC407A),
+                if (_isBiometricAvailable || _isBiometricLoading) ...[
+                  SizedBox(height: isShortScreen ? 10 : 18),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed:
+                          _isBiometricSubmitting ||
+                              _isSubmitting ||
+                              _isPinLocked ||
+                              !_lockCheckComplete ||
+                              _isBiometricLoading
+                          ? null
+                          : () => _submitBiometricLogin(showMessages: true),
+                      icon: Icon(
+                        _biometricActionLabel.contains('Face ID')
+                            ? Icons.face_rounded
+                            : Icons.fingerprint_rounded,
+                        color: const Color(0xFFEC407A),
+                      ),
+                      label: Text(
+                        _isBiometricSubmitting
+                            ? 'Scanning...'
+                            : _biometricActionLabel,
+                        style: TextStyle(
+                          color: (_isBiometricSubmitting || _isBiometricLoading)
+                              ? Colors.grey
+                              : const Color(0xFFEC407A),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    label: Text(
-                      _isBiometricSubmitting
-                          ? 'Scanning...'
-                          : _biometricActionLabel,
+                  ),
+                ],
+                SizedBox(height: isShortScreen ? 12 : 24),
+                Center(
+                  child: TextButton(
+                    onPressed: _isSendingForgotOtp || _isSubmitting
+                        ? null
+                        : _startForgotPinFlow,
+                    child: Text(
+                      _isSendingForgotOtp
+                          ? 'Sending OTP...'
+                          : 'Forgot the PIN code?',
                       style: TextStyle(
-                        color: (_isBiometricSubmitting || _isBiometricLoading)
+                        color: _isSendingForgotOtp
                             ? Colors.grey
                             : const Color(0xFFEC407A),
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: isShortScreen ? 18 : 32),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
+                  child: SizedBox(
+                    height: 58,
+                    child: ElevatedButton(
+                      onPressed:
+                          _isSubmitting || _isPinLocked || !_lockCheckComplete
+                          ? null
+                          : (_isComplete ? _submit : null),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFEC407A),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'SUBMIT',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
-              Center(
-                child: TextButton(
-                  onPressed: _isSendingForgotOtp || _isSubmitting
-                      ? null
-                      : _startForgotPinFlow,
-                  child: Text(
-                    _isSendingForgotOtp
-                        ? 'Sending OTP...'
-                        : 'Forgot the PIN code?',
-                    style: TextStyle(
-                      color: _isSendingForgotOtp
-                          ? Colors.grey
-                          : const Color(0xFFEC407A),
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 22),
-                child: SizedBox(
-                  height: 58,
-                  child: ElevatedButton(
-                    onPressed:
-                        _isSubmitting || _isPinLocked || !_lockCheckComplete
-                        ? null
-                        : (_isComplete ? _submit : null),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEC407A),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Text(
-                            'SUBMIT',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

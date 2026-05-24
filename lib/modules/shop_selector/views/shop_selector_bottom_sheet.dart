@@ -56,7 +56,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.69,
+                    childAspectRatio: 0.62,
                   ),
                   itemCount: shops.length,
                   itemBuilder: (context, index) {
@@ -95,142 +95,157 @@ class _ShopCard extends StatelessWidget {
     return InkWell(
       onTap: () => Navigator.of(context).pop(shop),
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected
-                ? accent
-                : (showGuestLock
-                      ? const Color(0xFFF0C0D3)
-                      : const Color(0xFFE4E4E4)),
-            width: selected ? 2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final imageRatio = showGuestLock ? 0.48 : 0.55;
+          final imageHeight = (constraints.maxHeight * imageRatio).clamp(
+            104.0,
+            150.0,
+          );
+
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected
+                    ? accent
+                    : (showGuestLock
+                          ? const Color(0xFFF0C0D3)
+                          : const Color(0xFFE4E4E4)),
+                width: selected ? 2 : 1,
               ),
-              child: CachedNetworkImage(
-                imageUrl: shop.imageUrl,
-                height: 160,
-                fit: BoxFit.cover,
-                placeholder: (c, s) => Container(color: Colors.grey[200]),
-                errorWidget: (c, s, e) => Container(color: Colors.grey[300]),
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: shop.imageUrl,
+                    height: imageHeight,
+                    fit: BoxFit.cover,
+                    placeholder: (c, s) => Container(color: Colors.grey[200]),
+                    errorWidget: (c, s, e) =>
+                        Container(color: Colors.grey[300]),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 34,
-                          height: 34,
-                          decoration: const BoxDecoration(
-                            color: accent,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.storefront,
-                            color: Colors.white,
-                            size: 18,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: const BoxDecoration(
+                                color: accent,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.storefront,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'CHIP MONG',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: accent,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
+                        const SizedBox(height: 4),
+                        Center(
                           child: Text(
-                            'CHIP MONG',
-                            maxLines: 1,
+                            shop.branchLabel,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
+                            style: const TextStyle(
+                              fontSize: 12,
                               color: accent,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ),
+                        if (shop.distanceKm != null) ...[
+                          const SizedBox(height: 4),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              '${shop.distanceKm!.toStringAsFixed(2)} Km',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.black45,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                        if (showGuestLock) ...[
+                          const SizedBox(height: 4),
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFDE3EF),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lock_outline,
+                                    size: 12,
+                                    color: accent,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Login required',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: accent,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Center(
-                      child: Text(
-                        shop.branchLabel,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: accent,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        shop.distanceKm != null
-                            ? '${shop.distanceKm!.toStringAsFixed(2)} Km'
-                            : '',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.black45,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    if (showGuestLock) ...[
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFDE3EF),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.lock_outline, size: 12, color: accent),
-                              SizedBox(width: 4),
-                              Text(
-                                'Login required',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: accent,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

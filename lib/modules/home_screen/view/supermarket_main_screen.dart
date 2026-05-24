@@ -390,7 +390,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     }
 
     if (categoryState is! CategoriesLoading) {
-      context.read<SupermarketCategoryBloc>().add(LoadCategories());
+      final shopId = _selectedShop?.shopId ?? UserSession.selectedShopId;
+      context.read<SupermarketCategoryBloc>().add(LoadCategories(shopId));
     }
   }
 
@@ -477,7 +478,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
               UserSession.setSelectedShop(shop.shopId, name: shop.storeName);
               context.read<CartBloc>().add(ChangeCartBranch(shop.shopId));
               setState(() => _selectedShop = shop);
-              context.read<SupermarketCategoryBloc>().add(LoadCategories());
+              context.read<SupermarketCategoryBloc>().add(
+                LoadCategories(shop.shopId),
+              );
             }
           },
         ),
@@ -779,7 +782,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       _current = 0;
       _showHomeSkeleton = true;
     });
-    context.read<SupermarketCategoryBloc>().add(LoadCategories());
+    context.read<SupermarketCategoryBloc>().add(
+      LoadCategories(selected.shopId),
+    );
   }
 
   Widget _buildSearchBar(BuildContext context) {
