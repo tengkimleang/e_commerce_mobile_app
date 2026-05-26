@@ -20,7 +20,11 @@ class FavoriteView extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new, size: 22),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 22,
+            color: Color(0xFF1D1B24),
+          ),
         ),
         title: const Text(
           'Favorites',

@@ -36,7 +36,7 @@ class ProductDetailView extends StatefulWidget {
 class _ProductDetailViewState extends State<ProductDetailView> {
   static const _accent = Color(0xFFEC407A);
 
-  final PageController _imagePageController = PageController();
+  late final PageController _imagePageController;
   List<ProductModel> _suggestions = [];
   int _activeImageIndex = 0;
 
@@ -48,6 +48,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   @override
   void initState() {
     super.initState();
+    _imagePageController = PageController(
+      initialPage: _initialInfiniteImagePage(0, _productImages.length),
+    );
     _loadSuggestions();
   }
 
@@ -151,11 +154,19 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                               width: double.infinity,
                               child: PageView.builder(
                                 controller: _imagePageController,
-                                itemCount: images.length,
-                                onPageChanged: (index) =>
-                                    setState(() => _activeImageIndex = index),
-                                itemBuilder: (context, index) =>
-                                    _ProductImageFrame(imageUrl: images[index]),
+                                itemCount: images.length > 1
+                                    ? null
+                                    : images.length,
+                                onPageChanged: (index) => setState(
+                                  () =>
+                                      _activeImageIndex = index % images.length,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final imageIndex = index % images.length;
+                                  return _ProductImageFrame(
+                                    imageUrl: images[imageIndex],
+                                  );
+                                },
                               ),
                             ),
                           ),
@@ -558,7 +569,12 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
   void initState() {
     super.initState();
     _activeIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
+    _pageController = PageController(
+      initialPage: _initialInfiniteImagePage(
+        widget.initialIndex,
+        widget.images.length,
+      ),
+    );
   }
 
   @override
@@ -605,12 +621,20 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: widget.images.length,
-                onPageChanged: (index) => setState(() => _activeIndex = index),
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _ProductImageFrame(imageUrl: widget.images[index]),
-                ),
+                itemCount: widget.images.length > 1
+                    ? null
+                    : widget.images.length,
+                onPageChanged: (index) =>
+                    setState(() => _activeIndex = index % widget.images.length),
+                itemBuilder: (context, index) {
+                  final imageIndex = index % widget.images.length;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: _ProductImageFrame(
+                      imageUrl: widget.images[imageIndex],
+                    ),
+                  );
+                },
               ),
             ),
             Padding(
@@ -625,6 +649,12 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
       ),
     );
   }
+}
+
+int _initialInfiniteImagePage(int initialIndex, int imageCount) {
+  if (imageCount <= 1) return initialIndex;
+  const basePage = 10000;
+  return basePage - (basePage % imageCount) + initialIndex;
 }
 
 class _ProductImageFrame extends StatelessWidget {
