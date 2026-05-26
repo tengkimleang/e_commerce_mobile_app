@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../bloc/chipmong_mall_bloc.dart';
 import '../bloc/chipmong_mall_event.dart';
 import '../bloc/chipmong_mall_state.dart';
@@ -14,6 +16,7 @@ import '../widget/chipmong_widget/mall_promotion_tab_content.dart';
 import '../widget/chipmong_widget/mall_tab_bar_header.dart';
 import '../widget/chipmong_widget/mall_top_bar.dart';
 import '../models/chipmong_mall_model.dart';
+import 'chipmong_mall_promotion_detail_screen.dart';
 import 'loyalty_card_detail_screen.dart';
 import '../../qr_code_screen/views/qr_code_view.dart';
 
@@ -47,10 +50,22 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
   late final TabController _tabController;
 
   static const _navItems = <MallNavItem>[
-    MallNavItem(icon: Icons.home, label: 'Home'),
-    MallNavItem(icon: Icons.qr_code_scanner, label: 'My QR'),
-    MallNavItem(icon: Icons.local_offer_outlined, label: 'Promotions'),
-    MallNavItem(icon: Icons.emoji_events_outlined, label: 'Loyalty'),
+    MallNavItem(
+      icon: CupertinoIcons.house,
+      selectedIcon: CupertinoIcons.house_fill,
+      label: 'Home',
+    ),
+    MallNavItem(icon: CupertinoIcons.qrcode, label: 'My QR'),
+    MallNavItem(
+      icon: CupertinoIcons.tag,
+      selectedIcon: CupertinoIcons.tag_fill,
+      label: 'Promotions',
+    ),
+    MallNavItem(
+      icon: CupertinoIcons.star,
+      selectedIcon: CupertinoIcons.star_fill,
+      label: 'Loyalty',
+    ),
   ];
 
   @override
@@ -81,7 +96,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
           // Zero duration = instant switch, identical to the other tabs.
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
-          pageBuilder: (_, __, ___) => LoyaltyCardDetailScreen(
+          pageBuilder: (_, _, _) => LoyaltyCardDetailScreen(
             info: loyaltyInfo,
             onBottomNavTap: (i) {
               if (!mounted) return;
@@ -108,6 +123,30 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
     }
   }
 
+  Future<void> _openMallSearch(ChipmongMallState state) async {
+    final items = <ChipmongMallPromotion>[];
+    final seen = <String>{};
+    for (final item in [
+      ...state.promotions,
+      ...state.programs,
+      ...state.news,
+    ]) {
+      final key = '${item.brandName}|${item.title}|${item.date}';
+      if (seen.add(key)) items.add(item);
+    }
+
+    final result = await showSearch<ChipmongMallPromotion?>(
+      context: context,
+      delegate: _MallSearchDelegate(items),
+    );
+    if (!mounted || result == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChipmongMallPromotionDetailScreen(promo: result),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ChipmongMallBloc, ChipmongMallState>(
@@ -122,20 +161,20 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
         final isPromotionTab = state.bottomNavIndex == 2;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5),
+          backgroundColor: AppColors.background,
           appBar: isQrTab
               ? AppBar(
                   title: const Text(
                     'My QR',
                     style: TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
                       fontSize: 18,
                     ),
                   ),
                   centerTitle: true,
-                  backgroundColor: Colors.white,
-                  elevation: 0.5,
+                  backgroundColor: AppColors.primary,
+                  elevation: 0,
                   automaticallyImplyLeading: false,
                 )
               : null,
@@ -148,65 +187,181 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                   events: state.programs,
                   news: state.news,
                 )
-              : SafeArea(
-                  bottom: false,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        MallTopBar(state: state),
-                        MallBannerCarousel(images: state.bannerImages),
-                        MallCategoryRow(categories: chipmongMallCategories),
-                        GestureDetector(
-                          onTap: () => _openLoyaltyDetail(state.loyaltyInfo),
-                          child: MallLoyaltyCard(info: state.loyaltyInfo),
+              : SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      MallTopBar(
+                        state: state,
+                        onSearchTap: () => _openMallSearch(state),
+                      ),
+                      MallBannerCarousel(images: state.bannerImages),
+                      MallCategoryRow(categories: chipmongMallCategories),
+                      GestureDetector(
+                        onTap: () => _openLoyaltyDetail(state.loyaltyInfo),
+                        child: MallLoyaltyCard(info: state.loyaltyInfo),
+                      ),
+                      MallTabBarHeader(controller: _tabController),
+                      SizedBox(
+                        height: 220,
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            MallPromotionGrid(
+                              key: const PageStorageKey('tab0'),
+                              items: state.promotions,
+                            ),
+                            MallPromotionGrid(
+                              key: const PageStorageKey('tab1'),
+                              items: state.programs,
+                            ),
+                            MallPromotionGrid(
+                              key: const PageStorageKey('tab2'),
+                              items: state.news,
+                            ),
+                          ],
                         ),
-                        MallTabBarHeader(controller: _tabController),
-                        SizedBox(
-                          height: 220,
-                          child: TabBarView(
-                            controller: _tabController,
-                            children: [
-                              MallPromotionGrid(
-                                key: const PageStorageKey('tab0'),
-                                items: state.promotions,
-                              ),
-                              MallPromotionGrid(
-                                key: const PageStorageKey('tab1'),
-                                items: state.programs,
-                              ),
-                              MallPromotionGrid(
-                                key: const PageStorageKey('tab2'),
-                                items: state.news,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const MallBottomCta(),
-                      ],
-                    ),
+                      ),
+                      const MallBottomCta(),
+                    ],
                   ),
                 ),
-          bottomNavigationBar: SafeArea(
-            child: Material(
-              color: Colors.white,
-              elevation: 10,
-              child: MallBottomNav(
-                items: _navItems,
-                selectedIndex: state.bottomNavIndex,
-                onTap: (i) {
-                  if (i == 3) {
-                    _openLoyaltyDetail(state.loyaltyInfo);
-                    return;
-                  }
-                  context.read<ChipmongMallBloc>().add(
-                    ChipmongMallBottomNavChanged(i),
-                  );
-                },
-              ),
-            ),
+          bottomNavigationBar: MallBottomNav(
+            items: _navItems,
+            selectedIndex: state.bottomNavIndex,
+            onTap: (i) {
+              if (i == 3) {
+                _openLoyaltyDetail(state.loyaltyInfo);
+                return;
+              }
+              context.read<ChipmongMallBloc>().add(
+                ChipmongMallBottomNavChanged(i),
+              );
+            },
           ),
         );
       },
     );
+  }
+}
+
+class _MallSearchDelegate extends SearchDelegate<ChipmongMallPromotion?> {
+  _MallSearchDelegate(this.items)
+    : super(searchFieldLabel: 'Search shops, offers and events');
+
+  final List<ChipmongMallPromotion> items;
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.copyWith(
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+      ),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+          color: Colors.white70,
+          fontSize: 14,
+        ),
+        border: InputBorder.none,
+      ),
+      textTheme: theme.textTheme.copyWith(
+        titleLarge: theme.textTheme.titleLarge?.copyWith(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          onPressed: () => query = '',
+          icon: const Icon(Icons.close),
+          tooltip: 'Clear',
+        ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      onPressed: () => close(context, null),
+      icon: const Icon(Icons.arrow_back),
+      tooltip: 'Back',
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) => _buildMatches(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildMatches(context);
+
+  Widget _buildMatches(BuildContext context) {
+    final matches = _matches;
+    if (matches.isEmpty) {
+      return Center(
+        child: Text(
+          query.trim().isEmpty
+              ? 'No mall offers available'
+              : 'No results found',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: matches.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final item = matches[index];
+        return ListTile(
+          onTap: () => close(context, item),
+          tileColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          leading: CircleAvatar(
+            backgroundColor: AppColors.primary.withAlpha(20),
+            child: const Icon(
+              Icons.local_offer_outlined,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
+          title: Text(
+            item.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          subtitle: Text(
+            '${item.brandName} - ${item.date}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      },
+    );
+  }
+
+  List<ChipmongMallPromotion> get _matches {
+    final keyword = query.trim().toLowerCase();
+    if (keyword.isEmpty) return items;
+    return items.where((item) {
+      final source = '${item.brandName} ${item.title} ${item.date}'
+          .toLowerCase();
+      return source.contains(keyword);
+    }).toList();
   }
 }

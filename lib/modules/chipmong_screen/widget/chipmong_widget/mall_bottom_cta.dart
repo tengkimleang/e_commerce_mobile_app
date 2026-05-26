@@ -27,11 +27,7 @@ class MallBottomCta extends StatelessWidget {
         icon: const Icon(Icons.edit_outlined, size: 18),
         label: const Text(
           'Customize Theme',
-          style: TextStyle(
-            fontSize: 14,
-            fontFamily: 'Battambang',
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
       ),
     );

@@ -37,9 +37,8 @@ class _MallTabBarHeaderState extends State<MallTabBarHeader> {
   @override
   Widget build(BuildContext context) {
     final selected = widget.controller.index;
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
       child: Row(
         children: List.generate(_tabs.length, (i) {
           final isSelected = i == selected;
@@ -51,11 +50,16 @@ class _MallTabBarHeaderState extends State<MallTabBarHeader> {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 7,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  color: isSelected ? AppColors.primary : Colors.white,
                   borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : const Color(0xFFE3E0E6),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -72,10 +76,9 @@ class _MallTabBarHeaderState extends State<MallTabBarHeader> {
                         _tabs[i].label,
                         style: TextStyle(
                           fontSize: 12,
-                          fontFamily: 'Battambang',
                           fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                              ? FontWeight.w700
+                              : FontWeight.w500,
                           color: isSelected ? Colors.white : Colors.grey[600],
                         ),
                         overflow: TextOverflow.ellipsis,

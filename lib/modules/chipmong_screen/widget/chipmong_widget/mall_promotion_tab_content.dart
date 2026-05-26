@@ -162,36 +162,45 @@ class _MallPromotionTabContentState extends State<MallPromotionTabContent> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
     final items = _filteredItems;
 
     return Column(
       children: [
-        Container(
-          color: Colors.white,
-          child: SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                const Text(
-                  'Promotion',
-                  style: TextStyle(
-                    fontSize: 35,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+        SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              Container(
+                color: AppColors.primary,
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Promotions',
+                  style: theme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 8),
-                MallTabBarHeader(controller: widget.controller),
-                _PromotionCategoryChips(
-                  categories: _categories,
-                  selectedIndex: _selectedCategoryIndex,
-                  onTap: (index) =>
-                      setState(() => _selectedCategoryIndex = index),
+              ),
+              Container(
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    MallTabBarHeader(controller: widget.controller),
+                    _PromotionCategoryChips(
+                      categories: _categories,
+                      selectedIndex: _selectedCategoryIndex,
+                      onTap: (index) =>
+                          setState(() => _selectedCategoryIndex = index),
+                    ),
+                    const SizedBox(height: 2),
+                  ],
                 ),
-                const SizedBox(height: 2),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -199,11 +208,7 @@ class _MallPromotionTabContentState extends State<MallPromotionTabContent> {
               ? const Center(
                   child: Text(
                     'No promotions available',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                      fontFamily: 'Battambang',
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 )
               : ListView.separated(
@@ -248,28 +253,27 @@ class _PromotionCategoryChips extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: InkWell(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 onTap: () => onTap(index),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 170),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 22,
-                    vertical: 10,
+                    horizontal: 18,
+                    vertical: 9,
                   ),
                   decoration: BoxDecoration(
                     color: selected ? AppColors.primary : Colors.white,
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: selected
                           ? AppColors.primary
-                          : const Color(0xFFCCCCCC),
+                          : const Color(0xFFE3E0E6),
                     ),
                   ),
                   child: Text(
                     categories[index],
                     style: TextStyle(
                       fontSize: 13,
-                      fontFamily: 'Battambang',
                       color: selected ? Colors.white : Colors.grey[700],
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     ),
@@ -292,40 +296,47 @@ class _PromotionFeedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      elevation: 2,
-      shadowColor: Colors.black12,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ChipmongMallPromotionDetailScreen(promo: promo),
+    final theme = Theme.of(context).textTheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(14),
-                  ),
-                  child: CachedNetworkImage(
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ChipmongMallPromotionDetailScreen(promo: promo),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  CachedNetworkImage(
                     imageUrl: promo.imageUrl,
                     width: double.infinity,
-                    height: 260,
+                    height: 240,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       width: double.infinity,
-                      height: 260,
+                      height: 240,
                       color: Colors.grey[200],
                     ),
                     errorWidget: (context, url, error) => Container(
                       width: double.infinity,
-                      height: 260,
+                      height: 240,
                       color: AppColors.primary.withAlpha(18),
                       child: Icon(
                         Icons.image_outlined,
@@ -334,55 +345,57 @@ class _PromotionFeedCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 12,
-                  bottom: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      expired ? 'Expired' : 'Happening',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Battambang',
+                  Positioned(
+                    left: 12,
+                    bottom: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        expired ? 'Expired' : 'Happening',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    promo.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black87,
-                      fontFamily: 'Battambang',
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    promo.date,
-                    style: TextStyle(fontSize: 12.5, color: Colors.grey[600]),
-                  ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      promo.title,
+                      style: theme.titleMedium?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        height: 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      promo.date,
+                      style: theme.bodySmall?.copyWith(
+                        fontSize: 12.5,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

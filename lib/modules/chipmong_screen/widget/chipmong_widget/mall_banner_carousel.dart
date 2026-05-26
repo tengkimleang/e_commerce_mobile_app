@@ -47,48 +47,55 @@ class _MallBannerCarouselState extends State<MallBannerCarousel> {
   Widget build(BuildContext context) {
     if (widget.images.isEmpty) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 130,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _controller,
-            itemCount: widget.images.length,
-            onPageChanged: (p) => setState(() => _currentPage = p),
-            itemBuilder: (_, i) => CachedNetworkImage(
-              imageUrl: widget.images[i],
-              fit: BoxFit.cover,
-              width: double.infinity,
-              placeholder: (_, __) => Container(color: Colors.grey[200]),
-              errorWidget: (_, __, ___) => Container(
-                color: AppColors.primary.withAlpha(30),
-                child: const Icon(Icons.image_outlined, size: 48),
-              ),
-            ),
-          ),
-          // Dot indicators
-          Positioned(
-            bottom: 8,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                widget.images.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: i == _currentPage ? 16 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: i == _currentPage ? Colors.white : Colors.white54,
-                    borderRadius: BorderRadius.circular(3),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: SizedBox(
+        height: 150,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(5),
+          child: Stack(
+            children: [
+              PageView.builder(
+                controller: _controller,
+                itemCount: widget.images.length,
+                onPageChanged: (p) => setState(() => _currentPage = p),
+                itemBuilder: (_, i) => CachedNetworkImage(
+                  imageUrl: widget.images[i],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  placeholder: (_, _) => Container(color: Colors.grey[200]),
+                  errorWidget: (_, _, _) => Container(
+                    color: AppColors.primary.withAlpha(30),
+                    child: const Icon(Icons.image_outlined, size: 48),
                   ),
                 ),
               ),
-            ),
+              Positioned(
+                bottom: 8,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    widget.images.length,
+                    (i) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: i == _currentPage ? 16 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: i == _currentPage
+                            ? Colors.white
+                            : Colors.white70,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

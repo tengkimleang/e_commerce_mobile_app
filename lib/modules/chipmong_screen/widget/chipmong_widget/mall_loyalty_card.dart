@@ -11,6 +11,7 @@ class MallLoyaltyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context).textTheme;
     final matchedTier = loyaltyTiers
         .where((t) => t.name.toLowerCase() == info.tier.toLowerCase())
         .firstOrNull;
@@ -21,172 +22,173 @@ class MallLoyaltyCard extends StatelessWidget {
     final badgeColor = matchedTier?.badgeColor ?? AppColors.primary;
 
     return Container(
-      clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       decoration: BoxDecoration(
-        // borderRadius: BorderRadius.circular(10),
-        gradient: LinearGradient(
-          colors: outerGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(20),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 5,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: outerGradient,
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
             ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Name + tier badge row
-            Row(
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.username,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Battambang',
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        'ID: ${info.memberId}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-                // Tier badge
-                Container(
-                  // margin: const EdgeInsets.only(top: 20),
-                  margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: badgeGrad == null ? badgeColor : null,
-                    gradient: badgeGrad != null
-                        ? LinearGradient(
-                            colors: badgeGrad,
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          )
-                        : null,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
-                    ),
-                    boxShadow: badgeGrad != null
-                        ? [
-                            BoxShadow(
-                              color: const Color(
-                                0xFFB5813C,
-                              ).withValues(alpha: 0.45),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            info.username,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.titleSmall?.copyWith(
+                              color: AppColors.textPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              height: 1.2,
                             ),
-                          ]
-                        : null,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.workspace_premium,
-                        color: badgeGrad != null
-                            ? const Color(0xFF5C3A00)
-                            : Colors.amber,
-                        size: 14,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'ID: ${info.memberId}',
+                            style: theme.bodySmall?.copyWith(
+                              color: const Color(0xFF6F6A73),
+                              fontSize: 12,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        info.tier,
-                        style: TextStyle(
-                          color: badgeGrad != null
-                              ? const Color(0xFF4A2800)
-                              : Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Points section
-            Text(
-              'Available points',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[500],
-                fontFamily: 'Battambang',
-              ),
-            ),
-            const SizedBox(height: 2),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '${info.points}',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                const Icon(
-                  Icons.stars_rounded,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            // Expiry date
-            GestureDetector(
-              onTap: () {},
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Expire : ${info.expiryDate}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontFamily: 'Battambang',
-                      color: Colors.black54,
                     ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: badgeGrad == null ? badgeColor : null,
+                        gradient: badgeGrad != null
+                            ? LinearGradient(
+                                colors: badgeGrad,
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              )
+                            : null,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: badgeGrad != null
+                            ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFB5813C,
+                                  ).withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            color: badgeGrad != null
+                                ? const Color(0xFF5C3A00)
+                                : Colors.white,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            info.tier,
+                            style: TextStyle(
+                              color: badgeGrad != null
+                                  ? const Color(0xFF4A2800)
+                                  : Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 13),
+                Text(
+                  'Available points',
+                  style: theme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    height: 1.1,
                   ),
-                  const Icon(
-                    Icons.chevron_right,
-                    size: 16,
-                    color: Colors.black45,
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${info.points}',
+                      style: theme.titleLarge?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        height: 1,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.stars_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 9),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Expire : ${info.expiryDate}',
+                      style: theme.bodySmall?.copyWith(
+                        color: const Color(0xFF6F6A73),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      size: 17,
+                      color: Color(0xFF6F6A73),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

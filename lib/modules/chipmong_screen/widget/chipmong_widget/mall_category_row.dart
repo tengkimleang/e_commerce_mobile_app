@@ -10,13 +10,15 @@ class MallCategoryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: categories
-            .map((cat) => Expanded(child: _MallCategoryItem(category: cat)))
-            .toList(),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 14, 8, 4),
+      child: SizedBox(
+        height: 82,
+        child: Row(
+          children: categories
+              .map((cat) => Expanded(child: _MallCategoryItem(category: cat)))
+              .toList(),
+        ),
       ),
     );
   }
@@ -29,8 +31,16 @@ class _MallCategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: AppColors.textPrimary,
+      fontSize: 11,
+      fontWeight: FontWeight.w600,
+      height: 1.2,
+    );
+
     return InkWell(
       onTap: () {},
+      borderRadius: BorderRadius.circular(18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -38,18 +48,27 @@ class _MallCategoryItem extends StatelessWidget {
             clipBehavior: Clip.none,
             children: [
               Container(
-                width: 54,
-                height: 54,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: category.hasBadge
                       ? AppColors.primary.withAlpha(25)
-                      : const Color(0xFFF0F0F0),
+                      : Colors.white,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   category.icon,
-                  size: 26,
-                  color: category.hasBadge ? AppColors.primary : Colors.grey[700],
+                  size: 24,
+                  color: category.hasBadge
+                      ? AppColors.primary
+                      : const Color(0xFF6F6A73),
                 ),
               ),
               if (category.hasBadge && category.badgeLabel != null)
@@ -57,7 +76,10 @@ class _MallCategoryItem extends StatelessWidget {
                   top: -4,
                   right: -6,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryDark,
                       borderRadius: BorderRadius.circular(6),
@@ -67,24 +89,20 @@ class _MallCategoryItem extends StatelessWidget {
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 8,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2),
             child: Text(
               category.label,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 10,
-                fontFamily: 'Battambang',
-                color: Colors.black87,
-              ),
+              style: labelStyle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

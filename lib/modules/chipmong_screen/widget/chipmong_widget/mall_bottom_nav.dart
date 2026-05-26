@@ -4,9 +4,14 @@ import '../../../../core/theme/app_theme.dart';
 
 class MallNavItem {
   final IconData icon;
+  final IconData selectedIcon;
   final String label;
 
-  const MallNavItem({required this.icon, required this.label});
+  const MallNavItem({
+    required this.icon,
+    IconData? selectedIcon,
+    required this.label,
+  }) : selectedIcon = selectedIcon ?? icon;
 }
 
 class MallBottomNav extends StatelessWidget {
@@ -23,14 +28,32 @@ class MallBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(
-        items.length,
-        (i) => Expanded(
-          child: _MallBottomNavTile(
-            item: items[i],
-            isSelected: i == selectedIndex,
-            onTap: () => onTap(i),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+      child: Container(
+        height: 78,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Row(
+          children: List.generate(
+            items.length,
+            (i) => Expanded(
+              child: _MallBottomNavTile(
+                item: items[i],
+                isSelected: i == selectedIndex,
+                onTap: () => onTap(i),
+              ),
+            ),
           ),
         ),
       ),
@@ -51,30 +74,52 @@ class _MallBottomNavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.primary : Colors.grey;
-    return InkWell(
+    const inactiveColor = Color(0xFF6F6A73);
+
+    return InkResponse(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(item.icon, size: 24, color: color),
-            const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: TextStyle(
-                fontSize: 10,
-                color: color,
-                fontFamily: 'Battambang',
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
+      mouseCursor: SystemMouseCursors.click,
+      radius: 34,
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: item.label,
+        child: Center(
+          child: SizedBox(
+            height: 64,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    isSelected ? item.selectedIcon : item.icon,
+                    size: isSelected ? 23 : 25,
+                    color: isSelected ? Colors.white : inactiveColor,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primary : inactiveColor,
+                    fontSize: 11,
+                    height: 1.1,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
