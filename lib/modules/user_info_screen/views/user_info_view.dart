@@ -1000,7 +1000,15 @@ class _HeaderCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  _MemberIdChip(points: points),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _MemberIdChip(points: points),
+                      const _ExchangeButton(),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -1116,6 +1124,45 @@ class _MemberIdChip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ExchangeButton extends StatelessWidget {
+  const _ExchangeButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () {},
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: _profileAccent, width: 1.5),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.swap_horiz_rounded, color: _profileAccent, size: 18),
+              SizedBox(width: 6),
+              Text(
+                'Exchange',
+                style: TextStyle(
+                  color: _profileAccent,
+                  fontSize: 14,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
