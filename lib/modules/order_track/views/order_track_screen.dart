@@ -18,9 +18,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
 class OrderTrackScreen extends StatefulWidget {
-  const OrderTrackScreen({super.key, required this.order});
+  const OrderTrackScreen({
+    super.key,
+    required this.order,
+    this.returnToOrderHistoryOnBack = false,
+  });
 
   final OrderSummary order;
+  final bool returnToOrderHistoryOnBack;
 
   @override
   State<OrderTrackScreen> createState() => _OrderTrackScreenState();
@@ -123,9 +128,13 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
   }
 
   void _handleBackPressed() {
-    Navigator.of(
-      context,
-    ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+    final navigator = Navigator.of(context);
+    if (!widget.returnToOrderHistoryOnBack && navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+
+    navigator.pushNamedAndRemoveUntil(AppRoutes.orders, (route) => false);
   }
 
   @override

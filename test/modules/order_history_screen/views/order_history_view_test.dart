@@ -1,6 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
+import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
+import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_details_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
@@ -109,6 +114,63 @@ void main() {
     expect(find.byType(OrderTrackScreen), findsOneWidget);
   });
 
+  testWidgets('order track back icon returns to the order list', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider(
+          create: (_) => OrderHistoryCubit(),
+          child: const OrderHistoryView(showBottomNavigation: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final activeOrder = find.text('Order #00002');
+    await tester.ensureVisible(activeOrder);
+    await tester.tap(activeOrder);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(OrderHistoryView), findsOneWidget);
+    expect(find.byType(OrderTrackScreen), findsNothing);
+    expect(find.text('Orders'), findsOneWidget);
+  });
+
+  testWidgets('order track fallback back opens the orders route', (
+    tester,
+  ) async {
+    var openedOrdersRoute = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        onGenerateRoute: (settings) {
+          if (settings.name == AppRoutes.orders) {
+            openedOrdersRoute = true;
+            return MaterialPageRoute<void>(
+              builder: (_) => const Scaffold(body: Text('Orders route')),
+            );
+          }
+          return null;
+        },
+        home: OrderTrackScreen(
+          order: _buildTrackOrder(),
+          returnToOrderHistoryOnBack: true,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+    await tester.pumpAndSettle();
+
+    expect(openedOrdersRoute, isTrue);
+    expect(find.text('Orders route'), findsOneWidget);
+  });
+
   testWidgets('tapping a canceled order opens order details screen', (
     tester,
   ) async {
@@ -149,4 +211,37 @@ void main() {
     expect(find.text('Orders'), findsOneWidget);
     expect(find.text('Profile'), findsOneWidget);
   });
+}
+
+OrderSummary _buildTrackOrder() {
+  return OrderSummary(
+    orderId: '',
+    orderNumber: '00003',
+    orderDate: DateTime(2026, 5, 24, 10, 57),
+    shopName: 'Chip Mong Supermarket Noro',
+    items: const [
+      CartItemViewModel(
+        product: ProductModel(id: 'p1', name: '7 Up', price: 1.0, imageUrl: ''),
+        quantity: 1,
+      ),
+    ],
+    deliveryAddress: const DeliveryAddress(
+      id: 'addr-1',
+      nameAddress: 'Home',
+      address: '100 Khang, Saensokh, Phnom Penh, Cambodia',
+      phoneNumber: '0978464464',
+      label: AddressLabel.home,
+      isDefault: true,
+      latitude: 11.5564,
+      longitude: 104.9282,
+    ),
+    subtotal: 1,
+    deliveryFee: 1.59,
+    packageFees: 0.10,
+    discount: 0,
+    promoDiscount: 0,
+    total: 2.69,
+    paymentMethod: 'COD',
+    statusCode: 'REQUESTING',
+  );
 }

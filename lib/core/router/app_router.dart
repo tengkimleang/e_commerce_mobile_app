@@ -31,6 +31,7 @@ abstract final class AppRoutes {
   static const String otp = '/otp';
   static const String signup = '/signup';
   static const String home = '/home';
+  static const String orders = '/orders';
   static const String cart = '/cart';
   static const String profile = '/profile';
   static const String favorites = '/favorites';
@@ -58,6 +59,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return _page(const SignupView());
     case AppRoutes.home:
       return _page(const SupermarketMainView());
+    case AppRoutes.orders:
+      return _page(const SupermarketMainView(initialSelectedIndex: 3));
     case AppRoutes.cart:
       return _page(const CartView());
     case AppRoutes.profile:
@@ -91,7 +94,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case AppRoutes.orderTrack:
       final order = settings.arguments as OrderSummary;
       return MaterialPageRoute<void>(
-        builder: (_) => OrderTrackScreen(order: order),
+        builder: (_) =>
+            OrderTrackScreen(order: order, returnToOrderHistoryOnBack: true),
       );
     default:
       return _page(const LoginView());

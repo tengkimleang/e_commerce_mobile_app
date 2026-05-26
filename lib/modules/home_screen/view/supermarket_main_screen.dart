@@ -34,7 +34,9 @@ import 'search_products.dart';
 import '../../user_info_screen/views/user_info_view.dart';
 
 class SupermarketMainView extends StatefulWidget {
-  const SupermarketMainView({super.key});
+  const SupermarketMainView({super.key, this.initialSelectedIndex = 0});
+
+  final int initialSelectedIndex;
 
   @override
   State<SupermarketMainView> createState() => _SupermarketMainViewState();
@@ -49,7 +51,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   late final PageController _partnerController;
   ShopOption? _selectedShop;
   int _partnerCurrent = 0;
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   int _homeSkeletonSerial = 0;
   DateTime? _homeSkeletonStartedAt;
   bool _showHomeSkeleton = false;
@@ -74,6 +76,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   void initState() {
     _partnerController = PageController(viewportFraction: 0.95);
     super.initState();
+    _selectedIndex = widget.initialSelectedIndex.clamp(0, 4);
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted || _selectedIndex != 0 || !_controller.hasClients) return;
       if (_sliderImages.isEmpty) return;
@@ -87,7 +90,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
     // Show launch popup once when the main view first appears — preload image first
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (ProductData.sectionImages.isNotEmpty) {
+      if (_selectedIndex == 0 && ProductData.sectionImages.isNotEmpty) {
         final rnd = Random();
         final selected = ProductData
             .sectionImages[rnd.nextInt(ProductData.sectionImages.length)];
