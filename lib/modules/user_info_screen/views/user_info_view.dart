@@ -1107,7 +1107,7 @@ class _MemberIdChip extends StatelessWidget {
           const Icon(Icons.copyright_rounded, color: _profileAccent, size: 16),
           const SizedBox(width: 6),
           Text(
-            'ID $points',
+            'POINT $points',
             style: const TextStyle(
               color: _profileAccent,
               fontSize: 14,

@@ -105,10 +105,16 @@ class _SearchProductsState extends State<SearchProducts>
   }
 
   void _activateSearch() {
+    if (_searchActive) {
+      FocusScope.of(context).requestFocus(_focusNode);
+      return;
+    }
+
     setState(() => _searchActive = true);
     _animController.forward();
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (mounted) _focusNode.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_searchActive) return;
+      FocusScope.of(context).requestFocus(_focusNode);
     });
   }
 
