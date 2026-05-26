@@ -111,7 +111,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ProductListView), findsOneWidget);
-    expect(find.text('Category Promo'), findsOneWidget);
+    expect(find.text('ប្រម៉ូសិនបន្លែស្រស់'), findsOneWidget);
+    expect(find.text('Category Promo'), findsNothing);
   });
 
   testWidgets('content promotion opens content detail with dates', (
@@ -249,7 +250,15 @@ class _FakeNotificationPromotionsRepository
 
 class _FakeCategoriesRepository implements CategoriesRepository {
   @override
-  Future<List<CategoryModel>> fetchCategories() async => const [];
+  Future<List<CategoryModel>> fetchCategories() async => const [
+    CategoryModel(
+      id: 12,
+      nameEn: 'Fresh Category',
+      nameKm: 'ប្រម៉ូសិនបន្លែស្រស់',
+      bannerImageUrl: 'https://example.com/original-category.jpg',
+      displayOrder: 1,
+    ),
+  ];
 
   @override
   Future<(List<ProductModel>, int)> fetchCategoryProducts(

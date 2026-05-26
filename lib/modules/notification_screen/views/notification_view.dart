@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/cubits/notification_promotions_cubit.dart';
@@ -285,7 +286,9 @@ class _NotificationPromotionTabState extends State<_NotificationPromotionTab> {
               final entry = state.items[index];
               return _NotificationPromotionCard(
                 entry: entry,
-                onTap: () => _openPromotion(context, entry),
+                onTap: () {
+                  unawaited(_openPromotion(context, entry));
+                },
               );
             },
           ),
@@ -294,12 +297,18 @@ class _NotificationPromotionTabState extends State<_NotificationPromotionTab> {
     );
   }
 
-  void _openPromotion(BuildContext context, NotificationPromotionEntry entry) {
+  Future<void> _openPromotion(
+    BuildContext context,
+    NotificationPromotionEntry entry,
+  ) async {
     if (entry.isCategory && entry.categoryId != null) {
+      final categoryTitle = await _resolveCategoryTitle(entry.categoryId!);
+      if (!context.mounted) return;
+
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => ProductListView(
-            title: entry.title,
+            title: categoryTitle ?? entry.title,
             categoryImageUrl: entry.imageUrl,
             products: const [],
             categoryId: entry.categoryId,
@@ -314,6 +323,24 @@ class _NotificationPromotionTabState extends State<_NotificationPromotionTab> {
         builder: (_) => NotificationPromotionContentDetailView(entry: entry),
       ),
     );
+  }
+
+  Future<String?> _resolveCategoryTitle(int categoryId) async {
+    if (!di.isRegistered<CategoriesRepository>()) return null;
+
+    try {
+      final categories = await di<CategoriesRepository>().fetchCategories();
+      for (final category in categories) {
+        if (category.id != categoryId) continue;
+
+        final title = category.displayTitle.trim();
+        return title.isEmpty ? null : title;
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
   }
 }
 
