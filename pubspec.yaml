@@ -66,11 +66,26 @@ flutter:
     - assets/images/
 
   fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter/Inter[opsz,wght].ttf
+        - asset: assets/fonts/Inter/Inter-Italic[opsz,wght].ttf
+          style: italic
     - family: Battambang
       fonts:
+        - asset: assets/fonts/Battambang/Battambang-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/Battambang/Battambang-Light.ttf
+          weight: 300
         - asset: assets/fonts/Battambang/Battambang-Regular.ttf
+          weight: 400
         - asset: assets/fonts/Battambang/Battambang-Bold.ttf
-          weight: 600
+          weight: 700
+        - asset: assets/fonts/Battambang/Battambang-Black.ttf
+          weight: 900
+    - family: KhmerOSSiemreap
+      fonts:
+        - asset: assets/fonts/KhmerOSSiemreap/KhmerOSSiemreap.ttf
 
 flutter_launcher_icons:
   android: true

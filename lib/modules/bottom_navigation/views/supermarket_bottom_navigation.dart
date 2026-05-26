@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SupermarketBottomNavigation extends StatelessWidget {
@@ -12,18 +13,19 @@ class SupermarketBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(12, 8, 12, 10),
       child: Container(
-        height: 68,
+        height: 78,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 12,
-              offset: Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.10),
+              blurRadius: 18,
+              offset: const Offset(0, 7),
             ),
           ],
         ),
@@ -32,7 +34,9 @@ class SupermarketBottomNavigation extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 index: 0,
-                icon: Icons.home,
+                icon: CupertinoIcons.house,
+                selectedIcon: CupertinoIcons.house_fill,
+                label: 'Home',
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
@@ -40,7 +44,9 @@ class SupermarketBottomNavigation extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 index: 1,
-                icon: Icons.local_offer,
+                icon: CupertinoIcons.tag,
+                selectedIcon: CupertinoIcons.tag_fill,
+                label: 'Offers',
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
@@ -48,7 +54,9 @@ class SupermarketBottomNavigation extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 index: 2,
-                icon: Icons.qr_code,
+                icon: CupertinoIcons.qrcode,
+                selectedIcon: CupertinoIcons.qrcode,
+                label: 'Scan',
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
@@ -56,7 +64,9 @@ class SupermarketBottomNavigation extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 index: 3,
-                icon: Icons.list_alt,
+                icon: CupertinoIcons.doc_text,
+                selectedIcon: CupertinoIcons.doc_text_fill,
+                label: 'Orders',
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
@@ -64,7 +74,9 @@ class SupermarketBottomNavigation extends StatelessWidget {
             Expanded(
               child: _BottomNavItem(
                 index: 4,
-                icon: Icons.person,
+                icon: CupertinoIcons.person,
+                selectedIcon: CupertinoIcons.person_fill,
+                label: 'Profile',
                 selectedIndex: selectedIndex,
                 onTap: onTap,
               ),
@@ -80,12 +92,16 @@ class _BottomNavItem extends StatelessWidget {
   const _BottomNavItem({
     required this.index,
     required this.icon,
+    required this.selectedIcon,
+    required this.label,
     required this.selectedIndex,
     required this.onTap,
   });
 
   final int index;
   final IconData icon;
+  final IconData selectedIcon;
+  final String label;
   final int selectedIndex;
   final ValueChanged<int> onTap;
 
@@ -93,28 +109,47 @@ class _BottomNavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = selectedIndex == index;
     const accent = Color(0xFFEC407A);
+    const inactiveColor = Color(0xFF6F6A73);
 
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
-      child: Center(
-        child: SizedBox(
-          width: 42,
-          height: 42,
-          child: Center(
-            child: Container(
-              padding: selected
-                  ? const EdgeInsets.all(10)
-                  : const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: selected ? accent : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 22,
-                color: selected ? Colors.white : accent,
-              ),
+      child: Semantics(
+        selected: selected,
+        label: label,
+        child: Center(
+          child: SizedBox(
+            height: 64,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: selected ? accent : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    selected ? selectedIcon : icon,
+                    size: selected ? 23 : 25,
+                    color: selected ? Colors.white : inactiveColor,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: selected ? accent : inactiveColor,
+                    fontSize: 11,
+                    height: 1.1,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

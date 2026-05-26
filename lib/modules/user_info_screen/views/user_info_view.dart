@@ -31,6 +31,15 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_e
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_state.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
 
+const _profileAccent = Color(0xFFEC407A);
+const _profileBackground = Color(0xFFFFFBFD);
+const _profileSurface = Colors.white;
+const _profileText = Color(0xFF1F1D27);
+const _profileMuted = Color(0xFF77727D);
+const _profileLine = Color(0xFFF0EAF0);
+const _profileIconBg = Color(0xFFFFEEF5);
+const _profileShadow = Color(0x14000000);
+
 class UserInfoView extends StatefulWidget {
   final bool showBottomNavigation;
 
@@ -67,8 +76,6 @@ class _UserInfoViewState extends State<UserInfoView> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
-
     return BlocProvider.value(
       value: _bloc,
       child: BlocConsumer<UserInfoBloc, UserInfoState>(
@@ -80,7 +87,7 @@ class _UserInfoViewState extends State<UserInfoView> {
         builder: (context, state) {
           if (_showProfileSkeleton) {
             return Scaffold(
-              backgroundColor: const Color(0xFFF3F3F3),
+              backgroundColor: _profileBackground,
               body: const SafeArea(child: _UserInfoPageSkeleton()),
               bottomNavigationBar: widget.showBottomNavigation
                   ? SupermarketBottomNavigation(
@@ -144,265 +151,106 @@ class _UserInfoViewState extends State<UserInfoView> {
           }
 
           return Scaffold(
-            backgroundColor: const Color(0xFFF3F3F3),
+            backgroundColor: _profileBackground,
             body: SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          _HeaderCard(
-                            username: username,
-                            profileImagePath: profileImagePath,
-                            profileImageUrl: profileImageUrl,
-                            points: userInfo.points,
-                            onTapCamera: () => _pickProfileImage(context),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const _SectionTitle(
-                                  title: 'Personal Information',
-                                ),
-                                const SizedBox(height: 18),
-                                _InfoRow(
-                                  label: 'Your Name:',
-                                  value: username,
-                                  trailingIcon: Icons.edit,
-                                  trailingColor: accent,
-                                  onTrailingTap: () =>
-                                      _openEditUsername(context, username),
-                                ),
-                                const Divider(
-                                  height: 28,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                _InfoRow(
-                                  label: 'Date of Birth:',
-                                  value: dateOfBirthLabel(),
-                                  trailingIcon: Icons.edit,
-                                  trailingColor: accent,
-                                  onTrailingTap: () => _openEditDateOfBirth(
-                                    context,
-                                    dateOfBirth,
-                                  ),
-                                ),
-                                const Divider(
-                                  height: 28,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                _InfoRow(
-                                  label: 'Address',
-                                  value: address.isEmpty
-                                      ? 'Not Added'
-                                      : address,
-                                  trailingIcon: Icons.chevron_right,
-                                  trailingColor: accent,
-                                  onTrailingTap: () => _openReceivingAddress(
-                                    context,
-                                    currentAddress: address,
-                                  ),
-                                ),
-                                const Divider(
-                                  height: 28,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                _InfoRow(
-                                  label: 'Language',
-                                  value: languageLabel(),
-                                  trailingIcon: Icons.g_translate,
-                                  trailingColor: accent,
-                                  onTrailingTap: () =>
-                                      _openEditLanguage(context, languageCode),
-                                ),
-                                const SizedBox(height: 12),
-                                const Divider(
-                                  thickness: 8,
-                                  color: Color(0xFFEDEAF1),
-                                ),
-                                const SizedBox(height: 20),
-                                const _SectionTitle(
-                                  title: 'Account Information',
-                                ),
-                                const SizedBox(height: 18),
-                                Text(
-                                  'Phone Number:',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Color(0xFFB0AAB3),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  phoneDisplay,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    color: Color(0xFF34313A),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isVerified
-                                        ? const Color(0xFFDFF5E7)
-                                        : const Color(0xFFE6E6E8),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        isVerified
-                                            ? Icons.check_circle
-                                            : Icons.info_outline,
-                                        color: isVerified
-                                            ? const Color(0xFF0D9A58)
-                                            : const Color(0xFF7B7883),
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isVerified ? 'Verified' : 'Unverified',
-                                        style: TextStyle(
-                                          color: isVerified
-                                              ? const Color(0xFF0D9A58)
-                                              : const Color(0xFF57545C),
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                const Divider(
-                                  thickness: 8,
-                                  color: Color(0xFFEDEAF1),
-                                ),
-                                const SizedBox(height: 20),
-                                const _SectionTitle(title: 'Account Security'),
-                                const SizedBox(height: 18),
-                                _SecurityRow(
-                                  title: 'Change PIN:',
-                                  value: '****',
-                                  trailingText: 'Change',
-                                  onTap: () => _openChangePin(context),
-                                ),
-                                const Divider(
-                                  height: 30,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                const _TelegramBackupTile(),
-                                const Divider(
-                                  height: 30,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                _BiometricLoginTile(phoneNumber: rawPhone),
-                                const Divider(
-                                  height: 30,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Term of Condition',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: Color(0xFFB0AAB3),
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const TermsOfUseView(),
-                                          ),
-                                        );
-                                      },
-                                      child: const Text(
-                                        'See More',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: accent,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(
-                                  height: 30,
-                                  color: Color(0xFFD7D1D6),
-                                ),
-                                const Text(
-                                  'Account Deletion',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Color(0xFFB0AAB3),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextButton(
-                                  onPressed: () =>
-                                      _showDeleteAccountDialog(context),
-                                  child: const Text(
-                                    'Delete Account!',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF1D1B22),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                const Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    'v1.8.3 | 1830',
-                                    style: TextStyle(
-                                      color: Color(0xFFCFA6BD),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 52,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFE2E2E7),
-                                      foregroundColor: const Color(0xFF1D1B22),
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                    ),
-                                    onPressed: () =>
-                                        _showLogoutBottomSheet(context),
-                                    child: const Text(
-                                      'Logout',
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HeaderCard(
+                      username: username,
+                      profileImagePath: profileImagePath,
+                      profileImageUrl: profileImageUrl,
+                      points: userInfo.points,
+                      onTapCamera: () => _pickProfileImage(context),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 28),
+                    const _SectionTitle(title: 'Personal Information'),
+                    const SizedBox(height: 12),
+                    _ProfileSectionCard(
+                      children: [
+                        _InfoRow(
+                          icon: Icons.person_outline_rounded,
+                          label: 'Your Name',
+                          value: username,
+                          onTap: () => _openEditUsername(context, username),
+                        ),
+                        _InfoRow(
+                          icon: Icons.calendar_month_outlined,
+                          label: 'Date of Birth',
+                          value: dateOfBirthLabel(),
+                          onTap: () =>
+                              _openEditDateOfBirth(context, dateOfBirth),
+                        ),
+                        _InfoRow(
+                          icon: Icons.location_on_outlined,
+                          label: 'Address',
+                          value: address.isEmpty ? 'Not Added' : address,
+                          onTap: () => _openReceivingAddress(
+                            context,
+                            currentAddress: address,
+                          ),
+                        ),
+                        _InfoRow(
+                          icon: Icons.translate_rounded,
+                          label: 'Language',
+                          value: languageLabel(),
+                          onTap: () => _openEditLanguage(context, languageCode),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _SectionTitle(title: 'Account'),
+                    const SizedBox(height: 12),
+                    _ProfileSectionCard(
+                      children: [
+                        _PhoneInfoRow(
+                          phoneDisplay: phoneDisplay,
+                          isVerified: isVerified,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _SectionTitle(title: 'Security'),
+                    const SizedBox(height: 12),
+                    _ProfileSectionCard(
+                      children: [
+                        _SecurityRow(
+                          icon: Icons.lock_outline_rounded,
+                          title: 'Change PIN',
+                          trailingText: 'Change',
+                          onTap: () => _openChangePin(context),
+                        ),
+                        _BiometricLoginTile(phoneNumber: rawPhone),
+                        const _TelegramBackupTile(),
+                        _SecurityRow(
+                          icon: Icons.policy_outlined,
+                          title: 'Terms & Conditions',
+                          trailingText: 'See More',
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const TermsOfUseView(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _SectionTitle(title: 'Danger Zone'),
+                    const SizedBox(height: 12),
+                    _DangerZoneTile(
+                      onTap: () => _showDeleteAccountDialog(context),
+                    ),
+                    const SizedBox(height: 14),
+                    _LogoutButton(
+                      onPressed: () => _showLogoutBottomSheet(context),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ),
             bottomNavigationBar: widget.showBottomNavigation
@@ -863,31 +711,50 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
   @override
   Widget build(BuildContext context) {
     final status = _deviceStatus;
-    final label = status?.settingsLabel ?? 'Login with Biometric:';
+    final rawLabel = status?.settingsLabel ?? 'Login with Biometric:';
+    final label = rawLabel.replaceFirst(RegExp(r':+$'), '').trim();
+    final displayLabel = label.isEmpty ? 'Login with Biometric' : label;
     final canEnable =
         status?.isSupported == true && widget.phoneNumber.trim().isNotEmpty;
     final canDisable = _isEnabled;
 
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 14, 12),
+      child: Row(
+        children: [
+          const _ProfileIconWell(icon: Icons.fingerprint_rounded),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              displayLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.15,
+                fontWeight: FontWeight.w800,
+                color: _profileText,
+              ),
+            ),
           ),
-        ),
-        if (_isBusy || _isLoading) const SkeletonBox(width: 18, height: 18),
-        if (_isBusy || _isLoading) const SizedBox(width: 10),
-        Switch(
-          value: _isEnabled,
-          activeThumbColor: const Color(0xFFEC407A),
-          activeTrackColor: const Color(0xFFF9DCEA),
-          inactiveTrackColor: const Color(0xFFF9DCEA),
-          onChanged: (_isBusy || _isLoading || (!canEnable && !canDisable))
-              ? null
-              : _onToggleChanged,
-        ),
-      ],
+          if (_isBusy || _isLoading) const SkeletonBox(width: 20, height: 20),
+          if (_isBusy || _isLoading) const SizedBox(width: 10),
+          Transform.scale(
+            scale: 0.88,
+            child: Switch(
+              value: _isEnabled,
+              activeThumbColor: Colors.white,
+              activeTrackColor: _profileAccent,
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: const Color(0xFFE6E0E6),
+              trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+              onChanged: (_isBusy || _isLoading || (!canEnable && !canDisable))
+                  ? null
+                  : _onToggleChanged,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -900,93 +767,55 @@ class _UserInfoPageSkeleton extends StatelessWidget {
     return AppSkeleton(
       child: SingleChildScrollView(
         key: const ValueKey('user-info-page-skeleton'),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SkeletonCircle(size: 30),
+                SizedBox(width: 18),
+                SkeletonCircle(size: 30),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Row(
+              children: [
+                SkeletonCircle(size: 92),
+                SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonBox(width: 170, height: 22, radius: 6),
+                      SizedBox(height: 8),
+                      SkeletonBox(width: 188, height: 15, radius: 6),
+                      SizedBox(height: 12),
+                      SkeletonBox(width: 112, height: 30, radius: 16),
+                    ],
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      SkeletonCircle(size: 30),
-                      SizedBox(width: 18),
-                      SkeletonCircle(size: 30),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  SkeletonCircle(size: 108),
-                  SizedBox(height: 18),
-                  SkeletonBox(width: 150, height: 16, radius: 6),
-                  SizedBox(height: 10),
-                  SkeletonBox(width: 178, height: 15, radius: 6),
-                  SizedBox(height: 12),
-                  Row(
-                    children: [
-                      SkeletonCircle(size: 42),
-                      SizedBox(width: 10),
-                      SkeletonBox(width: 70, height: 16, radius: 6),
-                    ],
-                  ),
-                ],
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  SizedBox(height: 10),
-                  SkeletonBox(width: 174, height: 18, radius: 6),
-                  SizedBox(height: 18),
-                  _SkeletonInfoRow(),
-                  Divider(height: 28, color: Color(0xFFD7D1D6)),
-                  _SkeletonInfoRow(),
-                  Divider(height: 28, color: Color(0xFFD7D1D6)),
-                  _SkeletonInfoRow(),
-                  Divider(height: 28, color: Color(0xFFD7D1D6)),
-                  _SkeletonInfoRow(),
-                  SizedBox(height: 12),
-                  Divider(thickness: 8, color: Color(0xFFEDEAF1)),
-                  SizedBox(height: 20),
-                  SkeletonBox(width: 168, height: 18, radius: 6),
-                  SizedBox(height: 18),
-                  _SkeletonInfoRow(showTrailing: false),
-                  Divider(height: 30, color: Color(0xFFD7D1D6)),
-                  SkeletonBox(width: 152, height: 18, radius: 6),
-                  SizedBox(height: 18),
-                  Divider(thickness: 8, color: Color(0xFFEDEAF1)),
-                  SizedBox(height: 20),
-                  SkeletonBox(width: 154, height: 18, radius: 6),
-                  SizedBox(height: 18),
-                  _SkeletonInfoRow(),
-                  Divider(height: 30, color: Color(0xFFD7D1D6)),
-                  _SkeletonInfoRow(),
-                  Divider(height: 30, color: Color(0xFFD7D1D6)),
-                  _SkeletonInfoRow(showTrailing: false),
-                  SizedBox(height: 24),
-                  SkeletonBox(height: 52, radius: 14),
-                  SizedBox(height: 16),
-                ],
-              ),
-            ),
+            const SizedBox(height: 28),
+            const SkeletonBox(width: 186, height: 20, radius: 6),
+            const SizedBox(height: 12),
+            const _SkeletonSectionCard(rowCount: 4),
+            const SizedBox(height: 22),
+            const SkeletonBox(width: 84, height: 20, radius: 6),
+            const SizedBox(height: 12),
+            const _SkeletonSectionCard(rowCount: 1),
+            const SizedBox(height: 22),
+            const SkeletonBox(width: 92, height: 20, radius: 6),
+            const SizedBox(height: 12),
+            const _SkeletonSectionCard(rowCount: 4),
+            const SizedBox(height: 22),
+            const SkeletonBox(width: 118, height: 20, radius: 6),
+            const SizedBox(height: 12),
+            const SkeletonBox(height: 58, radius: 10),
+            const SizedBox(height: 14),
+            const SkeletonBox(height: 48, radius: 10),
           ],
         ),
       ),
@@ -994,27 +823,62 @@ class _UserInfoPageSkeleton extends StatelessWidget {
   }
 }
 
-class _SkeletonInfoRow extends StatelessWidget {
-  const _SkeletonInfoRow({this.showTrailing = true});
+class _SkeletonSectionCard extends StatelessWidget {
+  const _SkeletonSectionCard({required this.rowCount});
 
-  final bool showTrailing;
+  final int rowCount;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SkeletonBox(width: 122, height: 14, radius: 6),
-              SizedBox(height: 8),
-              SkeletonBox(width: 178, height: 15, radius: 6),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: _profileSurface,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: _profileShadow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
           ),
-        ),
-        if (showTrailing) const SkeletonCircle(size: 30),
-      ],
+        ],
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < rowCount; index++) ...[
+            const _SkeletonInfoRow(),
+            if (index != rowCount - 1)
+              const Divider(height: 1, indent: 74, color: _profileLine),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonInfoRow extends StatelessWidget {
+  const _SkeletonInfoRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 12, 14, 12),
+      child: Row(
+        children: [
+          SkeletonCircle(size: 42),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SkeletonBox(width: 104, height: 13, radius: 6),
+                SizedBox(height: 8),
+                SkeletonBox(width: 168, height: 16, radius: 6),
+              ],
+            ),
+          ),
+          SkeletonCircle(size: 22),
+        ],
+      ),
     );
   }
 }
@@ -1036,189 +900,226 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
     final token = (UserSession.token ?? '').trim();
     final imageHeaders = token.isEmpty
         ? null
         : <String, String>{'Authorization': 'Bearer $token'};
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            _HeaderActionButton(
+              icon: Icons.favorite_border_rounded,
+              onPressed: () {
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const FavoriteView()));
+              },
+            ),
+            const SizedBox(width: 16),
+            _HeaderActionButton(
+              icon: Icons.notifications_none_rounded,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NotificationView()),
+                );
+              },
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const FavoriteView()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.favorite_border,
-                  color: accent,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NotificationView()),
-                  );
-                },
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: accent,
-                  size: 30,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 108,
-                    height: 108,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7D6E5),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: accent, width: 2),
-                    ),
-                    child:
-                        profileImagePath.isNotEmpty &&
-                            File(profileImagePath).existsSync()
-                        ? ClipOval(
-                            child: Image.file(
-                              File(profileImagePath),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, error, stackTrace) {
-                                debugPrint(
-                                  '[UserInfoView] local avatar load failed for $profileImagePath: $error',
-                                );
-                                return const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Color(0xFFEAA4C3),
-                                );
-                              },
-                            ),
-                          )
-                        : profileImageUrl.isNotEmpty
-                        ? ClipOval(
-                            child: Image.network(
-                              profileImageUrl,
-                              headers: imageHeaders,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, error, stackTrace) {
-                                debugPrint(
-                                  '[UserInfoView] avatar load failed for $profileImageUrl: $error',
-                                );
-                                return const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Color(0xFFEAA4C3),
-                                );
-                              },
-                            ),
-                          )
-                        : const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: Color(0xFFEAA4C3),
-                          ),
+        const SizedBox(height: 22),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 92,
+                  height: 92,
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: _profileSurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _profileAccent, width: 2),
                   ),
-                  Positioned(
-                    right: -2,
-                    bottom: 4,
-                    child: Material(
-                      color: accent,
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: onTapCamera,
-                        child: const Padding(
-                          padding: EdgeInsets.all(9),
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                  child: ClipOval(
+                    child: _AvatarImage(
+                      profileImagePath: profileImagePath,
+                      profileImageUrl: profileImageUrl,
+                      imageHeaders: imageHeaders,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: -2,
+                  bottom: 4,
+                  child: Material(
+                    color: _profileAccent,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: onTapCamera,
+                      child: const SizedBox(
+                        width: 34,
+                        height: 34,
+                        child: Icon(
+                          Icons.camera_alt_rounded,
+                          color: Colors.white,
+                          size: 19,
                         ),
                       ),
                     ),
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    username,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 21,
+                      height: 1.15,
+                      fontWeight: FontWeight.w800,
+                      color: _profileText,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Supermarket Point Member',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.2,
+                      color: _profileMuted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _MemberIdChip(points: points),
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              username,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1D1B22),
-              ),
             ),
-          ),
-          const SizedBox(height: 6),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Supermarket Point',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFF9B9B9B),
-                fontWeight: FontWeight.w500,
-              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _HeaderActionButton extends StatelessWidget {
+  const _HeaderActionButton({required this.icon, required this.onPressed});
+
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 34,
+      height: 34,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        splashRadius: 22,
+        icon: Icon(icon, color: _profileAccent, size: 29),
+        onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+class _AvatarImage extends StatelessWidget {
+  const _AvatarImage({
+    required this.profileImagePath,
+    required this.profileImageUrl,
+    required this.imageHeaders,
+  });
+
+  final String profileImagePath;
+  final String profileImageUrl;
+  final Map<String, String>? imageHeaders;
+
+  @override
+  Widget build(BuildContext context) {
+    if (profileImagePath.isNotEmpty && File(profileImagePath).existsSync()) {
+      return Image.file(
+        File(profileImagePath),
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) {
+          debugPrint(
+            '[UserInfoView] local avatar load failed for $profileImagePath: $error',
+          );
+          return const _AvatarPlaceholder();
+        },
+      );
+    }
+
+    if (profileImageUrl.isNotEmpty) {
+      return Image.network(
+        profileImageUrl,
+        headers: imageHeaders,
+        fit: BoxFit.cover,
+        errorBuilder: (_, error, stackTrace) {
+          debugPrint(
+            '[UserInfoView] avatar load failed for $profileImageUrl: $error',
+          );
+          return const _AvatarPlaceholder();
+        },
+      );
+    }
+
+    return const _AvatarPlaceholder();
+  }
+}
+
+class _AvatarPlaceholder extends StatelessWidget {
+  const _AvatarPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFF8D4E5),
+      child: const Icon(Icons.person_rounded, color: _profileAccent, size: 48),
+    );
+  }
+}
+
+class _MemberIdChip extends StatelessWidget {
+  const _MemberIdChip({required this.points});
+
+  final int points;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFEEF5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.copyright_rounded, color: _profileAccent, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            'ID $points',
+            style: const TextStyle(
+              color: _profileAccent,
+              fontSize: 14,
+              height: 1,
+              fontWeight: FontWeight.w800,
             ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFE3EE),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.copyright, color: accent),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                points.toString(),
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1B22),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -1233,115 +1134,399 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: Color(0xFF1D1B22),
+    return Padding(
+      padding: const EdgeInsets.only(left: 10),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          height: 1.2,
+          fontWeight: FontWeight.w800,
+          color: _profileText,
+        ),
       ),
+    );
+  }
+}
+
+class _ProfileSectionCard extends StatelessWidget {
+  const _ProfileSectionCard({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: _profileSurface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFF7F2F6)),
+        boxShadow: const [
+          BoxShadow(
+            color: _profileShadow,
+            blurRadius: 14,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < children.length; index++) ...[
+            children[index],
+            if (index != children.length - 1)
+              const Divider(height: 1, indent: 74, color: _profileLine),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileIconWell extends StatelessWidget {
+  const _ProfileIconWell({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        color: _profileIconBg,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, color: _profileAccent, size: 23),
+    );
+  }
+}
+
+class _TrailingChevron extends StatelessWidget {
+  const _TrailingChevron();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.chevron_right_rounded,
+      color: _profileAccent,
+      size: 28,
     );
   }
 }
 
 class _InfoRow extends StatelessWidget {
   const _InfoRow({
+    required this.icon,
     required this.label,
     required this.value,
-    required this.trailingIcon,
-    required this.trailingColor,
-    this.onTrailingTap,
+    required this.onTap,
   });
 
+  final IconData icon;
   final String label;
   final String value;
-  final IconData trailingIcon;
-  final Color trailingColor;
-  final VoidCallback? onTrailingTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+          child: Row(
             children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
-              ),
-              if (value.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF34313A),
-                  ),
+              _ProfileIconWell(icon: icon),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.15,
+                        color: _profileMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                        color: _profileText,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              const _TrailingChevron(),
             ],
           ),
         ),
-        onTrailingTap != null
-            ? IconButton(
-                onPressed: onTrailingTap,
-                icon: Icon(trailingIcon, color: trailingColor, size: 30),
-                splashRadius: 18,
-              )
-            : Icon(trailingIcon, color: trailingColor, size: 30),
-      ],
+      ),
+    );
+  }
+}
+
+class _PhoneInfoRow extends StatelessWidget {
+  const _PhoneInfoRow({required this.phoneDisplay, required this.isVerified});
+
+  final String phoneDisplay;
+  final bool isVerified;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+      child: Row(
+        children: [
+          const _ProfileIconWell(icon: Icons.phone_rounded),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Phone Number',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.15,
+                    color: _profileMuted,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  phoneDisplay,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    color: _profileText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _StatusChip(
+            label: isVerified ? 'Verified' : 'Unverified',
+            icon: isVerified ? Icons.check_circle : Icons.info_outline,
+            foreground: isVerified
+                ? const Color(0xFF16A864)
+                : const Color(0xFF7A7580),
+            background: isVerified
+                ? const Color(0xFFE7FAEF)
+                : const Color(0xFFF0ECEF),
+          ),
+          const SizedBox(width: 4),
+          const _TrailingChevron(),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({
+    required this.label,
+    required this.foreground,
+    required this.background,
+    this.icon,
+  });
+
+  final String label;
+  final Color foreground;
+  final Color background;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, color: foreground, size: 15),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: foreground,
+              fontSize: 13,
+              height: 1,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _SecurityRow extends StatelessWidget {
   const _SecurityRow({
+    required this.icon,
     required this.title,
-    required this.value,
     required this.trailingText,
     required this.onTap,
   });
 
+  final IconData icon;
   final String title;
-  final String value;
   final String trailingText;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          child: Row(
             children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+              _ProfileIconWell(icon: icon),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    color: _profileText,
+                  ),
+                ),
               ),
-              const SizedBox(height: 4),
               Text(
-                value,
+                trailingText,
                 style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.15,
+                  color: _profileAccent,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const _TrailingChevron(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DangerZoneTile extends StatelessWidget {
+  const _DangerZoneTile({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFFEEF5),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+          child: Row(
+            children: [
+              const _ProfileIconWell(icon: Icons.delete_outline_rounded),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Delete Account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        height: 1.15,
+                        color: _profileText,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Permanently delete your account and all data',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.2,
+                        color: _profileMuted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const _TrailingChevron(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFF1EDF1),
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: const SizedBox(
+          height: 48,
+          width: double.infinity,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.logout_rounded, color: _profileAccent, size: 19),
+              SizedBox(width: 8),
+              Text(
+                'Logout',
+                style: TextStyle(
+                  color: _profileAccent,
                   fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1D1B22),
+                  height: 1,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ],
           ),
         ),
-        TextButton(
-          onPressed: onTap,
-          child: Text(
-            trailingText,
-            style: const TextStyle(fontSize: 15, color: Color(0xFFEC407A)),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -1460,61 +1645,76 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
     if (_isLoading) {
       return const AppSkeleton(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.fromLTRB(16, 12, 14, 12),
           child: Row(
             children: [
-              SkeletonBox(width: 164, height: 15, radius: 6),
-              Spacer(),
-              SkeletonBox(width: 56, height: 18, radius: 6),
+              SkeletonCircle(size: 44),
+              SizedBox(width: 16),
+              Expanded(child: SkeletonBox(width: 160, height: 16, radius: 6)),
+              SkeletonBox(width: 88, height: 28, radius: 16),
             ],
           ),
         ),
       );
     }
 
-    if (_isLinked) {
-      return Row(
-        children: [
-          const Icon(Icons.check_circle, color: Color(0xFF0D9A58), size: 18),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text(
-              'Telegram OTP Backup:',
-              style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+    final trailing = _isUnlinking
+        ? const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: _profileAccent,
             ),
-          ),
-          _isUnlinking
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: _accent,
-                  ),
-                )
-              : TextButton(
-                  onPressed: _confirmUnlink,
-                  style: TextButton.styleFrom(foregroundColor: _accent),
-                  child: const Text('Remove', style: TextStyle(fontSize: 15)),
-                ),
-        ],
-      );
-    }
+          )
+        : _isLinked
+        ? const _StatusChip(
+            label: 'Connected',
+            foreground: Color(0xFF16A864),
+            background: Color(0xFFE7FAEF),
+          )
+        : const Text(
+            'Set Up',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.15,
+              color: _profileAccent,
+              fontWeight: FontWeight.w800,
+            ),
+          );
 
-    return Row(
-      children: [
-        const Expanded(
-          child: Text(
-            'Telegram OTP Backup:',
-            style: TextStyle(fontSize: 15, color: Color(0xFFB0AAB3)),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _isUnlinking
+            ? null
+            : (_isLinked ? _confirmUnlink : _openLinkView),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+          child: Row(
+            children: [
+              const _ProfileIconWell(icon: Icons.near_me_outlined),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Telegram OTP Backup',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    color: _profileText,
+                  ),
+                ),
+              ),
+              trailing,
+              const SizedBox(width: 4),
+              const _TrailingChevron(),
+            ],
           ),
         ),
-        TextButton(
-          onPressed: _openLinkView,
-          style: TextButton.styleFrom(foregroundColor: _accent),
-          child: const Text('Set Up', style: TextStyle(fontSize: 15)),
-        ),
-      ],
+      ),
     );
   }
 }

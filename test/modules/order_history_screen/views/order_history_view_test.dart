@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_details_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
@@ -17,9 +18,7 @@ void main() {
     }
   });
 
-  testWidgets('renders fallback cards with expected status chips', (
-    tester,
-  ) async {
+  testWidgets('renders refreshed fallback order list UI', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: BlocProvider(
@@ -30,18 +29,36 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Ordering'), findsOneWidget);
-    expect(find.text('Order Id:#00001'), findsOneWidget);
-    expect(find.text('Order Id:#00002'), findsOneWidget);
-    expect(find.text('Cancel'), findsOneWidget);
-    expect(find.text('Request'), findsOneWidget);
+    expect(find.text('Orders'), findsOneWidget);
+    expect(find.text('Your recent purchase history'), findsOneWidget);
+    expect(find.text('Search orders...'), findsOneWidget);
+    expect(find.text('Filter'), findsOneWidget);
+    expect(find.text('Order #00001'), findsOneWidget);
+    expect(find.text('Order #00002'), findsOneWidget);
+    expect(find.text('Canceled'), findsOneWidget);
+    expect(find.text('Processing'), findsOneWidget);
+    expect(find.text('Return'), findsNothing);
+  });
 
-    final titleRect = tester.getRect(find.text('Ordering'));
-    final filterRect = tester.getRect(
-      find.byKey(const ValueKey('order-history-filter-button')),
+  testWidgets('searches visible orders locally', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider(
+          create: (_) => OrderHistoryCubit(),
+          child: const OrderHistoryView(showBottomNavigation: false),
+        ),
+      ),
     );
-    expect(filterRect.left, greaterThan(titleRect.right));
-    expect(filterRect.center.dy, closeTo(titleRect.center.dy, 1));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const ValueKey('order-history-search-field')),
+      '00002',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Order #00001'), findsNothing);
+    expect(find.text('Order #00002'), findsOneWidget);
   });
 
   testWidgets('filters orders by selected status', (tester) async {
@@ -67,8 +84,8 @@ void main() {
     await tester.tap(canceledFilter);
     await tester.pumpAndSettle();
 
-    expect(find.text('Order Id:#00001'), findsOneWidget);
-    expect(find.text('Order Id:#00002'), findsNothing);
+    expect(find.text('Order #00001'), findsOneWidget);
+    expect(find.text('Order #00002'), findsNothing);
   });
 
   testWidgets('tapping an active order opens order track screen', (
@@ -84,7 +101,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final activeOrder = find.text('Order Id:#00002');
+    final activeOrder = find.text('Order #00002');
     await tester.ensureVisible(activeOrder);
     await tester.tap(activeOrder);
     await tester.pumpAndSettle();
@@ -105,10 +122,31 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Order Id:#00001'));
+    await tester.tap(find.text('Order #00001'));
     await tester.pumpAndSettle();
 
     expect(find.byType(OrderDetailsView), findsOneWidget);
     expect(find.text('Product Order'), findsOneWidget);
+  });
+
+  testWidgets('shared supermarket bottom nav shows refreshed labels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          bottomNavigationBar: SupermarketBottomNavigation(
+            selectedIndex: 3,
+            onTap: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Offers'), findsOneWidget);
+    expect(find.text('Scan'), findsOneWidget);
+    expect(find.text('Orders'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
   });
 }

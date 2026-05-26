@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +8,7 @@ import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_state.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
@@ -49,19 +51,19 @@ extension _OrderStatusFilterX on _OrderStatusFilter {
   IconData get icon {
     switch (this) {
       case _OrderStatusFilter.all:
-        return Icons.receipt_long_rounded;
+        return CupertinoIcons.doc_text;
       case _OrderStatusFilter.active:
-        return Icons.timelapse_rounded;
+        return CupertinoIcons.clock;
       case _OrderStatusFilter.requesting:
-        return Icons.hourglass_top_rounded;
+        return CupertinoIcons.clock;
       case _OrderStatusFilter.picking:
-        return Icons.shopping_cart_outlined;
+        return CupertinoIcons.cart;
       case _OrderStatusFilter.delivering:
-        return Icons.delivery_dining_outlined;
+        return CupertinoIcons.cube_box;
       case _OrderStatusFilter.delivered:
-        return Icons.check_circle_outline_rounded;
+        return CupertinoIcons.checkmark_circle;
       case _OrderStatusFilter.canceled:
-        return Icons.cancel_outlined;
+        return CupertinoIcons.xmark_circle;
     }
   }
 
@@ -103,11 +105,14 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
   int _orderSkeletonSerial = 0;
   DateTime? _orderSkeletonStartedAt;
   bool _showOrderSkeleton = false;
+  late final TextEditingController _searchController;
   _OrderStatusFilter _selectedFilter = _OrderStatusFilter.all;
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_loadOrders(showSkeleton: true));
       _startAutoRefresh();
@@ -117,6 +122,7 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -172,79 +178,110 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
     return orders.where(_selectedFilter.matches).toList(growable: false);
   }
 
+  List<OrderHistoryEntry> _applyVisibleFilters(List<OrderHistoryEntry> orders) {
+    final statusFiltered = _applySelectedFilter(orders);
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) return statusFiltered;
+
+    return statusFiltered
+        .where((entry) => _entryMatchesSearch(entry, query))
+        .toList(growable: false);
+  }
+
+  bool _entryMatchesSearch(OrderHistoryEntry entry, String query) {
+    final order = entry.summary;
+    final amountText = order.total.toStringAsFixed(2);
+    final dateText = DateFormat('d MMM yyyy').format(order.orderDate);
+    final timeText = DateFormat('h:mm a').format(order.orderDate);
+    final searchable = [
+      order.shopName,
+      order.orderNumber,
+      'order ${order.orderNumber}',
+      entry.statusTitle,
+      _statusDisplayLabel(entry.status),
+      dateText,
+      timeText,
+      amountText,
+      '\$$amountText',
+      '${entry.displayItemCount}',
+    ].join(' ').toLowerCase();
+
+    return searchable.contains(query);
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() => _searchQuery = value);
+  }
+
+  void _openNotifications() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const NotificationView()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(26),
+      backgroundColor: const Color(0xFFFCF8FA),
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _OrderHistoryHeader(
+              searchController: _searchController,
+              selectedFilter: _selectedFilter,
+              onSearchChanged: _onSearchChanged,
+              onFilterPressed: _openStatusFilter,
+              onNotificationPressed: _openNotifications,
+            ),
+            Expanded(
+              child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
+                builder: (context, state) {
+                  final useFallback =
+                      !UserSession.isAuthenticated && state.orders.isEmpty;
+                  final orders = useFallback
+                      ? OrderHistoryCubit.fallbackOrders
+                      : state.orders;
+                  if (_showOrderSkeleton ||
+                      (state.isLoading && orders.isEmpty)) {
+                    return const _OrderHistorySkeletonList();
+                  }
+
+                  if (orders.isEmpty) {
+                    return const Center(child: _EmptyOrderState());
+                  }
+
+                  final visibleOrders = _applyVisibleFilters(orders);
+                  if (visibleOrders.isEmpty) {
+                    return const Center(child: _EmptyOrderState());
+                  }
+
+                  return RefreshIndicator(
+                    color: const Color(0xFFEC407A),
+                    onRefresh: () => _loadOrders(showSkeleton: true),
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(22, 4, 22, 24),
+                      itemCount: visibleOrders.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 14),
+                      itemBuilder: (_, index) {
+                        final entry = visibleOrders[index];
+                        return _OrderCard(
+                          entry: entry,
+                          onTap: () {
+                            Navigator.of(
+                              context,
+                            ).push(_buildOrderTapRoute(entry));
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.09),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
-            child: SafeArea(
-              bottom: false,
-              child: _OrderHistoryHeader(
-                selectedFilter: _selectedFilter,
-                onFilterPressed: _openStatusFilter,
-              ),
-            ),
-          ),
-          Expanded(
-            child: BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
-              builder: (context, state) {
-                final useFallback =
-                    !UserSession.isAuthenticated && state.orders.isEmpty;
-                final orders = useFallback
-                    ? OrderHistoryCubit.fallbackOrders
-                    : state.orders;
-                if (_showOrderSkeleton || (state.isLoading && orders.isEmpty)) {
-                  return const _OrderHistorySkeletonList();
-                }
-
-                if (orders.isEmpty) {
-                  return const Center(child: _EmptyOrderState());
-                }
-
-                final visibleOrders = _applySelectedFilter(orders);
-                if (visibleOrders.isEmpty) {
-                  return const Center(child: _EmptyOrderState());
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () => _loadOrders(showSkeleton: true),
-                  child: ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                    itemCount: visibleOrders.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (_, index) {
-                      final entry = visibleOrders[index];
-                      return _OrderCard(
-                        entry: entry,
-                        onTap: () {
-                          Navigator.of(
-                            context,
-                          ).push(_buildOrderTapRoute(entry));
-                        },
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: widget.showBottomNavigation
           ? SupermarketBottomNavigation(
@@ -317,12 +354,18 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
 
 class _OrderHistoryHeader extends StatelessWidget {
   const _OrderHistoryHeader({
+    required this.searchController,
     required this.selectedFilter,
+    required this.onSearchChanged,
     required this.onFilterPressed,
+    required this.onNotificationPressed,
   });
 
+  final TextEditingController searchController;
   final _OrderStatusFilter selectedFilter;
+  final ValueChanged<String> onSearchChanged;
   final VoidCallback onFilterPressed;
+  final VoidCallback onNotificationPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -331,54 +374,231 @@ class _OrderHistoryHeader extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: 86,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Text(
-            'Ordering',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-              fontSize: 21,
-            ),
-          ),
-          PositionedDirectional(
-            end: 12,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    key: const ValueKey('order-history-filter-button'),
-                    onPressed: onFilterPressed,
-                    tooltip: 'Filter orders',
-                    icon: Icon(
-                      Icons.filter_alt_outlined,
-                      color: accent,
-                      size: 26,
-                    ),
-                  ),
-                  if (hasActiveFilter)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: accent,
-                          shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 16, 22, 18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Orders',
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: const Color(0xFF15131A),
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              height: 1.05,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Your recent purchase history',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF7A7780),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
-                    ),
-                ],
-              ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                _NotificationButton(onPressed: onNotificationPressed),
+              ],
             ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: CupertinoSearchTextField(
+                      key: const ValueKey('order-history-search-field'),
+                      controller: searchController,
+                      onChanged: onSearchChanged,
+                      placeholder: 'Search orders...',
+                      cursorColor: accent,
+                      itemColor: accent,
+                      itemSize: 23,
+                      prefixInsets: const EdgeInsetsDirectional.fromSTEB(
+                        16,
+                        13,
+                        8,
+                        13,
+                      ),
+                      suffixInsets: const EdgeInsetsDirectional.fromSTEB(
+                        0,
+                        13,
+                        14,
+                        13,
+                      ),
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        4,
+                        14,
+                        12,
+                        12,
+                      ),
+                      style: const TextStyle(
+                        color: Color(0xFF24212A),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      placeholderStyle: const TextStyle(
+                        color: Color(0xFF8B8790),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(17),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.07),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                _FilterButton(
+                  hasActiveFilter: hasActiveFilter,
+                  onPressed: onFilterPressed,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+
+    return SizedBox(
+      width: 58,
+      height: 58,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 5,
+        shadowColor: Colors.black26,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Icon(
+                CupertinoIcons.bell,
+                color: Color(0xFF56515A),
+                size: 27,
+              ),
+              Positioned(
+                right: 16,
+                top: 14,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterButton extends StatelessWidget {
+  const _FilterButton({required this.hasActiveFilter, required this.onPressed});
+
+  final bool hasActiveFilter;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+
+    return SizedBox(
+      width: 118,
+      height: 52,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        elevation: 5,
+        shadowColor: Colors.black.withValues(alpha: 0.13),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: const ValueKey('order-history-filter-button'),
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(17),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        CupertinoIcons.slider_horizontal_3,
+                        color: accent,
+                        size: 22,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Filter',
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (hasActiveFilter)
+                Positioned(
+                  top: 11,
+                  right: 13,
+                  child: Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: accent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -494,7 +714,8 @@ class _OrderStatusFilterTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (selected) Icon(Icons.check, color: accent, size: 20),
+                if (selected)
+                  Icon(CupertinoIcons.checkmark, color: accent, size: 20),
               ],
             ),
           ),
@@ -513,10 +734,10 @@ class _OrderHistorySkeletonList extends StatelessWidget {
       child: ListView.separated(
         key: const ValueKey('order-history-list-skeleton'),
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
+        padding: const EdgeInsets.fromLTRB(22, 4, 22, 24),
         itemCount: 5,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemBuilder: (_, __) => const _OrderCardSkeleton(),
+        separatorBuilder: (_, _) => const SizedBox(height: 14),
+        itemBuilder: (_, _) => const _OrderCardSkeleton(),
       ),
     );
   }
@@ -528,36 +749,45 @@ class _OrderCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF2F2F2)),
+        border: Border.all(color: const Color(0xFFF4EEF2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.10),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
           ),
         ],
       ),
-      child: const Column(
+      child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: SkeletonBox(height: 20, radius: 6)),
-              SizedBox(width: 20),
-              SkeletonBox(width: 72, height: 22, radius: 14),
-            ],
+          SkeletonBox(width: 62, height: 62, radius: 16),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: SkeletonBox(height: 18, radius: 6)),
+                    SizedBox(width: 18),
+                    SkeletonBox(width: 82, height: 26, radius: 14),
+                  ],
+                ),
+                SizedBox(height: 10),
+                SkeletonBox(width: 116, height: 13, radius: 6),
+                SizedBox(height: 12),
+                SkeletonBox(width: 128, height: 17, radius: 6),
+                SizedBox(height: 14),
+                SkeletonBox(width: 172, height: 13, radius: 6),
+              ],
+            ),
           ),
-          SizedBox(height: 12),
-          SkeletonBox(width: 150, height: 16, radius: 6),
-          SizedBox(height: 12),
-          SkeletonBox(width: 128, height: 18, radius: 6),
-          SizedBox(height: 12),
-          SkeletonBox(width: 174, height: 13, radius: 6),
         ],
       ),
     );
@@ -573,85 +803,219 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final order = entry.summary;
-    final dateText = DateFormat('d, MMM, y | h:mm a').format(order.orderDate);
+    final dateText = DateFormat('d MMM yyyy').format(order.orderDate);
+    final timeText = DateFormat('h:mm a').format(order.orderDate);
     final itemCount = entry.displayItemCount;
-    final itemSuffix = itemCount > 1 ? 'Items' : 'Item';
+    final itemSuffix = itemCount > 1 ? 'items' : 'item';
 
-    return Material(
-      color: Colors.white,
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.18),
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
+    return DecoratedBox(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFF2F2F2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      order.shopName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF151515),
+      child: Material(
+        color: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFF4EEF2)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderIconTile(icon: _orderIconFor(order.shopName)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              order.shopName.toUpperCase(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                height: 1.22,
+                                color: Color(0xFF17141D),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          _OrderStatusChip(status: entry.status),
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: 7),
+                      _OrderMetaRow(
+                        icon: CupertinoIcons.doc_text,
+                        text: 'Order #${order.orderNumber}',
+                      ),
+                      const SizedBox(height: 11),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '\$${order.total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: Color(0xFFEC407A),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '  •  $itemCount $itemSuffix',
+                              style: const TextStyle(
+                                color: Color(0xFF6F6A73),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 17, height: 1.2),
+                      ),
+                      const SizedBox(height: 13),
+                      _OrderDateTimeRow(dateText: dateText, timeText: timeText),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  _OrderStatusChip(status: entry.status),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Order Id:#${order.orderNumber}',
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF3A3A3A),
-                  fontWeight: FontWeight.w500,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '\$ ${order.total.toStringAsFixed(2)} ',
-                      style: const TextStyle(
-                        color: Color(0xFFEC407A),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    TextSpan(
-                      text: '($itemCount $itemSuffix)',
-                      style: const TextStyle(color: Color(0xFF6A6A6A)),
-                    ),
-                  ],
-                ),
-                style: const TextStyle(fontSize: 17, height: 1.2),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                dateText,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF7D7D7D)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  IconData _orderIconFor(String shopName) {
+    final normalized = shopName.toLowerCase();
+    if (normalized.contains('supermarket')) {
+      return CupertinoIcons.cart;
+    }
+    return CupertinoIcons.bag;
+  }
+}
+
+class _OrderIconTile extends StatelessWidget {
+  const _OrderIconTile({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+
+    return Container(
+      width: 62,
+      height: 62,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F7),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, color: accent, size: 31),
+    );
+  }
+}
+
+class _OrderMetaRow extends StatelessWidget {
+  const _OrderMetaRow({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: const Color(0xFF8A858E), size: 14),
+        const SizedBox(width: 7),
+        Flexible(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF79747E),
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrderDateTimeRow extends StatelessWidget {
+  const _OrderDateTimeRow({required this.dateText, required this.timeText});
+
+  final String dateText;
+  final String timeText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Icon(CupertinoIcons.calendar, color: Color(0xFF8A858E), size: 14),
+        const SizedBox(width: 7),
+        Flexible(
+          child: Text(
+            dateText,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFF706B75),
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Container(width: 1, height: 14, color: const Color(0xFFD8D4DA)),
+        const SizedBox(width: 10),
+        const Icon(CupertinoIcons.clock, color: Color(0xFF8A858E), size: 14),
+        const SizedBox(width: 7),
+        Text(
+          timeText,
+          style: const TextStyle(
+            color: Color(0xFF706B75),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _statusDisplayLabel(OrderStatus status) {
+  switch (status) {
+    case OrderStatus.delivered:
+      return 'Delivered';
+    case OrderStatus.canceled:
+      return 'Canceled';
+    case OrderStatus.requesting:
+    case OrderStatus.picking:
+    case OrderStatus.delivering:
+      return 'Processing';
   }
 }
 
@@ -663,66 +1027,60 @@ class _OrderStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color bgColor;
-    final IconData iconData;
-    final String label;
+    final Color fgColor;
+    final Widget indicator;
+    final label = _statusDisplayLabel(status);
 
     switch (status) {
-      case OrderStatus.requesting:
-        bgColor = const Color(0xFFEC407A);
-        iconData = Icons.hourglass_top_rounded;
-        label = 'Request';
-        break;
-      case OrderStatus.picking:
-        bgColor = const Color(0xFFE64980);
-        iconData = Icons.shopping_cart_outlined;
-        label = 'Picking';
-        break;
-      case OrderStatus.delivering:
-        bgColor = const Color(0xFF1E88E5);
-        iconData = Icons.delivery_dining_outlined;
-        label = 'Delivering';
-        break;
       case OrderStatus.delivered:
-        bgColor = const Color(0xFF2BB857);
-        iconData = Icons.check;
-        label = 'Delivered';
+        bgColor = const Color(0xFFEAF9F0);
+        fgColor = const Color(0xFF20A95D);
+        indicator = Container(
+          width: 8,
+          height: 8,
+          decoration: const BoxDecoration(
+            color: Color(0xFF20A95D),
+            shape: BoxShape.circle,
+          ),
+        );
         break;
       case OrderStatus.canceled:
-        bgColor = const Color(0xFFFF6200);
-        iconData = Icons.close;
-        label = 'Cancel';
+        bgColor = const Color(0xFFFFEEE8);
+        fgColor = const Color(0xFFFF6200);
+        indicator = const Icon(CupertinoIcons.xmark_circle_fill, size: 12);
+        break;
+      case OrderStatus.requesting:
+      case OrderStatus.picking:
+      case OrderStatus.delivering:
+        bgColor = const Color(0xFFFFF7E7);
+        fgColor = const Color(0xFFD99A24);
+        indicator = const Icon(CupertinoIcons.clock, size: 12);
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 13,
-            height: 13,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
+      child: IconTheme(
+        data: IconThemeData(color: fgColor),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            indicator,
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: fgColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
             ),
-            alignment: Alignment.center,
-            child: Icon(iconData, size: 9, color: bgColor),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -750,7 +1108,7 @@ class _EmptyOrderState extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: Icon(
-                Icons.receipt_long_rounded,
+                CupertinoIcons.doc_text,
                 size: 46,
                 color: accent.withValues(alpha: 0.95),
               ),
@@ -766,7 +1124,11 @@ class _EmptyOrderState extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: const Icon(Icons.check, color: Colors.white, size: 18),
+                child: const Icon(
+                  CupertinoIcons.checkmark,
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ],
