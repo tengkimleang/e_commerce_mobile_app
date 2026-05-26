@@ -33,12 +33,27 @@ class ProductDetailView extends StatefulWidget {
 }
 
 class _ProductDetailViewState extends State<ProductDetailView> {
+  static const _accent = Color(0xFFEC407A);
+
+  final PageController _imagePageController = PageController();
   List<ProductModel> _suggestions = [];
+  int _activeImageIndex = 0;
+
+  List<String> get _productImages {
+    final images = widget.product.galleryImages;
+    return images.isEmpty ? [''] : images;
+  }
 
   @override
   void initState() {
     super.initState();
     _loadSuggestions();
+  }
+
+  @override
+  void dispose() {
+    _imagePageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSuggestions() async {
@@ -69,10 +84,26 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     }
   }
 
+  void _openImageSlider() {
+    final images = _productImages;
+    final initialIndex = _activeImageIndex < images.length
+        ? _activeImageIndex
+        : 0;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) =>
+          _ProductImageSliderSheet(images: images, initialIndex: initialIndex),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    const accent = _accent;
     final product = widget.product;
+    final images = _productImages;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
@@ -101,16 +132,19 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back_ios_new, size: 20),
                     ),
-                    SizedBox(
-                      height: 250,
-                      width: double.infinity,
-                      child: CachedNetworkImage(
-                        imageUrl: product.imageUrl,
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) =>
-                            Container(color: Colors.grey[100]),
-                        errorWidget: (context, url, error) =>
-                            Container(color: Colors.grey[200]),
+                    GestureDetector(
+                      onTap: _openImageSlider,
+                      child: SizedBox(
+                        height: 250,
+                        width: double.infinity,
+                        child: PageView.builder(
+                          controller: _imagePageController,
+                          itemCount: images.length,
+                          onPageChanged: (index) =>
+                              setState(() => _activeImageIndex = index),
+                          itemBuilder: (context, index) =>
+                              _ProductImageFrame(imageUrl: images[index]),
+                        ),
                       ),
                     ),
                     Padding(
@@ -124,9 +158,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                           color: Colors.grey[300],
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
-                          '1/1',
-                          style: TextStyle(
+                        child: Text(
+                          '${_activeImageIndex + 1}/${images.length}',
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.black54,
@@ -375,29 +409,31 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   ),
                 )
               else
-                SizedBox(
-                  height: 250,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) {
-                      final item = _suggestions[index];
-                      return _RelatedProductCard(
-                        product: item,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ProductDetailView(
-                              product: item,
-                              relatedProducts: _suggestions,
-                            ),
+                GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.68,
+                  ),
+                  itemBuilder: (context, index) {
+                    final item = _suggestions[index];
+                    return _RelatedProductCard(
+                      product: item,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ProductDetailView(
+                            product: item,
+                            relatedProducts: _suggestions,
                           ),
                         ),
-                      );
-                    },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(width: 12),
-                    itemCount: _suggestions.length,
-                  ),
+                      ),
+                    );
+                  },
+                  itemCount: _suggestions.length,
                 ),
             ],
           ),
@@ -477,6 +513,166 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   }
 }
 
+class _ProductImageSliderSheet extends StatefulWidget {
+  final List<String> images;
+  final int initialIndex;
+
+  const _ProductImageSliderSheet({
+    required this.images,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ProductImageSliderSheet> createState() =>
+      _ProductImageSliderSheetState();
+}
+
+class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
+  static const _accent = Color(0xFFEC407A);
+
+  late final PageController _pageController;
+  late int _activeIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _activeIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: screenHeight * 0.76,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 28, 20, 8),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Image',
+                      style: TextStyle(
+                        color: _accent,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, color: _accent, size: 32),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: widget.images.length,
+                onPageChanged: (index) => setState(() => _activeIndex = index),
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _ProductImageFrame(imageUrl: widget.images[index]),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 18, bottom: 30),
+              child: _ImageDotsIndicator(
+                totalDots: widget.images.length,
+                activeDotIndex: _activeIndex,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProductImageFrame extends StatelessWidget {
+  final String imageUrl;
+
+  const _ProductImageFrame({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmedUrl = imageUrl.trim();
+
+    if (trimmedUrl.isEmpty) {
+      return const _ProductImagePlaceholder();
+    }
+
+    return CachedNetworkImage(
+      imageUrl: trimmedUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.contain,
+      placeholder: (context, url) => const _ProductImagePlaceholder(),
+      errorWidget: (context, url, error) => const _ProductImagePlaceholder(),
+    );
+  }
+}
+
+class _ProductImagePlaceholder extends StatelessWidget {
+  const _ProductImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFFF4F4F4),
+      alignment: Alignment.center,
+      child: Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 42),
+    );
+  }
+}
+
+class _ImageDotsIndicator extends StatelessWidget {
+  final int totalDots;
+  final int activeDotIndex;
+
+  const _ImageDotsIndicator({
+    required this.totalDots,
+    required this.activeDotIndex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(totalDots, (index) {
+        final isActive = index == activeDotIndex;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          width: isActive ? 10 : 8,
+          height: isActive ? 10 : 8,
+          margin: const EdgeInsets.symmetric(horizontal: 5),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive ? const Color(0xFFEC407A) : const Color(0xFFBDBDBD),
+          ),
+        );
+      }),
+    );
+  }
+}
+
 class _RelatedProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onTap;
@@ -488,7 +684,6 @@ class _RelatedProductCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 170,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),

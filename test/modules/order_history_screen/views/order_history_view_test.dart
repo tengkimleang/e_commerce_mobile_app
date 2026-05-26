@@ -31,10 +31,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Ordering'), findsOneWidget);
-    expect(find.text('Order: # 00001'), findsOneWidget);
-    expect(find.text('Order: # 00002'), findsOneWidget);
+    expect(find.text('Order Id:#00001'), findsOneWidget);
+    expect(find.text('Order Id:#00002'), findsOneWidget);
     expect(find.text('Cancel'), findsOneWidget);
     expect(find.text('Request'), findsOneWidget);
+
+    final titleRect = tester.getRect(find.text('Ordering'));
+    final filterRect = tester.getRect(
+      find.byKey(const ValueKey('order-history-filter-button')),
+    );
+    expect(filterRect.left, greaterThan(titleRect.right));
+    expect(filterRect.center.dy, closeTo(titleRect.center.dy, 1));
+  });
+
+  testWidgets('filters orders by selected status', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider(
+          create: (_) => OrderHistoryCubit(),
+          child: const OrderHistoryView(showBottomNavigation: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('order-history-filter-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Filter by status'), findsOneWidget);
+
+    final canceledFilter = find.byKey(
+      const ValueKey('order-history-filter-canceled'),
+    );
+    await tester.ensureVisible(canceledFilter);
+    await tester.tap(canceledFilter);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Order Id:#00001'), findsOneWidget);
+    expect(find.text('Order Id:#00002'), findsNothing);
   });
 
   testWidgets('tapping an active order opens order track screen', (
@@ -50,7 +84,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final activeOrder = find.text('Order: # 00002');
+    final activeOrder = find.text('Order Id:#00002');
     await tester.ensureVisible(activeOrder);
     await tester.tap(activeOrder);
     await tester.pumpAndSettle();
@@ -71,7 +105,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Order: # 00001'));
+    await tester.tap(find.text('Order Id:#00001'));
     await tester.pumpAndSettle();
 
     expect(find.byType(OrderDetailsView), findsOneWidget);

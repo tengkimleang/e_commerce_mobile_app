@@ -16,6 +16,77 @@ import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_v
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 
+enum _OrderStatusFilter {
+  all,
+  active,
+  requesting,
+  picking,
+  delivering,
+  delivered,
+  canceled,
+}
+
+extension _OrderStatusFilterX on _OrderStatusFilter {
+  String get label {
+    switch (this) {
+      case _OrderStatusFilter.all:
+        return 'All';
+      case _OrderStatusFilter.active:
+        return 'Active';
+      case _OrderStatusFilter.requesting:
+        return 'Request';
+      case _OrderStatusFilter.picking:
+        return 'Picking';
+      case _OrderStatusFilter.delivering:
+        return 'Delivering';
+      case _OrderStatusFilter.delivered:
+        return 'Delivered';
+      case _OrderStatusFilter.canceled:
+        return 'Cancel';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case _OrderStatusFilter.all:
+        return Icons.receipt_long_rounded;
+      case _OrderStatusFilter.active:
+        return Icons.timelapse_rounded;
+      case _OrderStatusFilter.requesting:
+        return Icons.hourglass_top_rounded;
+      case _OrderStatusFilter.picking:
+        return Icons.shopping_cart_outlined;
+      case _OrderStatusFilter.delivering:
+        return Icons.delivery_dining_outlined;
+      case _OrderStatusFilter.delivered:
+        return Icons.check_circle_outline_rounded;
+      case _OrderStatusFilter.canceled:
+        return Icons.cancel_outlined;
+    }
+  }
+
+  bool matches(OrderHistoryEntry entry) {
+    switch (this) {
+      case _OrderStatusFilter.all:
+        return true;
+      case _OrderStatusFilter.active:
+        return entry.status == OrderStatus.requesting ||
+            entry.status == OrderStatus.picking ||
+            entry.status == OrderStatus.delivering;
+      case _OrderStatusFilter.requesting:
+        return entry.status == OrderStatus.requesting;
+      case _OrderStatusFilter.picking:
+        return entry.status == OrderStatus.picking;
+      case _OrderStatusFilter.delivering:
+        return entry.status == OrderStatus.delivering;
+      case _OrderStatusFilter.delivered:
+        return entry.status == OrderStatus.delivered;
+      case _OrderStatusFilter.canceled:
+        return entry.status == OrderStatus.canceled;
+    }
+  }
+}
+
 class OrderHistoryView extends StatefulWidget {
   final bool showBottomNavigation;
 
@@ -32,6 +103,7 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
   int _orderSkeletonSerial = 0;
   DateTime? _orderSkeletonStartedAt;
   bool _showOrderSkeleton = false;
+  _OrderStatusFilter _selectedFilter = _OrderStatusFilter.all;
 
   @override
   void initState() {
@@ -83,12 +155,27 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
     });
   }
 
+  Future<void> _openStatusFilter() async {
+    final selected = await showModalBottomSheet<_OrderStatusFilter>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _OrderStatusFilterSheet(selectedFilter: _selectedFilter),
+    );
+
+    if (!mounted || selected == null || selected == _selectedFilter) return;
+    setState(() => _selectedFilter = selected);
+  }
+
+  List<OrderHistoryEntry> _applySelectedFilter(List<OrderHistoryEntry> orders) {
+    if (_selectedFilter == _OrderStatusFilter.all) return orders;
+    return orders.where(_selectedFilter.matches).toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Container(
@@ -107,18 +194,9 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
             ),
             child: SafeArea(
               bottom: false,
-              child: SizedBox(
-                height: 86,
-                child: Center(
-                  child: Text(
-                    'Ordering',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: accent,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 21,
-                    ),
-                  ),
-                ),
+              child: _OrderHistoryHeader(
+                selectedFilter: _selectedFilter,
+                onFilterPressed: _openStatusFilter,
               ),
             ),
           ),
@@ -138,15 +216,20 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
                   return const Center(child: _EmptyOrderState());
                 }
 
+                final visibleOrders = _applySelectedFilter(orders);
+                if (visibleOrders.isEmpty) {
+                  return const Center(child: _EmptyOrderState());
+                }
+
                 return RefreshIndicator(
                   onRefresh: () => _loadOrders(showSkeleton: true),
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-                    itemCount: orders.length,
+                    itemCount: visibleOrders.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (_, index) {
-                      final entry = orders[index];
+                      final entry = visibleOrders[index];
                       return _OrderCard(
                         entry: entry,
                         onTap: () {
@@ -232,6 +315,195 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
   }
 }
 
+class _OrderHistoryHeader extends StatelessWidget {
+  const _OrderHistoryHeader({
+    required this.selectedFilter,
+    required this.onFilterPressed,
+  });
+
+  final _OrderStatusFilter selectedFilter;
+  final VoidCallback onFilterPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+    final hasActiveFilter = selectedFilter != _OrderStatusFilter.all;
+
+    return SizedBox(
+      width: double.infinity,
+      height: 86,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Text(
+            'Ordering',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: accent,
+              fontWeight: FontWeight.w700,
+              fontSize: 21,
+            ),
+          ),
+          PositionedDirectional(
+            end: 12,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    key: const ValueKey('order-history-filter-button'),
+                    onPressed: onFilterPressed,
+                    tooltip: 'Filter orders',
+                    icon: Icon(
+                      Icons.filter_alt_outlined,
+                      color: accent,
+                      size: 26,
+                    ),
+                  ),
+                  if (hasActiveFilter)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: accent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderStatusFilterSheet extends StatelessWidget {
+  const _OrderStatusFilterSheet({required this.selectedFilter});
+
+  final _OrderStatusFilter selectedFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = Color(0xFFEC407A);
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.86;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 44,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Filter by status',
+                  style: TextStyle(
+                    color: Color(0xFF1D1B24),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ..._OrderStatusFilter.values.map((filter) {
+                  final selected = filter == selectedFilter;
+                  return _OrderStatusFilterTile(
+                    key: ValueKey('order-history-filter-${filter.name}'),
+                    filter: filter,
+                    selected: selected,
+                    accent: accent,
+                    onTap: () => Navigator.of(context).pop(filter),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OrderStatusFilterTile extends StatelessWidget {
+  const _OrderStatusFilterTile({
+    super.key,
+    required this.filter,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final _OrderStatusFilter filter;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedBg = accent.withValues(alpha: 0.10);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Material(
+        color: selected ? selectedBg : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  filter.icon,
+                  color: selected ? accent : const Color(0xFF6A6A6A),
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    filter.label,
+                    style: TextStyle(
+                      color: selected ? accent : const Color(0xFF1D1B24),
+                      fontSize: 15,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+                if (selected) Icon(Icons.check, color: accent, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _OrderHistorySkeletonList extends StatelessWidget {
   const _OrderHistorySkeletonList();
 
@@ -260,11 +532,12 @@ class _OrderCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF2F2F2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -276,7 +549,7 @@ class _OrderCardSkeleton extends StatelessWidget {
             children: [
               Expanded(child: SkeletonBox(height: 20, radius: 6)),
               SizedBox(width: 20),
-              SkeletonBox(width: 86, height: 30, radius: 18),
+              SkeletonBox(width: 72, height: 22, radius: 14),
             ],
           ),
           SizedBox(height: 12),
@@ -306,22 +579,19 @@ class _OrderCard extends StatelessWidget {
 
     return Material(
       color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.18),
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFF2F2F2)),
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -346,7 +616,7 @@ class _OrderCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Order: # ${order.orderNumber}',
+                'Order Id:#${order.orderNumber}',
                 style: const TextStyle(
                   fontSize: 15,
                   color: Color(0xFF3A3A3A),
@@ -425,7 +695,7 @@ class _OrderStatusChip extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(24),
@@ -434,22 +704,22 @@ class _OrderStatusChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 15,
-            height: 15,
+            width: 13,
+            height: 13,
             decoration: const BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
-            child: Icon(iconData, size: 11, color: bgColor),
+            child: Icon(iconData, size: 9, color: bgColor),
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 5),
           Text(
             label,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
-              fontSize: 13,
+              fontSize: 11,
             ),
           ),
         ],

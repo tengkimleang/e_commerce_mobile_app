@@ -6,6 +6,7 @@ class ProductModel {
   final double price;
   final double? originalPrice;
   final String imageUrl;
+  final List<String> imageUrls;
   final int? discountPercent;
   final bool isFavorite;
   final int? subCategoryId;
@@ -35,6 +36,7 @@ class ProductModel {
     required this.price,
     this.originalPrice,
     required this.imageUrl,
+    this.imageUrls = const [],
     this.discountPercent,
     this.isFavorite = false,
     this.subCategoryId,
@@ -51,6 +53,7 @@ class ProductModel {
     double? price,
     double? originalPrice,
     String? imageUrl,
+    List<String>? imageUrls,
     int? discountPercent,
     bool? isFavorite,
     int? subCategoryId,
@@ -66,6 +69,7 @@ class ProductModel {
       price: price ?? this.price,
       originalPrice: originalPrice ?? this.originalPrice,
       imageUrl: imageUrl ?? this.imageUrl,
+      imageUrls: imageUrls ?? this.imageUrls,
       discountPercent: discountPercent ?? this.discountPercent,
       isFavorite: isFavorite ?? this.isFavorite,
       subCategoryId: subCategoryId ?? this.subCategoryId,
@@ -78,6 +82,8 @@ class ProductModel {
   }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final parsedImageUrls = _parseImageUrls(json);
+    final primaryImageUrl = ((json['imageUrl'] as String?) ?? '').trim();
     final rawOriginalPrice = (json['originalPrice'] as num?)?.toDouble();
     final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
     final rawSubCategoryId = (json['subCategoryId'] as num?)?.toInt();
@@ -116,7 +122,10 @@ class ProductModel {
       originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0)
           ? rawOriginalPrice
           : null,
-      imageUrl: (json['imageUrl'] as String?) ?? '',
+      imageUrl: primaryImageUrl.isNotEmpty
+          ? primaryImageUrl
+          : (parsedImageUrls.isNotEmpty ? parsedImageUrls.first : ''),
+      imageUrls: parsedImageUrls,
       discountPercent: (rawDiscountPercent != null && rawDiscountPercent > 0)
           ? rawDiscountPercent
           : null,
@@ -141,6 +150,7 @@ class ProductModel {
       'price': price,
       'originalPrice': originalPrice,
       'imageUrl': imageUrl,
+      'imageUrls': imageUrls,
       'discountPercent': discountPercent,
       'isFavorite': isFavorite,
       'subCategoryId': subCategoryId,
@@ -150,6 +160,52 @@ class ProductModel {
       'stockQty': stockQty,
       'barcode': barcode,
     };
+  }
+
+  List<String> get galleryImages {
+    final seen = <String>{};
+    final images = <String>[];
+
+    void addIfPresent(String value) {
+      final trimmed = value.trim();
+      if (trimmed.isEmpty || !seen.add(trimmed)) return;
+      images.add(trimmed);
+    }
+
+    addIfPresent(imageUrl);
+    for (final image in imageUrls) {
+      addIfPresent(image);
+    }
+
+    return images;
+  }
+
+  static List<String> _parseImageUrls(Map<String, dynamic> json) {
+    final rawGallery =
+        json['imageUrls'] ??
+        json['images'] ??
+        json['galleryImages'] ??
+        json['productImages'];
+
+    if (rawGallery is! List) return const [];
+
+    return rawGallery
+        .map(_imageUrlFromValue)
+        .where((url) => url.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static String _imageUrlFromValue(Object? value) {
+    if (value is String) return value.trim();
+    if (value is Map) {
+      for (final key in const ['imageUrl', 'url', 'path']) {
+        final rawUrl = value[key];
+        if (rawUrl is String && rawUrl.trim().isNotEmpty) {
+          return rawUrl.trim();
+        }
+      }
+    }
+    return '';
   }
 }
 
