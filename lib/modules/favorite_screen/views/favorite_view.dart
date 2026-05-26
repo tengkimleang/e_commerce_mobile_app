@@ -1,5 +1,6 @@
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_state.dart';
+import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -41,23 +42,31 @@ class FavoriteView extends StatelessWidget {
             return const _EmptyFavoriteState();
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-            itemCount: favorites.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.72,
-            ),
-            itemBuilder: (context, index) {
-              final product = favorites[index];
-              return ProductCard(
-                product: product,
-                onTap: () => _openProductDetails(
-                  context,
-                  product: product,
-                  relatedProducts: favorites,
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth.isFinite
+                  ? constraints.maxWidth
+                  : MediaQuery.sizeOf(context).width;
+
+              return ResponsiveCenter(
+                child: GridView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                  itemCount: favorites.length,
+                  gridDelegate: AppResponsive.productGridDelegateForWidth(
+                    width,
+                    childAspectRatio: 0.74,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = favorites[index];
+                    return ProductCard(
+                      product: product,
+                      onTap: () => _openProductDetails(
+                        context,
+                        product: product,
+                        relatedProducts: favorites,
+                      ),
+                    );
+                  },
                 ),
               );
             },

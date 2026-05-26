@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
@@ -64,7 +65,10 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
 
-    return Scaffold(
+    return SupermarketAdaptiveScaffold(
+      selectedIndex: 1,
+      onTap: (index) => _onBottomNavTap(context, index),
+      showNavigation: widget.showBottomNavigation,
       backgroundColor: const Color(0xFFF3F3F3),
       body: Column(
         children: [
@@ -189,12 +193,6 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
           ),
         ],
       ),
-      bottomNavigationBar: widget.showBottomNavigation
-          ? SupermarketBottomNavigation(
-              selectedIndex: 1,
-              onTap: (index) => _onBottomNavTap(context, index),
-            )
-          : null,
     );
   }
 
@@ -264,7 +262,7 @@ class _PromotionLoadingSkeleton extends StatelessWidget {
         key: const ValueKey('promotion-list-skeleton'),
         padding: const EdgeInsets.fromLTRB(0, 16, 0, 20),
         itemCount: 3,
-        separatorBuilder: (_, __) => const SizedBox(height: 24),
+        separatorBuilder: (_, _) => const SizedBox(height: 24),
         itemBuilder: (_, sectionIndex) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -285,7 +283,7 @@ class _PromotionLoadingSkeleton extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
                 itemCount: 4,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
                 itemBuilder: (_, index) => SizedBox(
                   width: index == 0 ? 164 : 168,
                   child: index == 0
@@ -316,72 +314,92 @@ class _PromotionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final itemWidth = AppResponsive.carouselItemWidthForWidth(width);
+        final sectionHeight = AppResponsive.carouselHeightForWidth(width, 290);
+
+        return ResponsiveCenter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF262626),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF262626),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: onViewAllTap,
+                      child: Text(
+                        'View all  ›',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFFEC407A),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              GestureDetector(
-                onTap: onViewAllTap,
-                child: Text(
-                  'View all  ›',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFFEC407A),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: sectionHeight,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _PromotionBannerCard(
+                        imageUrl: bannerImageUrl,
+                        width: itemWidth,
+                      );
+                    }
+
+                    final product = products[index - 1];
+                    return _PromotionProductCard(
+                      product: product,
+                      relatedProducts: products,
+                      width: itemWidth,
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 12),
+                  itemCount: products.length + 1,
                 ),
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 290,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _PromotionBannerCard(imageUrl: bannerImageUrl);
-              }
-
-              final product = products[index - 1];
-              return _PromotionProductCard(
-                product: product,
-                relatedProducts: products,
-              );
-            },
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemCount: products.length + 1,
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
 
 class _PromotionBannerCard extends StatelessWidget {
   final String imageUrl;
+  final double width;
 
-  const _PromotionBannerCard({required this.imageUrl});
+  const _PromotionBannerCard({required this.imageUrl, required this.width});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 164,
+      width: width,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -409,10 +427,12 @@ class _PromotionBannerCard extends StatelessWidget {
 class _PromotionProductCard extends StatelessWidget {
   final ProductModel product;
   final List<ProductModel> relatedProducts;
+  final double width;
 
   const _PromotionProductCard({
     required this.product,
     required this.relatedProducts,
+    required this.width,
   });
 
   @override
@@ -427,7 +447,7 @@ class _PromotionProductCard extends StatelessWidget {
         ),
       ),
       child: Container(
-        width: 168,
+        width: width,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),

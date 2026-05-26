@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
+import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -332,70 +333,79 @@ class _SearchProductsState extends State<SearchProducts>
         ),
       ),
       backgroundColor: const Color(0xFFF6F6F6),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        child: _loading
-            ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFFEC407A)),
-              )
-            : _results.isEmpty
-            ? const Center(child: Text('No products found'))
-            : GridView.builder(
-                itemCount: _results.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.80,
-                ),
-                itemBuilder: (context, index) {
-                  final product = _results[index];
-                  final isSelected = _selectedProductsById.containsKey(
-                    product.id,
-                  );
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth.isFinite
+              ? constraints.maxWidth
+              : MediaQuery.sizeOf(context).width;
 
-                  return Stack(
-                    children: [
-                      ProductCard(
-                        product: product,
-                        onTap: () {
-                          if (widget.selectionMode) {
-                            _toggleSelection(product);
-                            return;
-                          }
-
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ProductDetailView(
-                                product: product,
-                                relatedProducts: _results,
-                              ),
-                            ),
-                          );
-                        },
+          return ResponsiveCenter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFEC407A),
                       ),
-                      if (isSelected)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Material(
-                            color: Colors.white,
-                            shape: const CircleBorder(),
-                            elevation: 2,
-                            child: const Padding(
-                              padding: EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.check_circle,
-                                color: Color(0xFFEC407A),
-                                size: 20,
-                              ),
+                    )
+                  : _results.isEmpty
+                  ? const Center(child: Text('No products found'))
+                  : GridView.builder(
+                      itemCount: _results.length,
+                      gridDelegate: AppResponsive.productGridDelegateForWidth(
+                        width,
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = _results[index];
+                        final isSelected = _selectedProductsById.containsKey(
+                          product.id,
+                        );
+
+                        return Stack(
+                          children: [
+                            ProductCard(
+                              product: product,
+                              onTap: () {
+                                if (widget.selectionMode) {
+                                  _toggleSelection(product);
+                                  return;
+                                }
+
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ProductDetailView(
+                                      product: product,
+                                      relatedProducts: _results,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
+                            if (isSelected)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Material(
+                                  color: Colors.white,
+                                  shape: const CircleBorder(),
+                                  elevation: 2,
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(6),
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: Color(0xFFEC407A),
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
+          );
+        },
       ),
       bottomNavigationBar: widget.selectionMode
           ? SafeArea(

@@ -221,7 +221,10 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SupermarketAdaptiveScaffold(
+      selectedIndex: 3,
+      onTap: (index) => _onBottomNavTap(context, index),
+      showNavigation: widget.showBottomNavigation,
       backgroundColor: const Color(0xFFFCF8FA),
       body: SafeArea(
         bottom: false,
@@ -283,12 +286,6 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
           ],
         ),
       ),
-      bottomNavigationBar: widget.showBottomNavigation
-          ? SupermarketBottomNavigation(
-              selectedIndex: 3,
-              onTap: (index) => _onBottomNavTap(context, index),
-            )
-          : null,
     );
   }
 

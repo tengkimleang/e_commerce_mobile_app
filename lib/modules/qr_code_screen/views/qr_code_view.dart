@@ -86,7 +86,10 @@ class _QrCodeViewState extends State<QrCodeView> {
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
 
-    return Scaffold(
+    return SupermarketAdaptiveScaffold(
+      selectedIndex: 2,
+      onTap: (index) => _onBottomNavTap(context, index),
+      showNavigation: widget.showBottomNavigation,
       backgroundColor: const Color(0xFFF3F3F3),
       body: Column(
         children: [
@@ -181,12 +184,6 @@ class _QrCodeViewState extends State<QrCodeView> {
           ),
         ],
       ),
-      bottomNavigationBar: widget.showBottomNavigation
-          ? SupermarketBottomNavigation(
-              selectedIndex: 2,
-              onTap: (index) => _onBottomNavTap(context, index),
-            )
-          : null,
     );
   }
 

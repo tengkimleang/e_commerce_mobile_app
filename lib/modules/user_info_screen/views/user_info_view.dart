@@ -86,15 +86,12 @@ class _UserInfoViewState extends State<UserInfoView> {
         },
         builder: (context, state) {
           if (_showProfileSkeleton) {
-            return Scaffold(
+            return SupermarketAdaptiveScaffold(
+              selectedIndex: 4,
+              onTap: (index) => _onBottomNavTap(context, index),
+              showNavigation: widget.showBottomNavigation,
               backgroundColor: _profileBackground,
               body: const SafeArea(child: _UserInfoPageSkeleton()),
-              bottomNavigationBar: widget.showBottomNavigation
-                  ? SupermarketBottomNavigation(
-                      selectedIndex: 4,
-                      onTap: (index) => _onBottomNavTap(context, index),
-                    )
-                  : null,
             );
           }
 
@@ -150,7 +147,10 @@ class _UserInfoViewState extends State<UserInfoView> {
             return 'English';
           }
 
-          return Scaffold(
+          return SupermarketAdaptiveScaffold(
+            selectedIndex: 4,
+            onTap: (index) => _onBottomNavTap(context, index),
+            showNavigation: widget.showBottomNavigation,
             backgroundColor: _profileBackground,
             body: SafeArea(
               child: SingleChildScrollView(
@@ -253,12 +253,6 @@ class _UserInfoViewState extends State<UserInfoView> {
                 ),
               ),
             ),
-            bottomNavigationBar: widget.showBottomNavigation
-                ? SupermarketBottomNavigation(
-                    selectedIndex: 4,
-                    onTap: (index) => _onBottomNavTap(context, index),
-                  )
-                : null,
           );
         },
       ),

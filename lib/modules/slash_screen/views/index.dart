@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
@@ -308,6 +309,11 @@ class _IndexViewState extends State<IndexView> {
 
   @override
   Widget build(BuildContext context) {
+    final cardWidth = math.min(
+      350.0,
+      math.max(0.0, MediaQuery.sizeOf(context).width - 24),
+    );
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFEC407A),
@@ -407,12 +413,12 @@ class _IndexViewState extends State<IndexView> {
                               'https://www.chipmong.com/wp-content/uploads/2020/04/2.Chip-mong-Supermarket-.jpg',
                           fit: BoxFit.cover,
                           height: 100,
-                          width: 350,
+                          width: cardWidth,
                           placeholder: (context, url) =>
                               Container(height: 100, color: Colors.grey[200]),
                           errorWidget: (context, url, error) => Container(
                             height: 100,
-                            width: 350,
+                            width: cardWidth,
                             color: Colors.grey[200],
                             alignment: Alignment.center,
                             child: const Icon(Icons.broken_image_outlined),
@@ -484,12 +490,12 @@ class _IndexViewState extends State<IndexView> {
                               'https://www.chipmong.com/wp-content/uploads/portfolio/retail/598-Mall/2.jpg',
                           fit: BoxFit.cover,
                           height: 100,
-                          width: 350,
+                          width: cardWidth,
                           placeholder: (context, url) =>
                               Container(height: 100, color: Colors.grey[200]),
                           errorWidget: (context, url, error) => Container(
                             height: 100,
-                            width: 350,
+                            width: cardWidth,
                             color: Colors.grey[200],
                             alignment: Alignment.center,
                             child: const Icon(Icons.broken_image_outlined),

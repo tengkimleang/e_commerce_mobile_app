@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+
 class AppSkeleton extends StatelessWidget {
   const AppSkeleton({super.key, required this.child, this.enabled = true});
 
@@ -173,19 +175,22 @@ class SkeletonProductGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      key: const ValueKey('shop-product-grid-skeleton'),
-      controller: controller,
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: padding,
-      itemCount: itemCount,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 0.80,
-      ),
-      itemBuilder: (context, index) => const SkeletonProductCard(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        return GridView.builder(
+          key: const ValueKey('shop-product-grid-skeleton'),
+          controller: controller,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: padding,
+          itemCount: itemCount,
+          gridDelegate: AppResponsive.productGridDelegateForWidth(width),
+          itemBuilder: (context, index) => const SkeletonProductCard(),
+        );
+      },
     );
   }
 }
@@ -202,34 +207,50 @@ class SkeletonCarouselSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSkeleton(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                SkeletonBox(width: 150, height: 18, radius: 6),
-                Spacer(),
-                SkeletonBox(width: 54, height: 14, radius: 6),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+        final itemWidth = AppResponsive.carouselItemWidthForWidth(width);
+        final sectionHeight = AppResponsive.carouselHeightForWidth(
+          width,
+          height,
+        );
+
+        return AppSkeleton(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    SkeletonBox(width: 150, height: 18, radius: 6),
+                    Spacer(),
+                    SkeletonBox(width: 54, height: 14, radius: 6),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: sectionHeight,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: itemCount,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(width: 12),
+                  itemBuilder: (context, index) => SizedBox(
+                    width: itemWidth,
+                    child: const SkeletonProductCard(),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: height,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: itemCount,
-              separatorBuilder: (context, index) => const SizedBox(width: 12),
-              itemBuilder: (context, index) =>
-                  const SizedBox(width: 160, child: SkeletonProductCard()),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -239,23 +260,36 @@ class SkeletonShopHomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSkeleton(
-      child: ListView(
-        key: const ValueKey('shop-home-content-skeleton'),
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
-        children: const [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: SkeletonBox(height: 300, radius: 14),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        return AppSkeleton(
+          child: ResponsiveCenter(
+            child: ListView(
+              key: const ValueKey('shop-home-content-skeleton'),
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SkeletonBox(
+                    height: AppResponsive.homeHeroHeightForWidth(width),
+                    radius: 14,
+                  ),
+                ),
+                const SizedBox(height: 26),
+                const SkeletonCarouselSection(height: 170),
+                const SizedBox(height: 24),
+                const SkeletonCarouselSection(height: 190),
+                const SizedBox(height: 24),
+                const SkeletonCarouselSection(height: 150, itemCount: 3),
+              ],
+            ),
           ),
-          SizedBox(height: 26),
-          SkeletonCarouselSection(height: 170),
-          SizedBox(height: 24),
-          SkeletonCarouselSection(height: 190),
-          SizedBox(height: 24),
-          SkeletonCarouselSection(height: 150, itemCount: 3),
-        ],
-      ),
+        );
+      },
     );
   }
 }

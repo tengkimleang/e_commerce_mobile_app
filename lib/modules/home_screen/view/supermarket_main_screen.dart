@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
@@ -503,16 +504,16 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   Widget _buildContent(BuildContext context) {
     if (_selectedIndex != 0) {
-      return Scaffold(
+      return SupermarketAdaptiveScaffold(
+        selectedIndex: _selectedIndex,
+        onTap: _onBottomNavTap,
         body: _buildSecondaryTabBody(),
-        bottomNavigationBar: SupermarketBottomNavigation(
-          selectedIndex: _selectedIndex,
-          onTap: _onBottomNavTap,
-        ),
       );
     }
 
-    final scaffold = Scaffold(
+    final scaffold = SupermarketAdaptiveScaffold(
+      selectedIndex: _selectedIndex,
+      onTap: _onBottomNavTap,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: Container(
@@ -648,10 +649,6 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
             ],
           );
         },
-      ),
-      bottomNavigationBar: SupermarketBottomNavigation(
-        selectedIndex: _selectedIndex,
-        onTap: _onBottomNavTap,
       ),
     );
 
@@ -838,223 +835,255 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     BuildContext context,
     SupermarketCategoryState categoryState,
   ) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
-            child: SizedBox(
-              height: 300,
-              child: _sliderImages.isEmpty
-                  ? const AppSkeleton(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        child: SkeletonBox(height: double.infinity, radius: 5),
-                      ),
-                    )
-                  : Stack(
-                      children: [
-                        PageView.builder(
-                          controller: _controller,
-                          itemCount: _sliderImages.length,
-                          onPageChanged: (i) => setState(() => _current = i),
-                          itemBuilder: (context, index) {
-                            return GestureDetector(
-                              onTap: () =>
-                                  _showBannerImagePopup(context, index),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(5),
-                                  ),
-                                  child: CachedNetworkImage(
-                                    imageUrl: _sliderImages[index],
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                    placeholder: (_, placeholderUrl) =>
-                                        Container(color: Colors.grey[200]),
-                                    errorWidget: (_, failedImageUrl, error) =>
-                                        Container(
-                                          color: Colors.grey[300],
-                                          child: const Icon(
-                                            Icons.broken_image,
-                                            size: 48,
-                                            color: Colors.grey,
-                                          ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth.isFinite
+            ? constraints.maxWidth
+            : MediaQuery.sizeOf(context).width;
+
+        return SingleChildScrollView(
+          child: ResponsiveCenter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, left: 16, right: 16),
+                  child: SizedBox(
+                    height: AppResponsive.homeHeroHeightForWidth(width),
+                    child: _sliderImages.isEmpty
+                        ? const AppSkeleton(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(5),
+                              ),
+                              child: SkeletonBox(
+                                height: double.infinity,
+                                radius: 5,
+                              ),
+                            ),
+                          )
+                        : Stack(
+                            children: [
+                              PageView.builder(
+                                controller: _controller,
+                                itemCount: _sliderImages.length,
+                                onPageChanged: (i) =>
+                                    setState(() => _current = i),
+                                itemBuilder: (context, index) {
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        _showBannerImagePopup(context, index),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.all(
+                                          Radius.circular(5),
                                         ),
-                                  ),
+                                        child: CachedNetworkImage(
+                                          imageUrl: _sliderImages[index],
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          placeholder: (_, placeholderUrl) =>
+                                              Container(
+                                                color: Colors.grey[200],
+                                              ),
+                                          errorWidget:
+                                              (_, failedImageUrl, error) =>
+                                                  Container(
+                                                    color: Colors.grey[300],
+                                                    child: const Icon(
+                                                      Icons.broken_image,
+                                                      size: 48,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (categoryState is CategoriesLoaded)
+                  Column(children: _buildCategoryRows(categoryState.categories))
+                else if (categoryState is CategoriesError)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      categoryState.message,
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                CustomerLoyaltySection(
+                  key: ValueKey(
+                    _selectedShop?.shopId ?? UserSession.selectedShopId,
+                  ),
+                  isGuest: _isGuest,
+                  shopId: _selectedShop?.shopId ?? UserSession.selectedShopId,
+                  shopName:
+                      _selectedShop?.storeName ?? UserSession.selectedShopName,
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Partner Privileges',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: AppResponsive.carouselHeightForWidth(width, 160),
+                  child: PageView.builder(
+                    controller: _partnerController,
+                    itemCount: _partnerImages.length,
+                    onPageChanged: (i) => setState(() => _partnerCurrent = i),
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 16, right: 16),
+                        child: GestureDetector(
+                          onTap: () =>
+                              _showPartnerPopup(context, _partnerImages[index]),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: CachedNetworkImage(
+                              imageUrl: _partnerImages[index],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              placeholder: (c, s) =>
+                                  Container(color: Colors.grey[200]),
+                              errorWidget: (c, s, e) =>
+                                  Container(color: Colors.grey[300]),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(_partnerImages.length, (i) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _partnerCurrent == i ? 12 : 8,
+                        height: _partnerCurrent == i ? 12 : 8,
+                        decoration: BoxDecoration(
+                          color: _partnerCurrent == i
+                              ? Colors.black87
+                              : Colors.black26,
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: InkWell(
+                    onTap: () async {
+                      if (_isGuest) {
+                        await showAuthRequiredDialog(context);
+                        return;
+                      }
+                      if (!context.mounted) return;
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const BecomePartnerView(),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.white,
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16.0),
+                              decoration: const BoxDecoration(
+                                borderRadius: BorderRadius.horizontal(
+                                  left: Radius.circular(14),
+                                ),
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFEC407A),
+                                    Color(0xFFEA2E6D),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (categoryState is CategoriesLoaded)
-            Column(children: _buildCategoryRows(categoryState.categories))
-          else if (categoryState is CategoriesError)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                categoryState.message,
-                style: const TextStyle(color: Colors.grey),
-              ),
-            ),
-          const SizedBox(height: 20),
-          CustomerLoyaltySection(
-            key: ValueKey(_selectedShop?.shopId ?? UserSession.selectedShopId),
-            isGuest: _isGuest,
-            shopId: _selectedShop?.shopId ?? UserSession.selectedShopId,
-            shopName: _selectedShop?.storeName ?? UserSession.selectedShopName,
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Partner Privileges',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 160,
-            child: PageView.builder(
-              controller: _partnerController,
-              itemCount: _partnerImages.length,
-              onPageChanged: (i) => setState(() => _partnerCurrent = i),
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16),
-                  child: GestureDetector(
-                    onTap: () =>
-                        _showPartnerPopup(context, _partnerImages[index]),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: CachedNetworkImage(
-                        imageUrl: _partnerImages[index],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        placeholder: (c, s) =>
-                            Container(color: Colors.grey[200]),
-                        errorWidget: (c, s, e) =>
-                            Container(color: Colors.grey[300]),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(_partnerImages.length, (i) {
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _partnerCurrent == i ? 12 : 8,
-                  height: _partnerCurrent == i ? 12 : 8,
-                  decoration: BoxDecoration(
-                    color: _partnerCurrent == i
-                        ? Colors.black87
-                        : Colors.black26,
-                    shape: BoxShape.circle,
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: InkWell(
-              onTap: () async {
-                if (_isGuest) {
-                  await showAuthRequiredDialog(context);
-                  return;
-                }
-                if (!context.mounted) return;
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BecomePartnerView()),
-                );
-              },
-              borderRadius: BorderRadius.circular(14),
-              child: Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: Colors.white,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.horizontal(
-                            left: Radius.circular(14),
-                          ),
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFEC407A), Color(0xFFEA2E6D)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Wholesale Price',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Wholesale Price',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'High quality products\nwith special price',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.white70),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'High quality products\nwith special price',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(color: Colors.white70),
+                          ),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(14),
                             ),
-                          ],
-                        ),
+                            child: Image.asset(
+                              'assets/images/woman.png',
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    ClipRRect(
-                      borderRadius: const BorderRadius.horizontal(
-                        right: Radius.circular(14),
-                      ),
-                      child: Image.asset(
-                        'assets/images/woman.png',
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
