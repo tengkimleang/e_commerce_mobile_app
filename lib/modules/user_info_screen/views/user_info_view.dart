@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
+import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mall_screen.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
 import 'package:e_commerce_mobile_app/modules/location_screen/views/receiving_address_view.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
@@ -164,6 +165,7 @@ class _UserInfoViewState extends State<UserInfoView> {
                       profileImageUrl: profileImageUrl,
                       points: userInfo.points,
                       onTapCamera: () => _pickProfileImage(context),
+                      onExchangeTap: () => _openChipmongMallLoyalty(context),
                     ),
                     const SizedBox(height: 28),
                     const _SectionTitle(title: 'Personal Information'),
@@ -354,6 +356,14 @@ class _UserInfoViewState extends State<UserInfoView> {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ChangePinOldPinView(phoneNumber: phone),
+      ),
+    );
+  }
+
+  Future<void> _openChipmongMallLoyalty(BuildContext context) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const ChipmongMallScreen(openLoyaltyOnStart: true),
       ),
     );
   }
@@ -884,6 +894,7 @@ class _HeaderCard extends StatelessWidget {
     required this.profileImageUrl,
     required this.points,
     required this.onTapCamera,
+    required this.onExchangeTap,
   });
 
   final String username;
@@ -891,6 +902,7 @@ class _HeaderCard extends StatelessWidget {
   final String profileImageUrl;
   final int points;
   final VoidCallback onTapCamera;
+  final VoidCallback onExchangeTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1006,7 +1018,7 @@ class _HeaderCard extends StatelessWidget {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       _MemberIdChip(points: points),
-                      const _ExchangeButton(),
+                      _ExchangeButton(onTap: onExchangeTap),
                     ],
                   ),
                 ],
@@ -1130,7 +1142,9 @@ class _MemberIdChip extends StatelessWidget {
 }
 
 class _ExchangeButton extends StatelessWidget {
-  const _ExchangeButton();
+  const _ExchangeButton({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1139,7 +1153,7 @@ class _ExchangeButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () {},
+        onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(

@@ -36,6 +36,7 @@ class NotificationView extends StatelessWidget {
           backgroundColor: const Color(0xFFF3F3F3),
           appBar: AppBar(
             backgroundColor: Colors.transparent,
+            foregroundColor: const Color(0xFF1D1B24),
             elevation: 0,
             centerTitle: true,
             leading: IconButton(

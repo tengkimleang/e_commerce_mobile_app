@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,13 +23,15 @@ import '../../qr_code_screen/views/qr_code_view.dart';
 // Entry-point widget — provides the BLoC to the subtree
 // ---------------------------------------------------------------------------
 class ChipmongMallScreen extends StatelessWidget {
-  const ChipmongMallScreen({super.key});
+  const ChipmongMallScreen({super.key, this.openLoyaltyOnStart = false});
+
+  final bool openLoyaltyOnStart;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ChipmongMallBloc()..add(const ChipmongMallStarted()),
-      child: const _ChipmongMallView(),
+      child: _ChipmongMallView(openLoyaltyOnStart: openLoyaltyOnStart),
     );
   }
 }
@@ -39,7 +40,9 @@ class ChipmongMallScreen extends StatelessWidget {
 // Stateful inner view — owns TabController, PageController and banner timer
 // ---------------------------------------------------------------------------
 class _ChipmongMallView extends StatefulWidget {
-  const _ChipmongMallView();
+  const _ChipmongMallView({required this.openLoyaltyOnStart});
+
+  final bool openLoyaltyOnStart;
 
   @override
   State<_ChipmongMallView> createState() => _ChipmongMallViewState();
@@ -48,25 +51,7 @@ class _ChipmongMallView extends StatefulWidget {
 class _ChipmongMallViewState extends State<_ChipmongMallView>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-
-  static const _navItems = <MallNavItem>[
-    MallNavItem(
-      icon: CupertinoIcons.house,
-      selectedIcon: CupertinoIcons.house_fill,
-      label: 'Home',
-    ),
-    MallNavItem(icon: CupertinoIcons.qrcode, label: 'My QR'),
-    MallNavItem(
-      icon: CupertinoIcons.tag,
-      selectedIcon: CupertinoIcons.tag_fill,
-      label: 'Promotions',
-    ),
-    MallNavItem(
-      icon: CupertinoIcons.star,
-      selectedIcon: CupertinoIcons.star_fill,
-      label: 'Loyalty',
-    ),
-  ];
+  bool _didOpenInitialLoyalty = false;
 
   @override
   void initState() {
@@ -87,6 +72,20 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _openInitialLoyaltyIfNeeded(ChipmongMallState state) {
+    if (!widget.openLoyaltyOnStart ||
+        _didOpenInitialLoyalty ||
+        state.isLoading) {
+      return;
+    }
+
+    _didOpenInitialLoyalty = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _openLoyaltyDetail(state.loyaltyInfo);
+    });
   }
 
   Future<void> _openLoyaltyDetail(ChipmongMallLoyaltyInfo loyaltyInfo) async {
@@ -151,6 +150,8 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
   Widget build(BuildContext context) {
     return BlocBuilder<ChipmongMallBloc, ChipmongMallState>(
       builder: (context, state) {
+        _openInitialLoyaltyIfNeeded(state);
+
         if (state.isLoading) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
@@ -226,7 +227,7 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
                   ),
                 ),
           bottomNavigationBar: MallBottomNav(
-            items: _navItems,
+            items: chipmongMallNavItems,
             selectedIndex: state.bottomNavIndex,
             onTap: (i) {
               if (i == 3) {

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -13,6 +14,25 @@ class MallNavItem {
     required this.label,
   }) : selectedIcon = selectedIcon ?? icon;
 }
+
+const chipmongMallNavItems = <MallNavItem>[
+  MallNavItem(
+    icon: CupertinoIcons.house,
+    selectedIcon: CupertinoIcons.house_fill,
+    label: 'Home',
+  ),
+  MallNavItem(icon: CupertinoIcons.qrcode, label: 'My QR'),
+  MallNavItem(
+    icon: CupertinoIcons.tag,
+    selectedIcon: CupertinoIcons.tag_fill,
+    label: 'Promotions',
+  ),
+  MallNavItem(
+    icon: CupertinoIcons.star,
+    selectedIcon: CupertinoIcons.star_fill,
+    label: 'Loyalty',
+  ),
+];
 
 class MallBottomNav extends StatelessWidget {
   const MallBottomNav({

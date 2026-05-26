@@ -5,7 +5,7 @@ import '../../../core/services/user_session.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/chipmong_mall_model.dart';
 import '../repositories/loyalty_repository.dart';
-import '../widget/loyalty_widget/loyalty_bottom_nav_bar.dart';
+import '../widget/chipmong_widget/mall_bottom_nav.dart';
 import '../widget/loyalty_widget/loyalty_filter_bar.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
 import '../widget/loyalty_widget/loyalty_product_card.dart';
@@ -29,6 +29,7 @@ class LoyaltyCardDetailScreen extends StatefulWidget {
   const LoyaltyCardDetailScreen({
     super.key,
     required this.info,
+
     /// Called with the target bottom-nav index immediately when the user taps a
     /// non-Loyalty item in the bottom bar, BEFORE the pop animation starts.
     /// Use this to pre-update the parent screen so there is no Home flash.
@@ -78,13 +79,6 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
     'Not Expired',
     'Near Expiry',
     'Expired',
-  ];
-
-  static const _navItems = <LoyaltyNavItem>[
-    LoyaltyNavItem(icon: Icons.home, label: 'Home'),
-    LoyaltyNavItem(icon: Icons.qr_code_scanner, label: 'My QR'),
-    LoyaltyNavItem(icon: Icons.local_offer_outlined, label: 'Promotions'),
-    LoyaltyNavItem(icon: Icons.emoji_events_outlined, label: 'Loyalty'),
   ];
 
   List<LoyaltyProduct> get _sortedProducts {
@@ -204,8 +198,8 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
             ],
           ),
         ),
-        bottomNavigationBar: LoyaltyBottomNavBar(
-          items: _navItems,
+        bottomNavigationBar: MallBottomNav(
+          items: chipmongMallNavItems,
           selectedIndex: 3,
           onTap: (i) {
             if (i == 3) return;

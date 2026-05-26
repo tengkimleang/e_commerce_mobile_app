@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/wholesale_form_view.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/blocs/wholesale_history_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/blocs/wholesale_history_event.dart';
@@ -15,8 +16,7 @@ class BecomePartnerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => WholesaleHistoryBloc(PrivilegePartnerRepository())
-        ..add(const WholesaleHistoryFetch()),
+      create: (_) => WholesaleHistoryBloc(PrivilegePartnerRepository()),
       child: const _BecomePartnerBody(),
     );
   }
@@ -30,12 +30,20 @@ class _BecomePartnerBody extends StatefulWidget {
 }
 
 class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
+  static const _historySkeletonMinDuration = Duration(milliseconds: 650);
+
   final ScrollController _scrollCtrl = ScrollController();
+  int _historySkeletonSerial = 0;
+  DateTime? _historySkeletonStartedAt;
+  bool _showHistorySkeleton = true;
 
   @override
   void initState() {
     super.initState();
     _scrollCtrl.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchHistory();
+    });
   }
 
   @override
@@ -48,10 +56,44 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
     // Trigger load-more when within 200 px of the bottom.
     if (_scrollCtrl.position.pixels >=
         _scrollCtrl.position.maxScrollExtent - 200) {
-      context
-          .read<WholesaleHistoryBloc>()
-          .add(const WholesaleHistoryLoadMore());
+      context.read<WholesaleHistoryBloc>().add(
+        const WholesaleHistoryLoadMore(),
+      );
     }
+  }
+
+  void _fetchHistory({bool showSkeleton = true}) {
+    if (!mounted) return;
+
+    if (showSkeleton) {
+      _startHistorySkeleton();
+    }
+
+    context.read<WholesaleHistoryBloc>().add(const WholesaleHistoryFetch());
+  }
+
+  void _startHistorySkeleton() {
+    _historySkeletonSerial++;
+    _historySkeletonStartedAt = DateTime.now();
+    if (!_showHistorySkeleton) {
+      setState(() => _showHistorySkeleton = true);
+    }
+  }
+
+  Future<void> _hideHistorySkeletonAfterMinimum() async {
+    final serial = _historySkeletonSerial;
+    final startedAt = _historySkeletonStartedAt;
+
+    if (!_showHistorySkeleton || startedAt == null) return;
+
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = _historySkeletonMinDuration - elapsed;
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(remaining);
+    }
+
+    if (!mounted || serial != _historySkeletonSerial) return;
+    setState(() => _showHistorySkeleton = false);
   }
 
   @override
@@ -61,157 +103,253 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
         title: const Text('Wholesale Request'),
         backgroundColor: const Color(0xFFEC407A),
       ),
-      body: SingleChildScrollView(
-        controller: _scrollCtrl,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(14),
-              ),
-              child: Image.network(
-                'https://techpacker.com/blog/content/images/2020/08/Wholesale-Vs-Retail.jpg',
-                width: double.infinity,
-                height: 280,
-                fit: BoxFit.cover,
-                errorBuilder: (c, e, s) => Container(
+      body: BlocListener<WholesaleHistoryBloc, WholesaleHistoryState>(
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status != WholesaleHistoryStatus.loading,
+        listener: (context, state) {
+          _hideHistorySkeletonAfterMinimum();
+        },
+        child: SingleChildScrollView(
+          controller: _scrollCtrl,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(14),
+                ),
+                child: Image.network(
+                  'https://techpacker.com/blog/content/images/2020/08/Wholesale-Vs-Retail.jpg',
                   width: double.infinity,
                   height: 280,
-                  color: Colors.grey[300],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFEC407A),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const WholesaleFormView(),
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+
+                    return const AppSkeleton(
+                      child: SkeletonBox(
+                        width: double.infinity,
+                        height: 280,
+                        radius: 0,
                       ),
                     );
-                    // Refresh history after returning from the form
-                    if (context.mounted) {
-                      context
-                          .read<WholesaleHistoryBloc>()
-                          .add(const WholesaleHistoryFetch());
-                    }
                   },
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text(
-                    'Drop your Inquiry',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  errorBuilder: (c, e, s) => Container(
+                    width: double.infinity,
+                    height: 280,
+                    color: Colors.grey[300],
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Request History',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEC407A),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const WholesaleFormView(),
                         ),
+                      );
+                      // Refresh history after returning from the form
+                      if (context.mounted) {
+                        _fetchHistory();
+                      }
+                    },
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text(
+                      'Drop your Inquiry',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
-                  // Refresh button — resets to page 1
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    icon: const Icon(Icons.refresh,
-                        color: Color(0xFFEC407A), size: 22),
-                    onPressed: () => context
-                        .read<WholesaleHistoryBloc>()
-                        .add(const WholesaleHistoryFetch()),
-                  ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            BlocBuilder<WholesaleHistoryBloc, WholesaleHistoryState>(
-              builder: (context, state) {
-                if (state.status == WholesaleHistoryStatus.loading) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                if (state.status == WholesaleHistoryStatus.failure &&
-                    state.requests.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 40),
-                    child: Center(
-                      child: Text(
-                        state.errorMessage ?? 'Failed to load history',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  );
-                }
-
-                if (state.requests.isEmpty) {
-                  return _EmptyHistory();
-                }
-
-                return Column(
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 4),
-                      itemCount: state.requests.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemBuilder: (context, i) => _RequestCard(
-                        request: state.requests[i],
+                    Text(
+                      'Request History',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    // Bottom indicator: spinner while loading more, or
-                    // "All caught up" label when every page is loaded.
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: state.isLoadingMore
-                          ? const Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Color(0xFFEC407A),
-                                ),
-                              ),
-                            )
-                          : !state.hasMore
-                              ? Center(
-                                  child: Text(
-                                    'All caught up',
-                                    style: TextStyle(
-                                        color: Colors.grey[400], fontSize: 13),
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
+                    // Refresh button — resets to page 1
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Color(0xFFEC407A),
+                        size: 22,
+                      ),
+                      onPressed: _fetchHistory,
                     ),
                   ],
-                );
-              },
-            ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              BlocBuilder<WholesaleHistoryBloc, WholesaleHistoryState>(
+                builder: (context, state) {
+                  if (_showHistorySkeleton ||
+                      state.status == WholesaleHistoryStatus.loading) {
+                    return const _WholesaleHistorySkeletonList();
+                  }
+
+                  if (state.status == WholesaleHistoryStatus.failure &&
+                      state.requests.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 40,
+                      ),
+                      child: Center(
+                        child: Text(
+                          state.errorMessage ?? 'Failed to load history',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (state.requests.isEmpty) {
+                    return _EmptyHistory();
+                  }
+
+                  return Column(
+                    children: [
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        itemCount: state.requests.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, i) =>
+                            _RequestCard(request: state.requests[i]),
+                      ),
+                      // Bottom indicator: spinner while loading more, or
+                      // "All caught up" label when every page is loaded.
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: state.isLoadingMore
+                            ? const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: AppSkeleton(
+                                  child: _RequestCardSkeleton(),
+                                ),
+                              )
+                            : !state.hasMore
+                            ? Center(
+                                child: Text(
+                                  'All caught up',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Loading state ────────────────────────────────────────────────────────────
+
+class _WholesaleHistorySkeletonList extends StatelessWidget {
+  const _WholesaleHistorySkeletonList();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppSkeleton(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 4, 16, 24),
+        child: Column(
+          children: [
+            _RequestCardSkeleton(),
+            SizedBox(height: 12),
+            _RequestCardSkeleton(),
+            SizedBox(height: 12),
+            _RequestCardSkeleton(),
+            SizedBox(height: 12),
+            _RequestCardSkeleton(),
+            SizedBox(height: 12),
+            _RequestCardSkeleton(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RequestCardSkeleton extends StatelessWidget {
+  const _RequestCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF4EEF2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SkeletonBox(width: 62, height: 62, radius: 16),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: SkeletonBox(height: 18, radius: 6)),
+                    SizedBox(width: 18),
+                    SkeletonBox(width: 82, height: 26, radius: 14),
+                  ],
+                ),
+                SizedBox(height: 10),
+                SkeletonBox(width: 116, height: 13, radius: 6),
+                SizedBox(height: 12),
+                SkeletonBox(width: 128, height: 17, radius: 6),
+                SizedBox(height: 14),
+                SkeletonBox(width: 172, height: 13, radius: 6),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -244,9 +382,9 @@ class _EmptyHistory extends StatelessWidget {
             Text(
               'No result found',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFFEC407A),
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: const Color(0xFFEC407A),
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -264,8 +402,7 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImages = request.productImageUrls.isNotEmpty;
-    final firstImage =
-        hasImages ? request.productImageUrls.first : null;
+    final firstImage = hasImages ? request.productImageUrls.first : null;
     final extraCount = request.productImageUrls.length - 1;
 
     return GestureDetector(
@@ -307,8 +444,10 @@ class _RequestCard extends StatelessWidget {
                           width: 72,
                           height: 72,
                           color: Colors.grey[200],
-                          child: const Icon(Icons.broken_image,
-                              color: Colors.grey),
+                          child: const Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
@@ -318,7 +457,9 @@ class _RequestCard extends StatelessWidget {
                         bottom: 0,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black54,
                             borderRadius: BorderRadius.circular(8),
@@ -326,7 +467,9 @@ class _RequestCard extends StatelessWidget {
                           child: Text(
                             '+$extraCount',
                             style: const TextStyle(
-                                color: Colors.white, fontSize: 11),
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ),
@@ -340,8 +483,11 @@ class _RequestCard extends StatelessWidget {
                     color: const Color(0xFFFEE9EE),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.inventory_2_outlined,
-                      color: Color(0xFFEC407A), size: 32),
+                  child: const Icon(
+                    Icons.inventory_2_outlined,
+                    color: Color(0xFFEC407A),
+                    size: 32,
+                  ),
                 ),
               const SizedBox(width: 12),
               // Details
@@ -363,15 +509,20 @@ class _RequestCard extends StatelessWidget {
                         Text(
                           request.createdDate,
                           style: const TextStyle(
-                              fontSize: 11, color: Colors.grey),
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.person_outline,
-                            size: 14, color: Colors.grey),
+                        const Icon(
+                          Icons.person_outline,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           request.customerName,
@@ -382,13 +533,18 @@ class _RequestCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.phone_outlined,
-                            size: 14, color: Colors.grey),
+                        const Icon(
+                          Icons.phone_outlined,
+                          size: 14,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           request.phoneNumber,
                           style: const TextStyle(
-                              fontSize: 13, color: Colors.grey),
+                            fontSize: 13,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -399,15 +555,16 @@ class _RequestCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontSize: 12, color: Colors.black54),
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ],
                 ),
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right,
-                  color: Colors.grey, size: 20),
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
             ],
           ),
         ),
@@ -480,7 +637,9 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFEE9EE),
                     borderRadius: BorderRadius.circular(20),
@@ -488,7 +647,9 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                   child: Text(
                     r.createdDate,
                     style: const TextStyle(
-                        fontSize: 12, color: Color(0xFFEC407A)),
+                      fontSize: 12,
+                      color: Color(0xFFEC407A),
+                    ),
                   ),
                 ),
               ],
@@ -507,8 +668,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
               const SizedBox(height: 24),
               const Text(
                 'Product Images',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 10),
               SizedBox(
@@ -517,22 +677,23 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                   children: [
                     PageView.builder(
                       itemCount: r.productImageUrls.length,
-                      onPageChanged: (i) =>
-                          setState(() => _imagePage = i),
+                      onPageChanged: (i) => setState(() => _imagePage = i),
                       itemBuilder: (_, i) => Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: CachedNetworkImage(
                             imageUrl: r.productImageUrls[i],
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
-                                color: Colors.grey[200]),
+                            placeholder: (_, __) =>
+                                Container(color: Colors.grey[200]),
                             errorWidget: (_, __, ___) => Container(
                               color: Colors.grey[200],
-                              child: const Icon(Icons.broken_image,
-                                  color: Colors.grey, size: 40),
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                                size: 40,
+                              ),
                             ),
                           ),
                         ),
@@ -549,10 +710,8 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                           children: List.generate(
                             r.productImageUrls.length,
                             (i) => AnimatedContainer(
-                              duration:
-                                  const Duration(milliseconds: 250),
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 3),
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
                               width: _imagePage == i ? 10 : 6,
                               height: _imagePage == i ? 10 : 6,
                               decoration: BoxDecoration(
@@ -576,13 +735,15 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEC407A),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 15)),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(color: Colors.white, fontSize: 15),
+                ),
               ),
             ),
           ],
@@ -600,13 +761,11 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(
-                  fontSize: 14, color: Colors.black87),
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
               children: [
                 TextSpan(
                   text: '$label: ',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 TextSpan(text: value),
               ],
