@@ -35,12 +35,11 @@ class ProductDetailView extends StatefulWidget {
 
 class _ProductDetailViewState extends State<ProductDetailView> {
   static const _accent = Color(0xFFEC407A);
-  static const _stickyHeaderRevealOffset = 16.0;
 
   late final PageController _imagePageController;
   List<ProductModel> _suggestions = [];
   int _activeImageIndex = 0;
-  bool _showStickyHeader = false;
+  double _scrollOffset = 0;
 
   List<String> get _productImages {
     final images = widget.product.galleryImages;
@@ -105,11 +104,11 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     );
   }
 
-  void _updateStickyHeaderVisibility(double offset, double triggerOffset) {
-    final shouldShow = offset >= triggerOffset;
-    if (shouldShow == _showStickyHeader) return;
+  void _updateScrollOffset(double offset) {
+    final nextOffset = offset < 0 ? 0.0 : offset;
+    if ((nextOffset - _scrollOffset).abs() < 0.5) return;
 
-    setState(() => _showStickyHeader = shouldShow);
+    setState(() => _scrollOffset = nextOffset);
   }
 
   @override
@@ -124,6 +123,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
         final imageHeight = AppResponsive.detailHeroHeightForWidth(width) * 0.7;
+        final imageOpacity = (1 - (_scrollOffset / (imageHeight * 0.78))).clamp(
+          0.0,
+          1.0,
+        );
 
         return Scaffold(
           backgroundColor: const Color(0xFFF2F2F2),
@@ -133,10 +136,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (notification) {
                     if (notification.metrics.axis == Axis.vertical) {
-                      _updateStickyHeaderVisibility(
-                        notification.metrics.pixels,
-                        _stickyHeaderRevealOffset,
-                      );
+                      _updateScrollOffset(notification.metrics.pixels);
                     }
                     return false;
                   },
@@ -161,34 +161,30 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                IconButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  icon: const Icon(
-                                    Icons.arrow_back_ios_new,
-                                    size: 20,
-                                  ),
-                                ),
                                 GestureDetector(
                                   onTap: _openImageSlider,
                                   child: SizedBox(
                                     height: imageHeight,
                                     width: double.infinity,
-                                    child: PageView.builder(
-                                      controller: _imagePageController,
-                                      itemCount: images.length > 1
-                                          ? null
-                                          : images.length,
-                                      onPageChanged: (index) => setState(
-                                        () => _activeImageIndex =
-                                            index % images.length,
+                                    child: Opacity(
+                                      opacity: imageOpacity,
+                                      child: PageView.builder(
+                                        controller: _imagePageController,
+                                        itemCount: images.length > 1
+                                            ? null
+                                            : images.length,
+                                        onPageChanged: (index) => setState(
+                                          () => _activeImageIndex =
+                                              index % images.length,
+                                        ),
+                                        itemBuilder: (context, index) {
+                                          final imageIndex =
+                                              index % images.length;
+                                          return _ProductImageFrame(
+                                            imageUrl: images[imageIndex],
+                                          );
+                                        },
                                       ),
-                                      itemBuilder: (context, index) {
-                                        final imageIndex =
-                                            index % images.length;
-                                        return _ProductImageFrame(
-                                          imageUrl: images[imageIndex],
-                                        );
-                                      },
                                     ),
                                   ),
                                 ),
@@ -223,16 +219,22 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                     16,
                                     20,
                                   ),
-                                  child: Text(
-                                    product.name.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      height: 1.05,
-                                      color: Color(0xFF1D1B24),
+                                  child: Visibility(
+                                    visible: false,
+                                    maintainAnimation: true,
+                                    maintainSize: true,
+                                    maintainState: true,
+                                    child: Text(
+                                      product.name.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w800,
+                                        height: 1.05,
+                                        color: Color(0xFF1D1B24),
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -518,24 +520,11 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: IgnorePointer(
-                  ignoring: !_showStickyHeader,
-                  child: AnimatedSlide(
-                    duration: const Duration(milliseconds: 180),
-                    curve: Curves.easeOutCubic,
-                    offset: _showStickyHeader
-                        ? Offset.zero
-                        : const Offset(0, -0.16),
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 160),
-                      curve: Curves.easeOut,
-                      opacity: _showStickyHeader ? 1 : 0,
-                      child: _ProductStickyHeader(
-                        title: product.name,
-                        onBack: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  ),
+                child: _ProductCollapsingHeaderOverlay(
+                  title: product.name,
+                  imageHeight: imageHeight,
+                  scrollOffset: _scrollOffset,
+                  onBack: () => Navigator.of(context).pop(),
                 ),
               ),
             ],
@@ -622,78 +611,130 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   }
 }
 
-class _ProductStickyHeader extends StatelessWidget {
+class _ProductCollapsingHeaderOverlay extends StatelessWidget {
   final String title;
+  final double imageHeight;
+  final double scrollOffset;
   final VoidCallback onBack;
 
-  const _ProductStickyHeader({required this.title, required this.onBack});
+  const _ProductCollapsingHeaderOverlay({
+    required this.title,
+    required this.imageHeight,
+    required this.scrollOffset,
+    required this.onBack,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.16),
-            blurRadius: 14,
-            spreadRadius: -2,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: ResponsiveCenter(
-          child: SizedBox(
-            height: 104,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(36, 16, 18, 18),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 42,
-                    height: 48,
-                    child: IconButton(
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                      alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: onBack,
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Color(0xFF5F6068),
-                        size: 22,
+    const cardTop = 8.0;
+    const pageIndicatorSpace = 26.0;
+    const titleTopSpacing = 22.0;
+    const expandedLeft = 26.0;
+    const expandedRight = 26.0;
+    const collapsedLeft = 100.0;
+    const collapsedRight = 18.0;
+    const collapsedTop = 28.0;
+    const lockRange = 136.0;
+
+    final expandedTop =
+        cardTop + imageHeight + pageIndicatorSpace + titleTopSpacing;
+    final lockOffset = expandedTop - collapsedTop;
+    final collapseProgress =
+        ((scrollOffset - (lockOffset - lockRange)) / lockRange).clamp(0.0, 1.0);
+    final easedProgress = Curves.easeOutCubic.transform(collapseProgress);
+    final naturalTitleTop = expandedTop - scrollOffset;
+    final titleTop = _lerpDouble(naturalTitleTop, collapsedTop, easedProgress);
+    final titleLeft = _lerpDouble(expandedLeft, collapsedLeft, easedProgress);
+    final titleRight = _lerpDouble(
+      expandedRight,
+      collapsedRight,
+      easedProgress,
+    );
+    final titleSize = _lerpDouble(16, 18, easedProgress);
+    final headerOpacity = Curves.easeOut.transform(collapseProgress);
+
+    return SafeArea(
+      bottom: false,
+      child: ResponsiveCenter(
+        child: SizedBox(
+          height: 136,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IgnorePointer(
+                ignoring: headerOpacity == 0,
+                child: Opacity(
+                  opacity: headerOpacity,
+                  child: Container(
+                    height: 112,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(24),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: 0.16 * headerOpacity,
+                          ),
+                          blurRadius: 14,
+                          spreadRadius: -2,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 22),
-                  Expanded(
-                    child: Text(
-                      title.toUpperCase(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF17151D),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        height: 1.08,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Positioned(
+                top: 18,
+                left: 36,
+                child: SizedBox(
+                  width: 42,
+                  height: 48,
+                  child: IconButton(
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).backButtonTooltip,
+                    alignment: Alignment.centerLeft,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: onBack,
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Color(0xFF5F6068),
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: titleTop,
+                left: titleLeft,
+                right: titleRight,
+                child: Text(
+                  title.toUpperCase(),
+                  maxLines: collapseProgress < 0.35 ? 3 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF17151D),
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.w900,
+                    height: 1.08,
+                    letterSpacing: 0,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+double _lerpDouble(double begin, double end, double t) {
+  return begin + (end - begin) * t;
 }
 
 class _ProductImageSliderSheet extends StatefulWidget {
