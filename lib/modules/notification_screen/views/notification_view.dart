@@ -53,7 +53,7 @@ class NotificationView extends StatelessWidget {
               ),
             ),
             bottom: const PreferredSize(
-              preferredSize: Size.fromHeight(48),
+              preferredSize: Size.fromHeight(44),
               child: _NotificationTabs(),
             ),
           ),
@@ -504,22 +504,53 @@ class _NotificationTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     const accent = Color(0xFFEC407A);
 
-    return TabBar(
-      indicatorColor: accent,
-      indicatorWeight: 3,
-      indicatorSize: TabBarIndicatorSize.tab,
-      labelColor: accent,
-      unselectedLabelColor: Color(0xFFB8B3BC),
-      labelStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-      unselectedLabelStyle: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w400,
+    return ColoredBox(
+      color: Colors.white,
+      child: SizedBox(
+        height: 44,
+        child: TabBar(
+          indicatorColor: accent,
+          indicatorWeight: 2,
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelPadding: EdgeInsets.zero,
+          dividerColor: const Color(0xFFE9E6EB),
+          labelColor: accent,
+          unselectedLabelColor: const Color(0xFFC2BDC6),
+          labelStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            height: 1.1,
+            letterSpacing: 0,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w400,
+            height: 1.1,
+            letterSpacing: 0,
+          ),
+          tabs: const [
+            Tab(child: _NotificationTabLabel('Order')),
+            Tab(child: _NotificationTabLabel('Promotion')),
+            Tab(child: _NotificationTabLabel('Promote Code')),
+          ],
+        ),
       ),
-      tabs: const [
-        Tab(text: 'Order'),
-        Tab(text: 'Promotion'),
-        Tab(text: 'Promote Code'),
-      ],
+    );
+  }
+}
+
+class _NotificationTabLabel extends StatelessWidget {
+  const _NotificationTabLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, maxLines: 1, softWrap: false),
+      ),
     );
   }
 }
