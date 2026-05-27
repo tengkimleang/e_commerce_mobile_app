@@ -148,11 +148,15 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                           Container(
                             margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.white.withValues(
+                                alpha: imageOpacity,
+                              ),
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.08),
+                                  color: Colors.black.withValues(
+                                    alpha: 0.08 * imageOpacity,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -193,21 +197,24 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                     left: 16,
                                     top: 4,
                                   ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      '${_activeImageIndex + 1}/${images.length}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black54,
+                                  child: Opacity(
+                                    opacity: imageOpacity,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        '${_activeImageIndex + 1}/${images.length}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black54,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -657,7 +664,7 @@ class _ProductCollapsingHeaderOverlay extends StatelessWidget {
       bottom: false,
       child: ResponsiveCenter(
         child: SizedBox(
-          height: 136,
+          height: 116,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -666,7 +673,7 @@ class _ProductCollapsingHeaderOverlay extends StatelessWidget {
                 child: Opacity(
                   opacity: headerOpacity,
                   child: Container(
-                    height: 112,
+                    height: 82,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: const BorderRadius.vertical(
@@ -687,7 +694,7 @@ class _ProductCollapsingHeaderOverlay extends StatelessWidget {
                 ),
               ),
               Positioned(
-                top: 18,
+                top: 10,
                 left: 36,
                 child: SizedBox(
                   width: 42,
