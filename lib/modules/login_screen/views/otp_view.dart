@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 
-enum AuthFlow { login, signup, forgotPin }
+enum AuthFlow { login, signup, forgotPin, reactivation }
 
 class OtpView extends StatefulWidget {
   final String phoneNumber;
@@ -55,7 +55,9 @@ class _OtpViewState extends State<OtpView> {
 
   bool get _isSignupFlow => widget.flow == AuthFlow.signup;
   bool get _isForgotPinFlow => widget.flow == AuthFlow.forgotPin;
-  bool get _isPinResetFlow => _isSignupFlow || _isForgotPinFlow;
+  bool get _isReactivationFlow => widget.flow == AuthFlow.reactivation;
+  bool get _isPinResetFlow =>
+      _isSignupFlow || _isForgotPinFlow || _isReactivationFlow;
   bool get _isLoginOtpFlow => widget.flow == AuthFlow.login;
 
   @override
@@ -347,6 +349,10 @@ class _OtpViewState extends State<OtpView> {
               fullName: widget.fullName?.trim() ?? '',
               phoneNumber: widget.phoneNumber,
             )
+          : _isReactivationFlow
+          ? await _authService.requestReactivateOtp(
+              phoneNumber: widget.phoneNumber,
+            )
           : await _authService.requestForgotPinOtp(
               phoneNumber: widget.phoneNumber,
             );
@@ -504,6 +510,11 @@ class _OtpViewState extends State<OtpView> {
               phoneNumber: widget.phoneNumber,
               otpCode: _otpCode,
             )
+          : _isReactivationFlow
+          ? await _authService.verifyReactivateOtp(
+              phoneNumber: widget.phoneNumber,
+              otpCode: _otpCode,
+            )
           : await _authService.verifyOtp(
               phoneNumber: widget.phoneNumber,
               otpCode: _otpCode,
@@ -557,6 +568,23 @@ class _OtpViewState extends State<OtpView> {
         verifyData['resetToken'],
         verifyNestedForReset?['resetToken'],
       ]);
+      final resolvedActivationToken = _pickFirstNonEmpty([
+        verifyData['activationToken'],
+        verifyData['ActivationToken'],
+        verifyNestedForReset?['activationToken'],
+        verifyNestedForReset?['ActivationToken'],
+      ]);
+      if (_isReactivationFlow && resolvedActivationToken.isEmpty) {
+        setState(() => _isSubmitting = false);
+        _showErrorDialog(
+          title: 'Verification Failed',
+          message:
+              'Activation token is missing. Please request a new OTP and try again.',
+          icon: Icons.error_outline_rounded,
+          iconColor: const Color(0xFFEC407A),
+        );
+        return;
+      }
       final verifyNested = verifyData['data'];
       final verifyNestedMap = _toStringDynamicMap(verifyNested);
       final verifyPrimaryUser = _extractPrimaryUser(verifyData);
@@ -734,22 +762,24 @@ class _OtpViewState extends State<OtpView> {
       }
 
       setState(() => _isSubmitting = false);
-      await UserSession.markAuthenticated(
-        fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
-        phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
-        // Pass empty string when token is missing to prevent stale token reuse
-        // from a previous account.
-        token: resolvedToken,
-        // Pass empty string when refresh token is missing to prevent stale
-        // token reuse from a previous account.
-        refreshToken: resolvedRefreshToken,
-        accessTokenExpiresInSeconds: resolvedAccessTokenExpiresInSeconds > 0
-            ? resolvedAccessTokenExpiresInSeconds
-            : null,
-        refreshTokenExpiresInSeconds: resolvedRefreshTokenExpiresInSeconds > 0
-            ? resolvedRefreshTokenExpiresInSeconds
-            : null,
-      );
+      if (!_isReactivationFlow) {
+        await UserSession.markAuthenticated(
+          fullName: resolvedFullName.isEmpty ? null : resolvedFullName,
+          phoneNumber: resolvedPhone.isEmpty ? null : resolvedPhone,
+          // Pass empty string when token is missing to prevent stale token reuse
+          // from a previous account.
+          token: resolvedToken,
+          // Pass empty string when refresh token is missing to prevent stale
+          // token reuse from a previous account.
+          refreshToken: resolvedRefreshToken,
+          accessTokenExpiresInSeconds: resolvedAccessTokenExpiresInSeconds > 0
+              ? resolvedAccessTokenExpiresInSeconds
+              : null,
+          refreshTokenExpiresInSeconds: resolvedRefreshTokenExpiresInSeconds > 0
+              ? resolvedRefreshTokenExpiresInSeconds
+              : null,
+        );
+      }
 
       if (!mounted) return;
       if (_isPinResetFlow) {
@@ -758,6 +788,8 @@ class _OtpViewState extends State<OtpView> {
             builder: (_) => SetPinView(
               flow: _isSignupFlow
                   ? PinSetupFlow.signup
+                  : _isReactivationFlow
+                  ? PinSetupFlow.reactivation
                   : PinSetupFlow.forgotPin,
               phoneNumber: resolvedPhone.isEmpty
                   ? widget.phoneNumber
@@ -765,6 +797,10 @@ class _OtpViewState extends State<OtpView> {
               fullName: resolvedFullName,
               resetToken: _isForgotPinFlow && resolvedResetToken.isNotEmpty
                   ? resolvedResetToken
+                  : null,
+              activationToken:
+                  _isReactivationFlow && resolvedActivationToken.isNotEmpty
+                  ? resolvedActivationToken
                   : null,
             ),
           ),

@@ -37,6 +37,12 @@ class LoginPhoneNotRegistered extends LoginState {
   });
 }
 
+class LoginPhoneDeleted extends LoginState {
+  final String phoneNumber;
+  final String message;
+  const LoginPhoneDeleted({required this.phoneNumber, required this.message});
+}
+
 enum LoginErrorType { network, server, validation, unknown }
 
 // When login fails with error

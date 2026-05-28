@@ -236,6 +236,20 @@ class UserInfoRepository {
     userInfoChanges.value = model;
   }
 
+  Future<void> clearCachedUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_cacheNameKey);
+    await prefs.remove(_cacheDobKey);
+    await prefs.remove(_cacheAddressKey);
+    await prefs.remove(_cachePhoneKey);
+    await prefs.remove(_cacheVerifiedKey);
+    await prefs.remove(_cachePointsKey);
+    await prefs.remove(_cacheImagePathKey);
+    await prefs.remove(_cacheImageUrlKey);
+    await prefs.remove(_cacheLanguageKey);
+    await prefs.remove(_cacheOwnerKey);
+  }
+
   Future<UserInfoModel> _loadCachedUserInfo({
     required String fallbackLanguageCode,
   }) async {

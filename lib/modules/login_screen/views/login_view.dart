@@ -4,17 +4,33 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_langua
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_event.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/blocs/login_state.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:e_commerce_mobile_app/modules/signup_screen/views/signup_view.dart';
+import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/pin_login_view.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 
+class _ReactivateOtpLaunch {
+  const _ReactivateOtpLaunch({
+    required this.phoneNumber,
+    required this.channel,
+    this.deliveryMessage,
+  });
+
+  final String phoneNumber;
+  final String channel;
+  final String? deliveryMessage;
+}
+
 class LoginView extends StatelessWidget {
   const LoginView({super.key});
+
+  static final AuthService _authService = AuthService();
 
   static void _showErrorDialog(BuildContext context, LoginError state) {
     IconData icon;
@@ -167,6 +183,166 @@ class LoginView extends StatelessWidget {
     );
   }
 
+  static Future<void> _showDeletedPhoneSheet(
+    BuildContext context,
+    LoginPhoneDeleted state,
+  ) async {
+    final launch = await showModalBottomSheet<_ReactivateOtpLaunch>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        var isSubmitting = false;
+        String errorText = '';
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            Future<void> requestActivationOtp() async {
+              if (isSubmitting) return;
+              setSheetState(() {
+                isSubmitting = true;
+                errorText = '';
+              });
+
+              try {
+                final result = await _authService.requestReactivateOtp(
+                  phoneNumber: state.phoneNumber,
+                );
+                final errorCode = (result['errorCode'] ?? '').toString().trim();
+                final errorMsg = (result['errorMsg'] ?? '').toString().trim();
+                final sent = result['sent'] == true;
+                final success = result['success'] == true;
+                final didSend = sent || success;
+
+                if (errorCode.isNotEmpty || !didSend) {
+                  setSheetState(() {
+                    isSubmitting = false;
+                    errorText = errorMsg.isEmpty
+                        ? 'Unable to request activation OTP right now.'
+                        : errorMsg;
+                  });
+                  return;
+                }
+
+                if (!sheetContext.mounted) return;
+                Navigator.of(sheetContext).pop(
+                  _ReactivateOtpLaunch(
+                    phoneNumber: state.phoneNumber,
+                    channel: result['channel'] as String? ?? 'sms',
+                    deliveryMessage: result['deliveryMessage'] as String?,
+                  ),
+                );
+              } catch (_) {
+                if (!sheetContext.mounted) return;
+                setSheetState(() {
+                  isSubmitting = false;
+                  errorText = 'Unable to request activation OTP right now.';
+                });
+              }
+            }
+
+            return SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  30,
+                  24,
+                  24 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      state.message.isEmpty
+                          ? 'This phone number has been deleted'
+                          : state.message,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1D1B22),
+                      ),
+                    ),
+                    const SizedBox(height: 72),
+                    const Text(
+                      'To activate this phone number back, please click confirm activation and do the verification process again.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF1D1B22),
+                        height: 1.35,
+                      ),
+                    ),
+                    if (errorText.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        errorText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 72),
+                    SizedBox(
+                      height: 58,
+                      child: ElevatedButton(
+                        onPressed: isSubmitting ? null : requestActivationOtp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEC407A),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isSubmitting
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                'Confirm Activation',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (!context.mounted || launch == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OtpView(
+          phoneNumber: launch.phoneNumber,
+          flow: AuthFlow.reactivation,
+          channel: launch.channel,
+          deliveryMessage: launch.deliveryMessage,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -189,6 +365,8 @@ class LoginView extends StatelessWidget {
             );
           } else if (state is LoginPhoneNotRegistered) {
             _showNotRegisteredDialog(context, state);
+          } else if (state is LoginPhoneDeleted) {
+            _showDeletedPhoneSheet(context, state);
           } else if (state is LoginError) {
             _showErrorDialog(context, state);
           }

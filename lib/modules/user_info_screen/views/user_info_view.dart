@@ -11,6 +11,8 @@ import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_h
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/repositories/user_info_repository.dart';
+import 'package:e_commerce_mobile_app/modules/user_info_screen/views/delete_account_pin_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_date_of_birth_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_username_view.dart';
@@ -360,6 +362,34 @@ class _UserInfoViewState extends State<UserInfoView> {
     );
   }
 
+  Future<void> _openDeleteAccountPin(BuildContext context) async {
+    final deleted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const DeleteAccountPinView()),
+    );
+    if (deleted != true || !context.mounted) return;
+
+    try {
+      await BiometricLoginCoordinator.instance
+          .clearEnrollmentForSecurityChange();
+    } catch (e) {
+      debugPrint('[UserInfoView] clear biometric enrollment failed: $e');
+    }
+
+    try {
+      await UserInfoRepository().clearCachedUserInfo();
+    } catch (e) {
+      debugPrint('[UserInfoView] clear user info cache failed: $e');
+    }
+
+    await UserSession.markGuest();
+    await UserSession.clearLastKnownUser();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginView()),
+      (route) => false,
+    );
+  }
+
   Future<void> _openChipmongMallLoyalty(BuildContext context) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -489,7 +519,7 @@ class _UserInfoViewState extends State<UserInfoView> {
                         ),
                         onPressed: () {
                           Navigator.of(ctx).pop();
-                          // TODO: Handle account deletion
+                          _openDeleteAccountPin(context);
                         },
                         child: const Text(
                           'Confirm',

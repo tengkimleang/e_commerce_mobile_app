@@ -65,6 +65,125 @@ class _SignupViewState extends State<SignupView> {
     );
   }
 
+  Future<void> _showDeletedPhoneDialog({
+    required String phoneNumber,
+    required String message,
+  }) async {
+    final shouldActivate = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.restore_rounded,
+                color: Color(0xFFEC407A),
+                size: 36,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message.isEmpty ? 'This phone number has been deleted' : message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please confirm activation and complete verification again.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFEC407A),
+              textStyle: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            child: const Text('Confirm Activation'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || shouldActivate != true) return;
+    await _requestReactivationOtp(phoneNumber);
+  }
+
+  Future<void> _requestReactivationOtp(String phoneNumber) async {
+    setState(() => _isSubmitting = true);
+
+    try {
+      final result = await _authService.requestReactivateOtp(
+        phoneNumber: phoneNumber,
+      );
+      final errorCode = (result['errorCode'] ?? '').toString().trim();
+      final errorMsg = (result['errorMsg'] ?? '').toString().trim();
+      final sent = result['sent'] == true;
+      final success = result['success'] == true;
+      final didSend = sent || success;
+
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+
+      if (errorCode.isNotEmpty || !didSend) {
+        _showErrorDialog(
+          title: 'Request Failed',
+          message: errorMsg.isEmpty
+              ? 'Unable to request activation OTP right now.'
+              : errorMsg,
+          icon: Icons.error_outline_rounded,
+          iconColor: const Color(0xFFEC407A),
+        );
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OtpView(
+            phoneNumber: phoneNumber,
+            flow: AuthFlow.reactivation,
+            channel: result['channel'] as String? ?? 'sms',
+            deliveryMessage: result['deliveryMessage'] as String?,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _showErrorDialog(
+        title: 'Request Failed',
+        message: 'Unable to request activation OTP right now.',
+        icon: Icons.error_outline_rounded,
+        iconColor: const Color(0xFFEC407A),
+      );
+    }
+  }
+
   Future<void> _submit() async {
     final phone = _phoneController.text.trim();
     final fullName = _fullNameController.text.trim();
@@ -100,6 +219,11 @@ class _SignupViewState extends State<SignupView> {
       if (errorCode.isNotEmpty || !sent) {
         if (!mounted) return;
         setState(() => _isSubmitting = false);
+
+        if (errorCode.toUpperCase() == 'ACCOUNT_DELETED') {
+          await _showDeletedPhoneDialog(phoneNumber: phone, message: errorMsg);
+          return;
+        }
 
         _showErrorDialog(
           title: 'Request Failed',

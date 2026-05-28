@@ -108,6 +108,15 @@ class UserSession {
     await prefs.remove(_refreshTokenExpiryEpochMsKey);
   }
 
+  static Future<void> clearLastKnownUser() async {
+    _lastKnownFullName = '';
+    _lastKnownPhone = '';
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_lastKnownFullNameKey);
+    await prefs.remove(_lastKnownPhoneKey);
+  }
+
   static Future<void> markAuthenticated({
     String? fullName,
     String? phoneNumber,

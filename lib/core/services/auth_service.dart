@@ -6,6 +6,27 @@ import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/foundation.dart';
 
+enum LoginPhoneAccountStatus { active, deleted, notRegistered, unknown }
+
+class LoginPhoneCheckResult {
+  const LoginPhoneCheckResult({
+    required this.status,
+    required this.registered,
+    required this.canReactivate,
+    this.message = '',
+  });
+
+  final LoginPhoneAccountStatus status;
+  final bool registered;
+  final bool canReactivate;
+  final String message;
+
+  bool get isActive => status == LoginPhoneAccountStatus.active;
+  bool get isDeleted => status == LoginPhoneAccountStatus.deleted;
+  bool get isNotRegistered => status == LoginPhoneAccountStatus.notRegistered;
+  bool get isUnknown => status == LoginPhoneAccountStatus.unknown;
+}
+
 class AuthService {
   static const _refreshEndpoint = '/auth/refresh';
   static const _logoutEndpoint = '/auth/logout';
@@ -16,6 +37,12 @@ class AuthService {
   static const _forgotPinVerifyOtpEndpoint = '/auth/pin/forgot/verify-otp';
   static const _verifyPinEndpoint = '/auth/login/verify-pin';
   static const _checkLoginPhoneEndpoint = '/auth/login/check-phone';
+  static const _deleteAccountEndpoint = '/auth/account/delete';
+  static const _reactivateRequestOtpEndpoint =
+      '/auth/account/reactivate/request-otp';
+  static const _reactivateVerifyOtpEndpoint =
+      '/auth/account/reactivate/verify-otp';
+  static const _reactivateSetPinEndpoint = '/auth/account/reactivate/set-pin';
   static const _biometricRegisterEndpoint = '/auth/biometric/register';
   static const _biometricLoginEndpoint = '/auth/biometric/login';
   static const _biometricRevokeEndpoint = '/auth/biometric/revoke';
@@ -452,6 +479,32 @@ class AuthService {
     return _normalizeProfileResponseWithStatus(response);
   }
 
+  Future<Map<String, dynamic>> deleteAccount({required String pinCode}) async {
+    debugPrint(
+      '[AuthService] deleteAccount -> $_baseUrl$_deleteAccountEndpoint',
+    );
+
+    final response = await _sendWithAuthRetry(
+      useEnglishHeaders: true,
+      send: (headers) => _dio
+          .post(
+            _deleteAccountEndpoint,
+            data: {'pinCode': pinCode},
+            options: Options(headers: headers),
+          )
+          .timeout(
+            const Duration(seconds: 20),
+            onTimeout: () => throw TimeoutException('Delete account timed out'),
+          ),
+    );
+
+    debugPrint(
+      '[AuthService] deleteAccount response: ${response.statusCode} -> ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
   Future<Map<String, dynamic>> requestSignupOtp({
     required String fullName,
     required String phoneNumber,
@@ -781,6 +834,109 @@ class AuthService {
     return _normalizeProfileResponseWithStatus(response);
   }
 
+  bool? _readOptionalBoolFromPayloadAndData(
+    Map<String, dynamic> payload,
+    List<String> keys,
+  ) {
+    for (final key in keys) {
+      if (payload.containsKey(key)) {
+        return _readBoolField(payload, [key]);
+      }
+    }
+    final nested = _extractNestedDataMap(payload);
+    if (!identical(nested, payload)) {
+      for (final key in keys) {
+        if (nested.containsKey(key)) {
+          return _readBoolField(nested, [key]);
+        }
+      }
+    }
+    return null;
+  }
+
+  LoginPhoneCheckResult _parseLoginPhoneCheckResult(
+    Map<String, dynamic> payload,
+  ) {
+    final errorCode = _asCleanString(payload['errorCode']).toUpperCase();
+    final errorMsg = _asCleanString(payload['errorMsg']);
+    if (errorCode == 'USR404') {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.notRegistered,
+        registered: false,
+        canReactivate: false,
+        message: errorMsg,
+      );
+    }
+    if (errorCode == 'ACCOUNT_DELETED') {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.deleted,
+        registered: true,
+        canReactivate: true,
+        message: errorMsg,
+      );
+    }
+
+    final accountStatus = _readStringFromPayloadAndData(payload, [
+      'accountStatus',
+      'AccountStatus',
+      'status',
+      'Status',
+    ]).trim().toUpperCase();
+    final registered = _readOptionalBoolFromPayloadAndData(payload, [
+      'isRegistered',
+      'registered',
+      'exists',
+      'isExist',
+      'hasAccount',
+      'isActive',
+    ]);
+    final canReactivate = _readOptionalBoolFromPayloadAndData(payload, [
+      'canReactivate',
+      'CanReactivate',
+    ]);
+
+    if (accountStatus == 'DELETED') {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.deleted,
+        registered: true,
+        canReactivate: canReactivate ?? true,
+        message: errorMsg,
+      );
+    }
+    if (accountStatus == 'NOT_REGISTERED' || registered == false) {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.notRegistered,
+        registered: false,
+        canReactivate: canReactivate ?? false,
+        message: errorMsg,
+      );
+    }
+    if (accountStatus == 'ACTIVE' || registered == true) {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.active,
+        registered: true,
+        canReactivate: canReactivate ?? false,
+        message: errorMsg,
+      );
+    }
+
+    if (payload['success'] == true && errorCode.isEmpty) {
+      return LoginPhoneCheckResult(
+        status: LoginPhoneAccountStatus.active,
+        registered: true,
+        canReactivate: canReactivate ?? false,
+        message: errorMsg,
+      );
+    }
+
+    return LoginPhoneCheckResult(
+      status: LoginPhoneAccountStatus.unknown,
+      registered: false,
+      canReactivate: canReactivate ?? false,
+      message: errorMsg,
+    );
+  }
+
   bool? _parsePhoneRegisteredFlag(Map<String, dynamic> payload) {
     final errorCode = _asCleanString(payload['errorCode']).toUpperCase();
     if (errorCode == 'USR404') return false;
@@ -809,19 +965,6 @@ class AuthService {
     return null;
   }
 
-  Future<Map<String, dynamic>> _checkPhoneViaGet({
-    required String endpoint,
-    required String phoneNumber,
-  }) async {
-    final response = await _dio
-        .get(endpoint, queryParameters: {'phoneNumber': phoneNumber})
-        .timeout(
-          const Duration(seconds: 20),
-          onTimeout: () => throw TimeoutException('Check phone timed out'),
-        );
-    return _normalizeProfileResponseWithStatus(response);
-  }
-
   Future<Map<String, dynamic>> _checkPhoneViaPost({
     required String endpoint,
     required String phoneNumber,
@@ -835,43 +978,37 @@ class AuthService {
     return _normalizeProfileResponseWithStatus(response);
   }
 
+  Future<LoginPhoneCheckResult> checkLoginPhoneStatus({
+    required String phoneNumber,
+  }) async {
+    debugPrint(
+      '[AuthService] checkLoginPhoneStatus POST -> $_baseUrl$_checkLoginPhoneEndpoint',
+    );
+    final result = await _checkPhoneViaPost(
+      endpoint: _checkLoginPhoneEndpoint,
+      phoneNumber: phoneNumber,
+    );
+    return _parseLoginPhoneCheckResult(result);
+  }
+
   Future<bool?> checkLoginPhoneRegistered({required String phoneNumber}) async {
-    final endpoints = <String>[
-      _checkLoginPhoneEndpoint,
-      '/auth/login/check-user',
-    ];
+    final result = await _checkPhoneViaPost(
+      endpoint: _checkLoginPhoneEndpoint,
+      phoneNumber: phoneNumber,
+    );
+    final parsed = _parsePhoneRegisteredFlag(result);
+    if (parsed != null) return parsed;
 
-    for (final endpoint in endpoints) {
-      debugPrint(
-        '[AuthService] checkLoginPhoneRegistered GET → $_baseUrl$endpoint',
-      );
-      final getResult = await _checkPhoneViaGet(
-        endpoint: endpoint,
-        phoneNumber: phoneNumber,
-      );
-      final parsedGet = _parsePhoneRegisteredFlag(getResult);
-      if (parsedGet != null) return parsedGet;
-      if (!_isMissingEndpoint(getResult)) {
-        final code = _asCleanString(getResult['errorCode']).toUpperCase();
-        if (code == 'USR404') return false;
-      }
-
-      debugPrint(
-        '[AuthService] checkLoginPhoneRegistered POST → $_baseUrl$endpoint',
-      );
-      final postResult = await _checkPhoneViaPost(
-        endpoint: endpoint,
-        phoneNumber: phoneNumber,
-      );
-      final parsedPost = _parsePhoneRegisteredFlag(postResult);
-      if (parsedPost != null) return parsedPost;
-      if (!_isMissingEndpoint(postResult)) {
-        final code = _asCleanString(postResult['errorCode']).toUpperCase();
-        if (code == 'USR404') return false;
-      }
+    final status = _parseLoginPhoneCheckResult(result).status;
+    switch (status) {
+      case LoginPhoneAccountStatus.active:
+      case LoginPhoneAccountStatus.deleted:
+        return true;
+      case LoginPhoneAccountStatus.notRegistered:
+        return false;
+      case LoginPhoneAccountStatus.unknown:
+        return null;
     }
-
-    return null;
   }
 
   Future<Map<String, dynamic>> requestForgotPinOtp({
@@ -955,6 +1092,112 @@ class AuthService {
       return verifyOtp(phoneNumber: phoneNumber, otpCode: otpCode);
     }
     return normalized;
+  }
+
+  Future<Map<String, dynamic>> requestReactivateOtp({
+    required String phoneNumber,
+  }) async {
+    debugPrint(
+      '[AuthService] requestReactivateOtp -> $phoneNumber to $_baseUrl$_reactivateRequestOtpEndpoint',
+    );
+
+    final response = await _dio
+        .post(_reactivateRequestOtpEndpoint, data: {'phoneNumber': phoneNumber})
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Reactivation OTP request timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] requestReactivateOtp response: ${response.statusCode} -> ${response.data}',
+    );
+
+    final normalized = _normalizeProfileResponseWithStatus(response);
+    final channel = _readStringFromPayloadAndData(normalized, [
+      'channel',
+      'Channel',
+      'otpChannel',
+      'OtpChannel',
+    ]);
+    final deliveryMessage = _readStringFromPayloadAndData(normalized, [
+      'deliveryMessage',
+      'DeliveryMessage',
+      'otpDeliveryMessage',
+      'OtpDeliveryMessage',
+      'otpMessage',
+      'OtpMessage',
+      'message',
+      'Message',
+      'errorMsg',
+      'ErrorMsg',
+    ]);
+    final sent = _readBoolField(normalized, ['sent', 'Sent']);
+
+    return {
+      ...normalized,
+      'sent': sent,
+      'channel': channel.isEmpty ? 'sms' : channel,
+      'deliveryMessage': deliveryMessage,
+    };
+  }
+
+  Future<Map<String, dynamic>> verifyReactivateOtp({
+    required String phoneNumber,
+    required String otpCode,
+  }) async {
+    debugPrint('[AuthService] verifyReactivateOtp -> $phoneNumber');
+
+    final response = await _dio
+        .post(
+          _reactivateVerifyOtpEndpoint,
+          data: {'phoneNumber': phoneNumber, 'otpCode': otpCode},
+        )
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Reactivation OTP verification timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] verifyReactivateOtp response: ${response.statusCode} -> ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
+  }
+
+  Future<Map<String, dynamic>> setReactivatePin({
+    required String phoneNumber,
+    required String activationToken,
+    required String pinCode,
+    String? confirmPinCode,
+  }) async {
+    final payload = <String, dynamic>{
+      'phoneNumber': phoneNumber,
+      'activationToken': activationToken,
+      'pinCode': pinCode,
+      'confirmPinCode': _asCleanString(confirmPinCode).isEmpty
+          ? pinCode
+          : confirmPinCode,
+    };
+
+    debugPrint(
+      '[AuthService] setReactivatePin -> $_baseUrl$_reactivateSetPinEndpoint',
+    );
+
+    final response = await _dio
+        .post(_reactivateSetPinEndpoint, data: payload)
+        .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () =>
+              throw TimeoutException('Reactivation PIN setup timed out'),
+        );
+
+    debugPrint(
+      '[AuthService] setReactivatePin response: ${response.statusCode} -> ${response.data}',
+    );
+
+    return _normalizeProfileResponseWithStatus(response);
   }
 
   Future<Map<String, dynamic>> setPin({

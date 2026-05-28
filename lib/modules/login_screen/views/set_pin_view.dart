@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-enum PinSetupFlow { signup, forgotPin }
+enum PinSetupFlow { signup, forgotPin, reactivation }
 
 class SetPinView extends StatefulWidget {
   const SetPinView({
@@ -18,12 +18,14 @@ class SetPinView extends StatefulWidget {
     required this.phoneNumber,
     this.fullName,
     this.resetToken,
+    this.activationToken,
   });
 
   final PinSetupFlow flow;
   final String phoneNumber;
   final String? fullName;
   final String? resetToken;
+  final String? activationToken;
 
   @override
   State<SetPinView> createState() => _SetPinViewState();
@@ -384,6 +386,15 @@ class _SetPinViewState extends State<SetPinView> {
   }
 
   Future<Map<String, dynamic>> _submitPinToBackend() async {
+    if (widget.flow == PinSetupFlow.reactivation) {
+      return _authService.setReactivatePin(
+        phoneNumber: widget.phoneNumber,
+        activationToken: widget.activationToken ?? '',
+        pinCode: _pinCode,
+        confirmPinCode: _pinCode,
+      );
+    }
+
     if (widget.flow == PinSetupFlow.forgotPin) {
       final resetResponse = await _authService.resetPin(
         pinCode: _pinCode,
@@ -572,12 +583,17 @@ class _SetPinViewState extends State<SetPinView> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.flow == PinSetupFlow.signup
-        ? 'Set new PIN'
-        : 'Reset your PIN';
-    final subtitle = widget.flow == PinSetupFlow.signup
-        ? 'Make sure you remember'
-        : 'Choose a new PIN for login';
+    final title = switch (widget.flow) {
+      PinSetupFlow.signup => 'Set new PIN',
+      PinSetupFlow.forgotPin => 'Reset your PIN',
+      PinSetupFlow.reactivation => 'Set new PIN',
+    };
+    final subtitle = switch (widget.flow) {
+      PinSetupFlow.signup => 'Make sure you remember',
+      PinSetupFlow.forgotPin => 'Choose a new PIN for login',
+      PinSetupFlow.reactivation =>
+        'Choose a new PIN to reactivate your account',
+    };
 
     return Scaffold(
       backgroundColor: Colors.white,

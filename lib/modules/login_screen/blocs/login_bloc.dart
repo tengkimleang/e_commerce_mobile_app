@@ -56,10 +56,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     debugPrint('[LoginBloc] checking phone registration for $phoneToSubmit');
 
     try {
-      final isRegistered = await _authService.checkLoginPhoneRegistered(
+      final phoneStatus = await _authService.checkLoginPhoneStatus(
         phoneNumber: phoneToSubmit,
       );
-      if (isRegistered == false) {
+      if (phoneStatus.isDeleted) {
+        emit(
+          LoginPhoneDeleted(
+            phoneNumber: phoneToSubmit,
+            message: phoneStatus.message.isEmpty
+                ? 'This phone number has been deleted'
+                : phoneStatus.message,
+          ),
+        );
+        return;
+      }
+      if (phoneStatus.isNotRegistered) {
         emit(
           LoginPhoneNotRegistered(
             phoneNumber: phoneToSubmit,
@@ -69,7 +80,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         return;
       }
 
-      // If endpoint is unavailable/unknown (null), continue with PIN flow.
+      // If the endpoint response is unknown, keep the existing PIN flow.
       emit(LoginPinRequired(phoneToSubmit));
     } on DioException catch (e) {
       debugPrint('[LoginBloc] DioException: ${e.type} → ${e.message}');
