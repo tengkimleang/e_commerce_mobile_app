@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mall_screen.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/views/favorite_view.dart';
-import 'package:e_commerce_mobile_app/modules/location_screen/views/receiving_address_view.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_history_view.dart';
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
@@ -341,14 +342,12 @@ class _UserInfoViewState extends State<UserInfoView> {
     BuildContext context, {
     required String currentAddress,
   }) async {
-    final updatedAddress = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder: (_) => ReceivingAddressView(initialAddress: currentAddress),
-      ),
-    );
-    if (!context.mounted || updatedAddress == null) return;
+    final selectedAddress = await Navigator.of(
+      context,
+    ).pushNamed<DeliveryAddress>(AppRoutes.receivingAddress);
+    if (!context.mounted || selectedAddress == null) return;
 
-    final trimmed = updatedAddress.trim();
+    final trimmed = selectedAddress.address.trim();
     if (trimmed == currentAddress.trim()) return;
     _bloc.add(UpdateAddress(trimmed));
   }
