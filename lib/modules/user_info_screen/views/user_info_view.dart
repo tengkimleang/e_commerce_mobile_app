@@ -763,7 +763,7 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 13.5,
                 height: 1.15,
                 fontWeight: FontWeight.w800,
                 color: _profileText,
@@ -1275,13 +1275,13 @@ class _ProfileIconWell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 44,
-      height: 44,
+      width: 38,
+      height: 38,
       decoration: const BoxDecoration(
         color: _profileIconBg,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: _profileAccent, size: 23),
+      child: Icon(icon, color: _profileAccent, size: 19),
     );
   }
 }
@@ -1343,7 +1343,7 @@ class _InfoRow extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 13.5,
                         height: 1.15,
                         fontWeight: FontWeight.w800,
                         color: _profileText,
@@ -1394,7 +1394,7 @@ class _PhoneInfoRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 13.5,
                     height: 1.15,
                     fontWeight: FontWeight.w800,
                     color: _profileText,
@@ -1495,7 +1495,7 @@ class _SecurityRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 13.5,
                     height: 1.15,
                     fontWeight: FontWeight.w800,
                     color: _profileText,
@@ -1547,7 +1547,7 @@ class _DangerZoneTile extends StatelessWidget {
                     Text(
                       'Delete Account',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 13.5,
                         height: 1.15,
                         color: _profileText,
                         fontWeight: FontWeight.w800,
@@ -1732,9 +1732,9 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
           padding: EdgeInsets.fromLTRB(16, 12, 14, 12),
           child: Row(
             children: [
-              SkeletonCircle(size: 44),
+              SkeletonCircle(size: 38),
               SizedBox(width: 16),
-              Expanded(child: SkeletonBox(width: 160, height: 16, radius: 6)),
+              Expanded(child: SkeletonBox(width: 160, height: 14, radius: 6)),
               SkeletonBox(width: 88, height: 28, radius: 16),
             ],
           ),
@@ -1785,7 +1785,7 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 13.5,
                     height: 1.15,
                     fontWeight: FontWeight.w800,
                     color: _profileText,
