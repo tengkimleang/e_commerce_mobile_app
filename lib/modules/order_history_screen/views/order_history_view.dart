@@ -562,8 +562,8 @@ class _FilterButton extends StatelessWidget {
               ),
               if (hasActiveFilter)
                 Positioned(
-                  top: 11,
-                  right: 11,
+                  top: 10,
+                  right: 10,
                   child: Container(
                     width: 7,
                     height: 7,
@@ -828,7 +828,7 @@ class _OrderCard extends StatelessWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w800,
                                 height: 1.22,
                                 color: Color(0xFF17141D),
@@ -900,14 +900,14 @@ class _OrderIconTile extends StatelessWidget {
     const accent = Color(0xFFEC407A);
 
     return Container(
-      width: 62,
-      height: 62,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
         color: const Color(0xFFFFF1F7),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
-      child: Icon(icon, color: accent, size: 31),
+      child: Icon(icon, color: accent, size: 24),
     );
   }
 }
