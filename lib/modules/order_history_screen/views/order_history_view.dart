@@ -540,7 +540,7 @@ class _FilterButton extends StatelessWidget {
     const accent = Color(0xFFEC407A);
 
     return SizedBox(
-      width: 118,
+      width: 52,
       height: 52,
       child: Material(
         color: Colors.white,
@@ -555,35 +555,15 @@ class _FilterButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        CupertinoIcons.slider_horizontal_3,
-                        color: accent,
-                        size: 22,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Filter',
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              const Icon(
+                CupertinoIcons.slider_horizontal_3,
+                color: accent,
+                size: 22,
               ),
               if (hasActiveFilter)
                 Positioned(
                   top: 11,
-                  right: 13,
+                  right: 11,
                   child: Container(
                     width: 7,
                     height: 7,
