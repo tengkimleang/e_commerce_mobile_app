@@ -139,11 +139,13 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   }
 
   void _showBannerImagePopup(BuildContext context, int initialIndex) {
+    const loopOffset = 5000;
+    final startPage = loopOffset + initialIndex;
     showDialog<void>(
       context: context,
       barrierColor: Colors.black54,
       builder: (ctx) {
-        final pageCtrl = PageController(initialPage: initialIndex);
+        final pageCtrl = PageController(initialPage: startPage);
         int currentPage = initialIndex;
         return Dialog(
           insetPadding: EdgeInsets.zero,
@@ -204,7 +206,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         ),
                       ),
                     ),
-                    // Slidable images
+                    // Slidable images — infinite scroll
                     Positioned.fill(
                       top: 56,
                       bottom: 32,
@@ -212,33 +214,37 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: PageView.builder(
                           controller: pageCtrl,
-                          itemCount: _sliderImages.length,
-                          onPageChanged: (i) =>
-                              setPopupState(() => currentPage = i),
-                          itemBuilder: (_, i) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(5),
-                              child: CachedNetworkImage(
-                                imageUrl: _sliderImages[i],
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
+                          // null itemCount = infinite scroll
+                          onPageChanged: (i) => setPopupState(
+                            () => currentPage = i % _sliderImages.length,
+                          ),
+                          itemBuilder: (_, i) {
+                            final realIndex = i % _sliderImages.length;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(5),
+                                child: CachedNetworkImage(
+                                  imageUrl: _sliderImages[realIndex],
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Colors.grey[200],
+                                    child: const Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
                                   ),
-                                ),
-                                errorWidget: (context, url, error) => Container(
-                                  color: Colors.grey[300],
-                                  child: const Icon(
-                                    Icons.broken_image,
-                                    size: 48,
-                                    color: Colors.grey,
+                                  errorWidget: (context, url, error) => Container(
+                                    color: Colors.grey[300],
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      size: 48,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -274,6 +280,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       },
     );
   }
+
 
   void _showPartnerPopup(BuildContext context, String imageUrl) {
     showDialog<void>(
