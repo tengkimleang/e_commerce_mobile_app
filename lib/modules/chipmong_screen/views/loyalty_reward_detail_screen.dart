@@ -904,6 +904,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _receiverNameController,
+                          style: AppTypography.input,
                           textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             labelText: 'Receiver full name',
@@ -915,6 +916,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _receiverPhoneController,
+                          style: AppTypography.input,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
                           inputFormatters: [
@@ -1023,6 +1025,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             const SizedBox(height: 10),
                             TextFormField(
                               controller: _representativeNameController,
+                              style: AppTypography.input,
                               textInputAction: TextInputAction.next,
                               decoration: const InputDecoration(
                                 labelText: 'Representative full name',
@@ -1042,6 +1045,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             const SizedBox(height: 10),
                             TextFormField(
                               controller: _representativePhoneController,
+                              style: AppTypography.input,
                               keyboardType: TextInputType.phone,
                               textInputAction: TextInputAction.next,
                               inputFormatters: [
@@ -1073,6 +1077,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _deliveryAddressController,
+                            style: AppTypography.input,
                             readOnly: true,
                             onTap: _openDeliveryAddressPicker,
                             decoration: const InputDecoration(
@@ -1096,6 +1101,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _noteController,
+                          style: AppTypography.input,
                           maxLines: 2,
                           textInputAction: TextInputAction.done,
                           decoration: const InputDecoration(

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../theme/app_theme.dart';
+import '../utils/text_input_utils.dart';
 import 'address_geocoding_service.dart';
 
 class AddressSearchSelection {
@@ -65,6 +67,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
   }
 
   void _onQueryChanged() {
+    if (hasActiveComposingRegion(_controller)) return;
     _scheduleSuggestions();
   }
 
@@ -249,11 +252,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
         cursorColor: _accent,
         textInputAction: TextInputAction.search,
         onSubmitted: (_) => _submitSearch(),
-        style: const TextStyle(
-          fontSize: 18,
-          color: _textColor,
-          fontWeight: FontWeight.w400,
-        ),
+        style: AppTypography.input.copyWith(fontSize: 18, color: _textColor),
         decoration: InputDecoration(
           hintText: 'Search address',
           hintStyle: const TextStyle(color: Color(0xFFA2A0AA)),

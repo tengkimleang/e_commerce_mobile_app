@@ -21,5 +21,10 @@ void main() {
     expect(theme.textTheme.titleMedium?.fontSize, 18);
     expect(theme.textTheme.bodyMedium?.fontSize, 16);
     expect(theme.textTheme.bodySmall?.fontSize, 12);
+    expect(AppTypography.input.fontFamily, 'Battambang');
+    expect(AppTypography.input.fontFamilyFallback, [
+      'KhmerOSSiemreap',
+      AppTypography.primaryFontFamily,
+    ]);
   });
 }

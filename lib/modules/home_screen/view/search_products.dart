@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
+import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -73,6 +75,7 @@ class _SearchProductsState extends State<SearchProducts>
   }
 
   void _onSearchChanged() {
+    if (hasActiveComposingRegion(_controller)) return;
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       _fetchProducts(_controller.text.trim());
@@ -266,7 +269,9 @@ class _SearchProductsState extends State<SearchProducts>
                                         child: TextField(
                                           controller: _controller,
                                           focusNode: _focusNode,
-                                          style: const TextStyle(fontSize: 14),
+                                          style: AppTypography.input.copyWith(
+                                            fontSize: 14,
+                                          ),
                                           decoration: const InputDecoration(
                                             hintText: 'Search prod...',
                                             hintStyle: TextStyle(

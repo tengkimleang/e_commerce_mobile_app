@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_theme.dart';
+
 class ReceivingAddressView extends StatefulWidget {
   const ReceivingAddressView({super.key, this.initialAddress = ''});
 
@@ -69,6 +71,7 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
             const SizedBox(height: 8),
             TextField(
               controller: _addressController,
+              style: AppTypography.input,
               onChanged: (_) => setState(() {}),
               minLines: 3,
               maxLines: 5,

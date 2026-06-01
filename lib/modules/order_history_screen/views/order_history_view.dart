@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
@@ -441,7 +442,7 @@ class _OrderHistoryHeader extends StatelessWidget {
                         12,
                         12,
                       ),
-                      style: const TextStyle(
+                      style: AppTypography.input.copyWith(
                         color: Color(0xFF24212A),
                         fontSize: 15,
                         fontWeight: FontWeight.w500,

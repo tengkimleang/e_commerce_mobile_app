@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/maps/address_search_view.dart';
+import '../../../core/theme/app_theme.dart';
 
 class MapReceivingAddressResult {
   const MapReceivingAddressResult({
@@ -372,6 +373,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             color: Colors.transparent,
             child: TextField(
               controller: _searchController,
+              style: AppTypography.input,
               readOnly: true,
               showCursor: false,
               textInputAction: TextInputAction.search,

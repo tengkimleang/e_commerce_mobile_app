@@ -59,6 +59,15 @@ abstract final class AppTypography {
     letterSpacing: 0,
   );
 
+  /// Keeps Khmer combining marks stable while an IME is composing input.
+  static const TextStyle input = TextStyle(
+    fontFamily: 'Battambang',
+    fontFamilyFallback: ['KhmerOSSiemreap', primaryFontFamily],
+    fontSize: 16,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+  );
+
   static const TextStyle caption = TextStyle(
     fontFamily: primaryFontFamily,
     fontFamilyFallback: fontFamilyFallback,

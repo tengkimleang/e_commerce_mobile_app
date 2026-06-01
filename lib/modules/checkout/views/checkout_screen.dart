@@ -569,6 +569,7 @@ class _PromoCodeRow extends StatelessWidget {
                   ),
                   child: TextField(
                     controller: controller,
+                    style: AppTypography.input,
                     onChanged: (v) =>
                         context.read<CheckoutCubit>().updatePromoCode(v),
                     decoration: const InputDecoration(

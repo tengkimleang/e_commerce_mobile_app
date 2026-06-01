@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
+import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/wholesale_form_bloc.dart';
@@ -586,6 +587,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       child: TextFormField(
         controller: controller,
         initialValue: controller == null ? initial : null,
+        style: AppTypography.input,
         maxLines: maxLines,
         decoration: const InputDecoration(
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),

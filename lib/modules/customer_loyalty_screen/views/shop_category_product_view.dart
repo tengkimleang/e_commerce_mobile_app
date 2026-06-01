@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:e_commerce_mobile_app/core/common/di.dart';
+import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
@@ -88,6 +90,7 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
   }
 
   void _onSearchChanged() {
+    if (hasActiveComposingRegion(_searchController)) return;
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 350), _fetchFirstPage);
   }
@@ -636,6 +639,7 @@ class _SearchField extends StatelessWidget {
               key: const ValueKey('shop-category-search-field'),
               controller: controller,
               focusNode: focusNode,
+              style: AppTypography.input,
               textInputAction: TextInputAction.search,
               decoration: const InputDecoration(
                 hintText: 'Search products',

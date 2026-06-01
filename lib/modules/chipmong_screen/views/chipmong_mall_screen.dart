@@ -247,7 +247,10 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
 
 class _MallSearchDelegate extends SearchDelegate<ChipmongMallPromotion?> {
   _MallSearchDelegate(this.items)
-    : super(searchFieldLabel: 'Search shops, offers and events');
+    : super(
+        searchFieldLabel: 'Search shops, offers and events',
+        searchFieldStyle: AppTypography.input,
+      );
 
   final List<ChipmongMallPromotion> items;
 
