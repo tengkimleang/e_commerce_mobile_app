@@ -1,4 +1,4 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
-// MAPS_API_KEY is set locally — never commit the real key.
+// Copy this file to Release.xcconfig and set the local Google Maps SDK key.
 MAPS_API_KEY=
