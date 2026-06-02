@@ -30,7 +30,6 @@ class AddressSearchView extends StatefulWidget {
 }
 
 class _AddressSearchViewState extends State<AddressSearchView> {
-  static const _accent = Color(0xFFEC0C6E);
   static const _textColor = Color(0xFF1D1B24);
 
   late final TextEditingController _controller;
@@ -241,6 +240,8 @@ class _AddressSearchViewState extends State<AddressSearchView> {
   }
 
   Widget _buildSearchField() {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.white,
       elevation: 6,
@@ -249,7 +250,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
       child: TextField(
         controller: _controller,
         focusNode: _focusNode,
-        cursorColor: _accent,
+        cursorColor: primary,
         textInputAction: TextInputAction.search,
         onSubmitted: (_) => _submitSearch(),
         style: AppTypography.input.copyWith(fontSize: 18, color: _textColor),
@@ -278,11 +279,11 @@ class _AddressSearchViewState extends State<AddressSearchView> {
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: _accent, width: 1.4),
+            borderSide: BorderSide(color: primary, width: 1.4),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: _accent, width: 1.4),
+            borderSide: BorderSide(color: primary, width: 1.4),
           ),
         ),
       ),

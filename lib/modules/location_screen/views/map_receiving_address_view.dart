@@ -36,7 +36,6 @@ class MapReceivingAddressView extends StatefulWidget {
 }
 
 class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
-  static const _accent = Color(0xFFEC0C6E);
   static const _fallbackCenter = LatLng(11.5564, 104.9282); // Phnom Penh
   static const _defaultZoom = 17.0;
   static const _minZoom = 4.0;
@@ -301,7 +300,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -325,6 +324,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   }
 
   Widget _buildMapBody() {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Stack(
       children: [
         // Full-screen map
@@ -355,7 +356,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                       position: _selectedCenter!,
                       draggable: true,
                       icon: BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueRose,
+                        HSVColor.fromColor(primary).hue,
                       ),
                       onDragEnd: _onMarkerDragEnd,
                     ),
@@ -433,6 +434,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
   }
 
   Widget _buildBottomBar() {
+    final primary = Theme.of(context).colorScheme.primary;
     final canSave = _hasLocation && _resolvedAddress.trim().isNotEmpty;
     return Container(
       decoration: const BoxDecoration(
@@ -459,9 +461,9 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 2),
-                    child: Icon(Icons.place_rounded, color: _accent, size: 22),
+                    child: Icon(Icons.place_rounded, color: primary, size: 22),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -492,7 +494,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                 child: ElevatedButton(
                   onPressed: canSave ? _saveAddress : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _accent,
+                    backgroundColor: primary,
                     disabledBackgroundColor: const Color(0xFFE2E2E7),
                     foregroundColor: Colors.white,
                     elevation: 0,
@@ -527,6 +529,8 @@ class _MapControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.white,
       shape: const CircleBorder(),
@@ -544,7 +548,7 @@ class _MapControlButton extends StatelessWidget {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(icon, color: const Color(0xFFEC0C6E)),
+                : Icon(icon, color: primary),
           ),
         ),
       ),

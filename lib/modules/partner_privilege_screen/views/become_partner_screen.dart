@@ -98,10 +98,12 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wholesale Request'),
-        backgroundColor: const Color(0xFFEC407A),
+        backgroundColor: primary,
       ),
       body: BlocListener<WholesaleHistoryBloc, WholesaleHistoryState>(
         listenWhen: (previous, current) =>
@@ -149,7 +151,7 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEC407A),
+                      backgroundColor: primary,
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -189,11 +191,7 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                     // Refresh button — resets to page 1
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: Color(0xFFEC407A),
-                        size: 22,
-                      ),
+                      icon: Icon(Icons.refresh, color: primary, size: 22),
                       onPressed: _fetchHistory,
                     ),
                   ],
@@ -360,6 +358,8 @@ class _RequestCardSkeleton extends StatelessWidget {
 class _EmptyHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60),
       child: Center(
@@ -369,20 +369,16 @@ class _EmptyHistory extends StatelessWidget {
               width: 84,
               height: 84,
               decoration: BoxDecoration(
-                color: const Color(0xFFFEE9EE),
+                color: primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(
-                Icons.receipt_long,
-                color: Color(0xFFEC407A),
-                size: 44,
-              ),
+              child: Icon(Icons.receipt_long, color: primary, size: 44),
             ),
             const SizedBox(height: 12),
             Text(
               'No result found',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color(0xFFEC407A),
+                color: primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -401,6 +397,7 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final hasImages = request.productImageUrls.isNotEmpty;
     final firstImage = hasImages ? request.productImageUrls.first : null;
     final extraCount = request.productImageUrls.length - 1;
@@ -480,12 +477,12 @@ class _RequestCard extends StatelessWidget {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEE9EE),
+                    color: primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.inventory_2_outlined,
-                    color: Color(0xFFEC407A),
+                    color: primary,
                     size: 32,
                   ),
                 ),
@@ -500,10 +497,10 @@ class _RequestCard extends StatelessWidget {
                       children: [
                         Text(
                           'Request #${request.id}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Color(0xFFEC407A),
+                            color: primary,
                           ),
                         ),
                         Text(
@@ -597,6 +594,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final r = widget.request;
     return DraggableScrollableSheet(
       initialChildSize: 0.62,
@@ -629,10 +627,10 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
               children: [
                 Text(
                   'Request #${r.id}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFFEC407A),
+                    color: primary,
                   ),
                 ),
                 Container(
@@ -641,15 +639,12 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFEE9EE),
+                    color: primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     r.createdDate,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFFEC407A),
-                    ),
+                    style: TextStyle(fontSize: 12, color: primary),
                   ),
                 ),
               ],
@@ -716,7 +711,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                               height: _imagePage == i ? 10 : 6,
                               decoration: BoxDecoration(
                                 color: _imagePage == i
-                                    ? const Color(0xFFEC407A)
+                                    ? primary
                                     : Colors.white70,
                                 shape: BoxShape.circle,
                               ),
@@ -733,7 +728,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEC407A),
+                  backgroundColor: primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -753,10 +748,12 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFFEC407A)),
+        Icon(icon, size: 18, color: primary),
         const SizedBox(width: 8),
         Expanded(
           child: RichText(

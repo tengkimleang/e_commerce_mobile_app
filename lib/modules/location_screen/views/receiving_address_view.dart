@@ -37,7 +37,7 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
     final canSave = _addressController.text.trim().isNotEmpty;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

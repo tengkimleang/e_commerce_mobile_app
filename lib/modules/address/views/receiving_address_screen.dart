@@ -21,8 +21,11 @@ class ReceivingAddressScreen extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back_ios_new,
-              size: 22, color: Colors.black87),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 22,
+            color: Colors.black87,
+          ),
         ),
         title: const Text(
           'Receiving address',
@@ -94,10 +97,7 @@ class _EmptyBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFF0F0F3),
-    );
+    return Container(width: double.infinity, color: const Color(0xFFF0F0F3));
   }
 }
 
@@ -116,6 +116,8 @@ class _AddressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -124,9 +126,7 @@ class _AddressCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : const Color(0xFFE5E5EA),
+            color: isSelected ? primary : const Color(0xFFE5E5EA),
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: [
@@ -140,11 +140,7 @@ class _AddressCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              _labelIcon(address.label),
-              color: AppColors.primary,
-              size: 22,
-            ),
+            Icon(_labelIcon(address.label), color: primary, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -170,18 +166,14 @@ class _AddressCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '${_labelText(address.label)}, ${address.phoneNumber}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.black54,
-                    ),
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             IconButton(
               onPressed: onEdit,
-              icon: const Icon(Icons.edit_rounded,
-                  color: AppColors.primary, size: 20),
+              icon: Icon(Icons.edit_rounded, color: primary, size: 20),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             ),
@@ -225,6 +217,8 @@ class _UseCurrentLocationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return SafeArea(
       top: false,
       child: SizedBox(
@@ -233,7 +227,7 @@ class _UseCurrentLocationButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onTap,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: primary,
             foregroundColor: Colors.white,
             elevation: 0,
             shape: const RoundedRectangleBorder(

@@ -301,7 +301,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     final isEditing = widget.existingAddress != null;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: const Color(0xFFF3F3F3),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -329,6 +329,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   }
 
   Widget _buildBody() {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Column(
       children: [
         // ── Map (always visible) ──────────────────────────────────────────
@@ -363,7 +365,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                             position: _selectedCenter!,
                             draggable: true,
                             icon: BitmapDescriptor.defaultMarkerWithHue(
-                              BitmapDescriptor.hueRose,
+                              HSVColor.fromColor(primary).hue,
                             ),
                             onDragEnd: _onMarkerDragEnd,
                           ),
@@ -463,11 +465,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(top: 2),
                         child: Icon(
                           Icons.place_rounded,
-                          color: AppColors.primary,
+                          color: primary,
                           size: 20,
                         ),
                       ),
@@ -542,13 +544,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                           width: 22,
                           height: 22,
                           decoration: BoxDecoration(
-                            color: _isDefault
-                                ? AppColors.primary
-                                : Colors.white,
+                            color: _isDefault ? primary : Colors.white,
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
                               color: _isDefault
-                                  ? AppColors.primary
+                                  ? primary
                                   : const Color(0xFFCCCCCC),
                               width: 1.5,
                             ),
@@ -583,6 +583,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   }
 
   Widget _buildSaveBar() {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return SafeArea(
       top: false,
       child: SizedBox(
@@ -591,7 +593,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         child: ElevatedButton(
           onPressed: _canSave ? _save : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: primary,
             disabledBackgroundColor: const Color(0xFFE2E2E7),
             foregroundColor: Colors.white,
             elevation: 0,
@@ -619,6 +621,8 @@ class _FormLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return RichText(
       text: TextSpan(
         text: label,
@@ -628,10 +632,10 @@ class _FormLabel extends StatelessWidget {
           color: Color(0xFF1D1B24),
         ),
         children: required
-            ? const [
+            ? [
                 TextSpan(
                   text: '*',
-                  style: TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: primary),
                 ),
               ]
             : [],
@@ -657,6 +661,8 @@ class _FormTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
@@ -678,7 +684,7 @@ class _FormTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: BorderSide(color: primary, width: 1.5),
         ),
       ),
     );
@@ -700,6 +706,8 @@ class _LabelSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Row(
       children: _labels.map((entry) {
         final (label, icon, text) = entry;
@@ -713,13 +721,11 @@ class _LabelSelector extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.08)
+                    ? primary.withValues(alpha: 0.08)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : const Color(0xFFE5E5EA),
+                  color: isSelected ? primary : const Color(0xFFE5E5EA),
                   width: isSelected ? 1.5 : 1,
                 ),
               ),
@@ -728,7 +734,7 @@ class _LabelSelector extends StatelessWidget {
                 children: [
                   Icon(
                     icon,
-                    color: isSelected ? AppColors.primary : Colors.black54,
+                    color: isSelected ? primary : Colors.black54,
                     size: 20,
                   ),
                   const SizedBox(height: 4),
@@ -737,7 +743,7 @@ class _LabelSelector extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
-                      color: isSelected ? AppColors.primary : Colors.black54,
+                      color: isSelected ? primary : Colors.black54,
                     ),
                   ),
                 ],
@@ -763,6 +769,8 @@ class _MapControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.white,
       shape: const CircleBorder(),
@@ -780,7 +788,7 @@ class _MapControlButton extends StatelessWidget {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(icon, color: AppColors.primary),
+                : Icon(icon, color: primary),
           ),
         ),
       ),

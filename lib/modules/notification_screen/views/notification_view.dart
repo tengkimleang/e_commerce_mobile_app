@@ -34,7 +34,7 @@ class NotificationView extends StatelessWidget {
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
-          backgroundColor: const Color(0xFFF3F3F3),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             foregroundColor: const Color(0xFF1D1B24),
@@ -153,6 +153,7 @@ class _NotificationOrderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final order = entry.summary;
     final dateText = DateFormat('d MMM').format(order.orderDate);
 
@@ -172,8 +173,8 @@ class _NotificationOrderRow extends StatelessWidget {
                       const TextSpan(text: 'Your order '),
                       TextSpan(
                         text: '#${order.orderNumber}',
-                        style: const TextStyle(
-                          color: Color(0xFFD81B60),
+                        style: TextStyle(
+                          color: primary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -352,6 +353,8 @@ class _NotificationPromotionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.white,
       elevation: 2,
@@ -376,11 +379,8 @@ class _NotificationPromotionCard extends StatelessWidget {
                   errorWidget: (context, url, error) => Container(
                     width: 96,
                     height: 96,
-                    color: const Color(0xFFFAD3E3),
-                    child: const Icon(
-                      Icons.image_outlined,
-                      color: Color(0xFFEC407A),
-                    ),
+                    color: primary.withValues(alpha: 0.20),
+                    child: Icon(Icons.image_outlined, color: primary),
                   ),
                 ),
               ),
@@ -471,7 +471,7 @@ class _NotificationPromotionErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Center(
       child: Column(
@@ -486,7 +486,7 @@ class _NotificationPromotionErrorState extends StatelessWidget {
           const SizedBox(height: 14),
           TextButton(
             onPressed: onRetry,
-            child: const Text(
+            child: Text(
               'Retry',
               style: TextStyle(color: accent, fontWeight: FontWeight.w700),
             ),
@@ -502,7 +502,7 @@ class _NotificationTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return ColoredBox(
       color: Colors.white,
@@ -560,7 +560,7 @@ class _NotificationEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Center(
       child: Column(
@@ -573,7 +573,7 @@ class _NotificationEmptyState extends StatelessWidget {
                 width: 84,
                 height: 84,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAD3E3),
+                  color: accent.withValues(alpha: 0.20),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 alignment: Alignment.center,
@@ -589,7 +589,7 @@ class _NotificationEmptyState extends StatelessWidget {
                 child: Container(
                   width: 30,
                   height: 30,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: accent,
                     shape: BoxShape.circle,
                   ),
