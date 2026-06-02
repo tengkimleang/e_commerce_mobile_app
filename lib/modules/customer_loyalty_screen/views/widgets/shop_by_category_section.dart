@@ -25,8 +25,6 @@ class ShopByCategorySection extends StatefulWidget {
 }
 
 class _ShopByCategorySectionState extends State<ShopByCategorySection> {
-  static const _accent = Color(0xFFEC407A);
-
   late final ShopByCategoryRepository _repository;
   List<ShopByCategoryModel> _categories = [];
   bool _loading = true;
@@ -51,6 +49,7 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
     final currentShopId = _effectiveShopId;
     final isCurrentShopLoaded = _loadedShopId == currentShopId;
     if (!isCurrentShopLoaded) {
@@ -85,18 +84,18 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
               const Spacer(),
               GestureDetector(
                 onTap: () => _openAllCategories(context),
-                child: const Row(
+                child: Row(
                   children: [
                     Text(
                       'View all',
                       style: TextStyle(
-                        color: _accent,
+                        color: accent,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(width: 2),
-                    Icon(Icons.chevron_right, color: _accent, size: 20),
+                    const SizedBox(width: 2),
+                    Icon(Icons.chevron_right, color: accent, size: 20),
                   ],
                 ),
               ),
@@ -219,9 +218,9 @@ class _ShopByCategoryError extends StatelessWidget {
             ),
             TextButton(
               onPressed: onRetry,
-              child: const Text(
+              child: Text(
                 'Retry',
-                style: TextStyle(color: _ShopByCategorySectionState._accent),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],

@@ -11,6 +11,7 @@ Future<void> showAuthRequiredDialog(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) {
+      final colorScheme = Theme.of(dialogContext).colorScheme;
       return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         backgroundColor: const Color(0xFFFFF5F8),
@@ -62,8 +63,8 @@ Future<void> showAuthRequiredDialog(
                       height: 52,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEC0F71),
-                          foregroundColor: Colors.white,
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),

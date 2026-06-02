@@ -35,7 +35,6 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_e
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_state.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
 
-const _profileAccent = Color(0xFFEC407A);
 const _profileBackground = Color(0xFFFFFBFD);
 const _profileSurface = Colors.white;
 const _profileText = Color(0xFF1F1D27);
@@ -454,7 +453,7 @@ class _UserInfoViewState extends State<UserInfoView> {
   }
 
   void _showDeleteAccountDialog(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -537,7 +536,7 @@ class _UserInfoViewState extends State<UserInfoView> {
   }
 
   void _showLogoutBottomSheet(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -743,6 +742,7 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final status = _deviceStatus;
     final rawLabel = status?.settingsLabel ?? 'Login with Biometric:';
     final label = rawLabel.replaceFirst(RegExp(r':+$'), '').trim();
@@ -777,7 +777,7 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
             child: Switch(
               value: _isEnabled,
               activeThumbColor: Colors.white,
-              activeTrackColor: _profileAccent,
+              activeTrackColor: primary,
               inactiveThumbColor: Colors.white,
               inactiveTrackColor: const Color(0xFFE6E0E6),
               trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
@@ -863,6 +863,8 @@ class _SkeletonSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         color: _profileSurface,
@@ -935,6 +937,7 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final token = (UserSession.token ?? '').trim();
     final imageHeaders = token.isEmpty
         ? null
@@ -979,7 +982,7 @@ class _HeaderCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: _profileSurface,
                     shape: BoxShape.circle,
-                    border: Border.all(color: _profileAccent, width: 2),
+                    border: Border.all(color: primary, width: 2),
                   ),
                   child: ClipOval(
                     child: _AvatarImage(
@@ -993,7 +996,7 @@ class _HeaderCard extends StatelessWidget {
                   right: -2,
                   bottom: 4,
                   child: Material(
-                    color: _profileAccent,
+                    color: primary,
                     shape: const CircleBorder(),
                     child: InkWell(
                       customBorder: const CircleBorder(),
@@ -1068,13 +1071,15 @@ class _HeaderActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return SizedBox(
       width: 34,
       height: 34,
       child: IconButton(
         padding: EdgeInsets.zero,
         splashRadius: 22,
-        icon: Icon(icon, color: _profileAccent, size: 29),
+        icon: Icon(icon, color: primary, size: 29),
         onPressed: onPressed,
       ),
     );
@@ -1130,9 +1135,11 @@ class _AvatarPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
-      color: const Color(0xFFF8D4E5),
-      child: const Icon(Icons.person_rounded, color: _profileAccent, size: 48),
+      color: primary.withValues(alpha: 0.20),
+      child: Icon(Icons.person_rounded, color: primary, size: 48),
     );
   }
 }
@@ -1144,21 +1151,23 @@ class _MemberIdChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFEEF5),
+        color: primary.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.copyright_rounded, color: _profileAccent, size: 16),
+          Icon(Icons.copyright_rounded, color: primary, size: 16),
           const SizedBox(width: 6),
           Text(
             'POINT $points',
-            style: const TextStyle(
-              color: _profileAccent,
+            style: TextStyle(
+              color: primary,
               fontSize: 14,
               height: 1,
               fontWeight: FontWeight.w800,
@@ -1177,6 +1186,8 @@ class _ExchangeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(18),
@@ -1186,18 +1197,18 @@ class _ExchangeButton extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            border: Border.all(color: _profileAccent, width: 1.5),
+            border: Border.all(color: primary, width: 1.5),
             borderRadius: BorderRadius.circular(18),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.swap_horiz_rounded, color: _profileAccent, size: 18),
-              SizedBox(width: 6),
+              Icon(Icons.swap_horiz_rounded, color: primary, size: 18),
+              const SizedBox(width: 6),
               Text(
                 'Exchange',
                 style: TextStyle(
-                  color: _profileAccent,
+                  color: primary,
                   fontSize: 14,
                   height: 1,
                   fontWeight: FontWeight.w800,
@@ -1240,6 +1251,8 @@ class _ProfileSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -1274,14 +1287,16 @@ class _ProfileIconWell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
       width: 38,
       height: 38,
-      decoration: const BoxDecoration(
-        color: _profileIconBg,
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.10),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: _profileAccent, size: 19),
+      child: Icon(icon, color: primary, size: 19),
     );
   }
 }
@@ -1291,9 +1306,9 @@ class _TrailingChevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
+    return Icon(
       Icons.chevron_right_rounded,
-      color: _profileAccent,
+      color: Theme.of(context).colorScheme.primary,
       size: 28,
     );
   }
@@ -1314,6 +1329,8 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1479,6 +1496,8 @@ class _SecurityRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1504,10 +1523,10 @@ class _SecurityRow extends StatelessWidget {
               ),
               Text(
                 trailingText,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   height: 1.15,
-                  color: _profileAccent,
+                  color: primary,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -1528,6 +1547,8 @@ class _DangerZoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: const Color(0xFFFFEEF5),
       borderRadius: BorderRadius.circular(10),
@@ -1584,24 +1605,26 @@ class _LogoutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Material(
       color: const Color(0xFFF1EDF1),
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         borderRadius: BorderRadius.circular(10),
         onTap: onPressed,
-        child: const SizedBox(
+        child: SizedBox(
           height: 48,
           width: double.infinity,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.logout_rounded, color: _profileAccent, size: 19),
-              SizedBox(width: 8),
+              Icon(Icons.logout_rounded, color: primary, size: 19),
+              const SizedBox(width: 8),
               Text(
                 'Logout',
                 style: TextStyle(
-                  color: _profileAccent,
+                  color: primary,
                   fontSize: 15,
                   height: 1,
                   fontWeight: FontWeight.w800,
@@ -1625,7 +1648,6 @@ class _TelegramBackupTile extends StatefulWidget {
 }
 
 class _TelegramBackupTileState extends State<_TelegramBackupTile> {
-  static const _accent = Color(0xFFEC407A);
   final AuthService _authService = AuthService();
   static final RegExp _pinPattern = RegExp(r'^\d{4}$');
 
@@ -1686,7 +1708,9 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: _accent),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.primary,
+            ),
             child: const Text('Remove'),
           ),
         ],
@@ -1742,14 +1766,12 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
       );
     }
 
+    final primary = Theme.of(context).colorScheme.primary;
     final trailing = _isUnlinking
-        ? const SizedBox(
+        ? SizedBox(
             width: 18,
             height: 18,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: _profileAccent,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2, color: primary),
           )
         : _isLinked
         ? const _StatusChip(
@@ -1757,12 +1779,12 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
             foreground: Color(0xFF16A864),
             background: Color(0xFFE7FAEF),
           )
-        : const Text(
+        : Text(
             'Set Up',
             style: TextStyle(
               fontSize: 14,
               height: 1.15,
-              color: _profileAccent,
+              color: primary,
               fontWeight: FontWeight.w800,
             ),
           );
@@ -1815,7 +1837,6 @@ class _TelegramPinVerificationView extends StatefulWidget {
 
 class _TelegramPinVerificationViewState
     extends State<_TelegramPinVerificationView> {
-  static const _accent = Color(0xFFEC407A);
   static const _fallbackLockSeconds = 15 * 60;
 
   final TextEditingController _pinController = TextEditingController();
@@ -2002,6 +2023,7 @@ class _TelegramPinVerificationViewState
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final pinCode = _pinController.text.trim();
     final canSubmit =
         _TelegramBackupTileState._pinPattern.hasMatch(pinCode) &&
@@ -2093,7 +2115,7 @@ class _TelegramPinVerificationViewState
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _accent, width: 1.5),
+                      borderSide: BorderSide(color: primary, width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -2105,11 +2127,11 @@ class _TelegramPinVerificationViewState
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _accent),
+                      borderSide: BorderSide(color: primary),
                     ),
                     focusedErrorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: _accent, width: 1.5),
+                      borderSide: BorderSide(color: primary, width: 1.5),
                     ),
                   ),
                   onChanged: (_) {
@@ -2136,7 +2158,7 @@ class _TelegramPinVerificationViewState
                   child: ElevatedButton(
                     onPressed: canSubmit ? _submitPin : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _accent,
+                      backgroundColor: primary,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: const Color(0xFFF3D6E2),
                       disabledForegroundColor: Colors.white,
@@ -2161,7 +2183,7 @@ class _TelegramPinVerificationViewState
                   width: double.infinity,
                   child: TextButton(
                     onPressed: _isSubmitting ? null : () => _close(false),
-                    style: TextButton.styleFrom(foregroundColor: _accent),
+                    style: TextButton.styleFrom(foregroundColor: primary),
                     child: const Text('Cancel'),
                   ),
                 ),

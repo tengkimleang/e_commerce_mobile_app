@@ -30,12 +30,15 @@ class WholesalePriceCard extends StatelessWidget {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(16.0),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.horizontal(
                       left: Radius.circular(14),
                     ),
                     gradient: LinearGradient(
-                      colors: [Color(0xFFEC407A), Color(0xFFEA2E6D)],
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),

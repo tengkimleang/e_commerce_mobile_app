@@ -13,6 +13,7 @@ class NotificationPromotionContentDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -37,9 +38,9 @@ class NotificationPromotionContentDetailView extends StatelessWidget {
                           Container(color: Colors.grey.shade200),
                       errorWidget: (context, url, error) => Container(
                         color: const Color(0xFFFAD3E3),
-                        child: const Icon(
+                        child: Icon(
                           Icons.image_outlined,
-                          color: Color(0xFFEC407A),
+                          color: primary,
                           size: 48,
                         ),
                       ),

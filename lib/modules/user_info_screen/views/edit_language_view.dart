@@ -99,7 +99,7 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC0C6E);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Material(
       color: Colors.white,
@@ -129,13 +129,13 @@ class _LanguageTile extends StatelessWidget {
                   option.label,
                   style: const TextStyle(
                     fontSize: 15,
-                    fontWeight:FontWeight.w500,
+                    fontWeight: FontWeight.w500,
                     color: Color(0xFF2E2E2E),
                   ),
                 ),
               ),
               if (isSelected)
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 12,
                   backgroundColor: accent,
                   child: Icon(Icons.check, color: Colors.white, size: 18),
@@ -168,12 +168,7 @@ class _UkFlag extends StatelessWidget {
     return const SizedBox(
       width: 44,
       height: 28,
-      child: Center(
-        child: Text(
-          "🇬🇧",
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
+      child: Center(child: Text("🇬🇧", style: TextStyle(fontSize: 24))),
     );
   }
 }
@@ -186,12 +181,7 @@ class _KhFlag extends StatelessWidget {
     return const SizedBox(
       width: 44,
       height: 28,
-      child: Center(
-        child: Text(
-          "🇰🇭",
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
+      child: Center(child: Text("🇰🇭", style: TextStyle(fontSize: 24))),
     );
   }
 }

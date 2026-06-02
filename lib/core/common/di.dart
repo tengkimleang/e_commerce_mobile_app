@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/core/theme/theme_cache.dart';
+import 'package:e_commerce_mobile_app/core/theme/theme_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/repositories/favorites_repository.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/repositories/notification_promotions_repository.dart';
@@ -14,6 +16,7 @@ Future<void> initializeDependenciesInjection() async {
   //Local Key-Value
   final prefs = await SharedPreferences.getInstance();
   di.registerSingleton(prefs);
+  di.registerSingleton(ThemeCache(prefs));
   //HTTPS
   di.registerFactory(() {
     final header = <String, dynamic>{};
@@ -44,6 +47,9 @@ Future<void> initializeDependenciesInjection() async {
   di.registerSingleton<NotificationPromotionsRepository>(
     HttpNotificationPromotionsRepository(di<Dio>()),
   );
+
+  // Public holiday/event theme configuration with offline cache support.
+  di.registerSingleton<ThemeRepository>(HttpThemeRepository(di<Dio>()));
 
   //repository
   // di.registerFactory(() => UserRepository());

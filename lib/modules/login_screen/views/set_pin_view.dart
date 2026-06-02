@@ -450,7 +450,7 @@ class _SetPinViewState extends State<SetPinView> {
           title: 'PIN Setup Failed',
           message: displayMessage,
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -515,7 +515,7 @@ class _SetPinViewState extends State<SetPinView> {
         title: 'PIN Setup Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -567,7 +567,7 @@ class _SetPinViewState extends State<SetPinView> {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -583,6 +583,7 @@ class _SetPinViewState extends State<SetPinView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final title = switch (widget.flow) {
       PinSetupFlow.signup => 'Set new PIN',
       PinSetupFlow.forgotPin => 'Reset your PIN',
@@ -612,11 +613,7 @@ class _SetPinViewState extends State<SetPinView> {
                 ],
               ),
               const SizedBox(height: 24),
-              const Icon(
-                Icons.shield_outlined,
-                size: 82,
-                color: Color(0xFFEC407A),
-              ),
+              Icon(Icons.shield_outlined, size: 82, color: primary),
               const SizedBox(height: 24),
               Center(
                 child: Text(
@@ -678,9 +675,9 @@ class _SetPinViewState extends State<SetPinView> {
               Center(
                 child: GestureDetector(
                   onTap: () => setState(() => _showPin = !_showPin),
-                  child: const Text(
+                  child: Text(
                     'Show PIN',
-                    style: TextStyle(color: Color(0xFFEC407A), fontSize: 16),
+                    style: TextStyle(color: primary, fontSize: 16),
                   ),
                 ),
               ),
@@ -694,8 +691,8 @@ class _SetPinViewState extends State<SetPinView> {
                         ? null
                         : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEC407A),
-                      foregroundColor: Colors.white,
+                      backgroundColor: primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),

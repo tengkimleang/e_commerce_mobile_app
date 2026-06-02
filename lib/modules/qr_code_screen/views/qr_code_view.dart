@@ -84,7 +84,7 @@ class _QrCodeViewState extends State<QrCodeView> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return SupermarketAdaptiveScaffold(
       selectedIndex: 2,
@@ -545,6 +545,8 @@ class _QrCodeBodyState extends State<QrCodeBody> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return FutureBuilder<MallMembershipQrModel>(
       future: _membershipFuture,
       builder: (context, snapshot) {
@@ -576,7 +578,7 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                                 ? null
                                 : () => _saveQrImage(qrUrl),
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFFEC407A),
+                              foregroundColor: primary,
                               minimumSize: const Size(0, 34),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -690,7 +692,7 @@ class _MallStatusNotice extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Pink points banner
+// Theme-colored points banner
 // ---------------------------------------------------------------------------
 class _MallPointsBanner extends StatelessWidget {
   final int points;
@@ -699,11 +701,13 @@ class _MallPointsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFFF48FB1), Color(0xFFEC407A)],
+          colors: [colorScheme.secondary, colorScheme.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -788,7 +792,7 @@ class _MallPointsBanner extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Animated QR frame with pink corner brackets
+// Animated QR frame with theme-colored corner brackets
 // ---------------------------------------------------------------------------
 class _MallQrFrame extends StatefulWidget {
   final String qrUrl;
@@ -827,7 +831,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
 
   @override
   Widget build(BuildContext context) {
-    const bracketColor = Color(0xFFEC407A);
+    final bracketColor = Theme.of(context).colorScheme.primary;
     const bracketSize = 44.0;
     const frameSize = 270.0;
     const qrSize = 200.0;
@@ -844,7 +848,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
             child: Stack(
               children: [
                 const SizedBox(width: frameSize, height: frameSize),
-                const Positioned(
+                Positioned(
                   top: 0,
                   left: 0,
                   child: _MallCornerBracket(
@@ -854,7 +858,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
                     size: bracketSize,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   top: 0,
                   right: 0,
                   child: _MallCornerBracket(
@@ -864,7 +868,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
                     size: bracketSize,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   bottom: 0,
                   left: 0,
                   child: _MallCornerBracket(
@@ -874,7 +878,7 @@ class _MallQrFrameState extends State<_MallQrFrame>
                     size: bracketSize,
                   ),
                 ),
-                const Positioned(
+                Positioned(
                   bottom: 0,
                   right: 0,
                   child: _MallCornerBracket(

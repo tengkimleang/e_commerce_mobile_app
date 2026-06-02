@@ -48,7 +48,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     final screenHeight = MediaQuery.of(context).size.height;
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -77,7 +77,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                 ),
               ),
               const SizedBox(height: 26),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Username',

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 Future<ImageSource?> showProfileImageSourceBottomSheet(BuildContext context) {
-  const accent = Color(0xFFEC407A);
+  final accent = Theme.of(context).colorScheme.primary;
 
   return showModalBottomSheet<ImageSource>(
     context: context,
@@ -22,7 +22,7 @@ Future<ImageSource?> showProfileImageSourceBottomSheet(BuildContext context) {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Select from Gallery | Camera',
                   style: TextStyle(
                     color: accent,
@@ -64,12 +64,10 @@ class _SourceButton extends StatelessWidget {
       height: 40,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEC0C6E),
-          foregroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         ),
         onPressed: onTap,
         child: Text(

@@ -124,7 +124,7 @@ class _SupermarketNavigationRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return SafeArea(
       right: false,
@@ -135,12 +135,12 @@ class _SupermarketNavigationRail extends StatelessWidget {
         minExtendedWidth: 178,
         backgroundColor: Colors.white,
         indicatorColor: accent.withValues(alpha: 0.12),
-        selectedIconTheme: const IconThemeData(color: accent, size: 26),
+        selectedIconTheme: IconThemeData(color: accent, size: 26),
         unselectedIconTheme: const IconThemeData(
           color: Color(0xFF6F6A73),
           size: 24,
         ),
-        selectedLabelTextStyle: const TextStyle(
+        selectedLabelTextStyle: TextStyle(
           color: accent,
           fontWeight: FontWeight.w700,
         ),
@@ -177,7 +177,8 @@ class _BottomNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = selectedIndex == destination.index;
-    const accent = Color(0xFFEC407A);
+    final colorScheme = Theme.of(context).colorScheme;
+    final accent = colorScheme.primary;
     const inactiveColor = Color(0xFF6F6A73);
 
     return InkResponse(
@@ -205,7 +206,7 @@ class _BottomNavItem extends StatelessWidget {
                   child: Icon(
                     selected ? destination.selectedIcon : destination.icon,
                     size: selected ? 23 : 25,
-                    color: selected ? Colors.white : inactiveColor,
+                    color: selected ? colorScheme.onPrimary : inactiveColor,
                   ),
                 ),
                 const SizedBox(height: 3),

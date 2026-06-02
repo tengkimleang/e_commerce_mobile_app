@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/core/theme/remote_theme_config.dart';
 
 /// Centralized app colors — single source of truth.
 abstract final class AppColors {
@@ -86,8 +87,10 @@ abstract final class AppTypography {
     letterSpacing: 0,
   );
 
-  static TextTheme textTheme(ColorScheme colorScheme) {
-    final primary = AppColors.textPrimary;
+  static TextTheme textTheme(
+    ColorScheme colorScheme, {
+    Color primary = AppColors.textPrimary,
+  }) {
     final secondary = AppColors.textSecondary;
 
     return TextTheme(
@@ -113,15 +116,56 @@ abstract final class AppTypography {
   }
 }
 
+@immutable
+class AppBrandTheme extends ThemeExtension<AppBrandTheme> {
+  const AppBrandTheme({required this.primaryDark, required this.textSecondary});
+
+  final Color primaryDark;
+  final Color textSecondary;
+
+  @override
+  AppBrandTheme copyWith({Color? primaryDark, Color? textSecondary}) =>
+      AppBrandTheme(
+        primaryDark: primaryDark ?? this.primaryDark,
+        textSecondary: textSecondary ?? this.textSecondary,
+      );
+
+  @override
+  AppBrandTheme lerp(covariant AppBrandTheme? other, double t) {
+    if (other == null) return this;
+    return AppBrandTheme(
+      primaryDark: Color.lerp(primaryDark, other.primaryDark, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+    );
+  }
+}
+
+extension AppBrandThemeContext on BuildContext {
+  AppBrandTheme get brandTheme =>
+      Theme.of(this).extension<AppBrandTheme>() ??
+      const AppBrandTheme(
+        primaryDark: AppColors.primaryDark,
+        textSecondary: AppColors.textSecondary,
+      );
+}
+
 /// Centralized ThemeData for [MaterialApp].
 abstract final class AppTheme {
-  static ThemeData get light {
+  static ThemeData get light => fromConfig(RemoteThemeConfig.fallback);
+
+  static ThemeData fromConfig(RemoteThemeConfig config) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      primary: AppColors.primary,
-      surface: AppColors.surface,
+      seedColor: config.primary,
+      primary: config.primary,
+      onPrimary: config.onPrimary,
+      secondary: config.secondary,
+      surface: config.surface,
+      onSurface: config.onSurface,
     );
-    final textTheme = AppTypography.textTheme(colorScheme);
+    final textTheme = AppTypography.textTheme(
+      colorScheme,
+      primary: config.onSurface,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -130,7 +174,13 @@ abstract final class AppTheme {
       textTheme: textTheme,
       primaryTextTheme: textTheme,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: config.scaffoldBackground,
+      extensions: [
+        const AppBrandTheme(
+          primaryDark: AppColors.primaryDark,
+          textSecondary: AppColors.textSecondary,
+        ),
+      ],
       cupertinoOverrideTheme: const CupertinoThemeData(
         textTheme: CupertinoTextThemeData(
           textStyle: TextStyle(
@@ -140,15 +190,15 @@ abstract final class AppTheme {
           ),
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: config.primary,
+        foregroundColor: config.onPrimary,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
           fontFamily: AppTypography.primaryFontFamily,
           fontFamilyFallback: AppTypography.fontFamilyFallback,
-          color: Colors.white,
+          color: config.onPrimary,
           fontSize: 24,
           fontWeight: FontWeight.w600,
           height: 1.25,

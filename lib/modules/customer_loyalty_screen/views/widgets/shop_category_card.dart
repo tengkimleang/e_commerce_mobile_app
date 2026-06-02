@@ -130,9 +130,9 @@ class _ImageFallback extends StatelessWidget {
         color: const Color(0xFFF7F7F7),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(
+      child: Icon(
         Icons.category_outlined,
-        color: Color(0xFFEC407A),
+        color: Theme.of(context).colorScheme.primary,
         size: 34,
       ),
     );

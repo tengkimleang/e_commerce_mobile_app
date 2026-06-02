@@ -81,7 +81,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,7 +108,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                   ),
                 ),
                 child: Row(
-                  children: const [
+                  children: [
                     Text(
                       'View all',
                       style: TextStyle(
@@ -117,7 +117,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(width: 2),
+                    const SizedBox(width: 2),
                     Icon(Icons.chevron_right, color: accent, size: 18),
                   ],
                 ),
@@ -229,7 +229,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(

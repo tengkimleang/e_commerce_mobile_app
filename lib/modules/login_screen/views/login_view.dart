@@ -48,7 +48,7 @@ class LoginView extends StatelessWidget {
         title = 'Server Error';
       case LoginErrorType.validation:
         icon = Icons.error_outline_rounded;
-        iconColor = const Color(0xFFEC407A);
+        iconColor = Theme.of(context).colorScheme.primary;
         title = 'Invalid Input';
       case LoginErrorType.unknown:
         icon = Icons.warning_amber_rounded;
@@ -97,7 +97,7 @@ class LoginView extends StatelessWidget {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -117,61 +117,66 @@ class LoginView extends StatelessWidget {
   ) async {
     final shouldGoSignup = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: const Color(0xFFEC407A).withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+      builder: (dialogContext) {
+        final primary = Theme.of(dialogContext).colorScheme.primary;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.person_add_alt_1_rounded,
+                  color: primary,
+                  size: 36,
+                ),
               ),
-              child: const Icon(
-                Icons.person_add_alt_1_rounded,
-                color: Color(0xFFEC407A),
-                size: 36,
+              const SizedBox(height: 16),
+              const Text(
+                'Account Not Found',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Account Not Found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${state.message}\nPlease sign up first.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                height: 1.4,
+              const SizedBox(height: 8),
+              Text(
+                '${state.message}\nPlease sign up first.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.4,
+                ),
               ),
+              const SizedBox(height: 20),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
             ),
-            const SizedBox(height: 20),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: primary,
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: const Text('Go to Sign Up'),
+            ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFEC407A),
-              textStyle: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            child: const Text('Go to Sign Up'),
-          ),
-        ],
-      ),
+        );
+      },
     );
 
     if (!context.mounted || shouldGoSignup != true) return;
@@ -195,6 +200,7 @@ class LoginView extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
+        final primary = Theme.of(sheetContext).colorScheme.primary;
         var isSubmitting = false;
         String errorText = '';
 
@@ -295,7 +301,7 @@ class LoginView extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: isSubmitting ? null : requestActivationOtp,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEC407A),
+                          backgroundColor: primary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -422,6 +428,7 @@ class _LoginContentState extends State<_LoginContent> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final isShortScreen = MediaQuery.sizeOf(context).height < 700;
     final logoSize = isShortScreen ? 132.0 : 180.0;
     final formGap = isShortScreen ? 20.0 : 32.0;
@@ -452,10 +459,10 @@ class _LoginContentState extends State<_LoginContent> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Sign Up",
                         style: TextStyle(
-                          color: Color(0xFFEC407A),
+                          color: primary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -490,17 +497,17 @@ class _LoginContentState extends State<_LoginContent> {
                 ),
                 SizedBox(height: formGap),
                 RichText(
-                  text: const TextSpan(
+                  text: TextSpan(
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
                     ),
                     children: [
-                      TextSpan(text: 'Phone number'),
+                      const TextSpan(text: 'Phone number'),
                       TextSpan(
                         text: '*',
-                        style: TextStyle(color: Colors.pinkAccent),
+                        style: TextStyle(color: primary),
                       ),
                     ],
                   ),
@@ -532,10 +539,7 @@ class _LoginContentState extends State<_LoginContent> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEC407A),
-                            width: 1.8,
-                          ),
+                          borderSide: BorderSide(color: primary, width: 1.8),
                         ),
                         errorText:
                             (state is LoginUpdated &&
@@ -567,8 +571,8 @@ class _LoginContentState extends State<_LoginContent> {
                       ),
                       TextSpan(
                         text: "Terms of Use",
-                        style: const TextStyle(
-                          color: Color(0xFFEC407A),
+                        style: TextStyle(
+                          color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _termsTapRecognizer,
@@ -576,8 +580,8 @@ class _LoginContentState extends State<_LoginContent> {
                       const TextSpan(text: " and the "),
                       TextSpan(
                         text: "Privacy Policy",
-                        style: const TextStyle(
-                          color: Color(0xFFEC407A),
+                        style: TextStyle(
+                          color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _privacyTapRecognizer,
@@ -598,10 +602,10 @@ class _LoginContentState extends State<_LoginContent> {
                         ),
                       );
                     },
-                    child: const Text(
+                    child: Text(
                       "Continue as guest",
                       style: TextStyle(
-                        color: Colors.pink,
+                        color: primary,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -622,8 +626,10 @@ class _LoginContentState extends State<_LoginContent> {
                                 );
                               },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEC407A),
-                          foregroundColor: Colors.white,
+                          backgroundColor: primary,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

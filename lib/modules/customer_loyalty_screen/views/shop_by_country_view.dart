@@ -16,19 +16,19 @@ class CountryEntry {
 // Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
 
 const kCountries = [
-  CountryEntry(name: 'Cambodia',      flag: '🇰🇭'),
-  CountryEntry(name: 'Canada',        flag: '🇨🇦'),
-  CountryEntry(name: 'Egypt',         flag: '🇪🇬'),
-  CountryEntry(name: 'South Korea',   flag: '🇰🇷'),
-  CountryEntry(name: 'Japan',         flag: '🇯🇵'),
-  CountryEntry(name: 'China',         flag: '🇨🇳'),
-  CountryEntry(name: 'Singapore',     flag: '🇸🇬'),
-  CountryEntry(name: 'Italy',         flag: '🇮🇹'),
-  CountryEntry(name: 'Spain',         flag: '🇪🇸'),
-  CountryEntry(name: 'Indonesia',     flag: '🇮🇩'),
-  CountryEntry(name: 'Argentina',     flag: '🇦🇷'),
+  CountryEntry(name: 'Cambodia', flag: '🇰🇭'),
+  CountryEntry(name: 'Canada', flag: '🇨🇦'),
+  CountryEntry(name: 'Egypt', flag: '🇪🇬'),
+  CountryEntry(name: 'South Korea', flag: '🇰🇷'),
+  CountryEntry(name: 'Japan', flag: '🇯🇵'),
+  CountryEntry(name: 'China', flag: '🇨🇳'),
+  CountryEntry(name: 'Singapore', flag: '🇸🇬'),
+  CountryEntry(name: 'Italy', flag: '🇮🇹'),
+  CountryEntry(name: 'Spain', flag: '🇪🇸'),
+  CountryEntry(name: 'Indonesia', flag: '🇮🇩'),
+  CountryEntry(name: 'Argentina', flag: '🇦🇷'),
   CountryEntry(name: 'United States', flag: '🇺🇸'),
-  CountryEntry(name: 'France',        flag: '🇫🇷'),
+  CountryEntry(name: 'France', flag: '🇫🇷'),
 ];
 
 // ── Screen ───────────────────────────────────────────────────────────────────
@@ -36,10 +36,7 @@ const kCountries = [
 class ShopByCountryView extends StatefulWidget {
   final String? initialCountry;
 
-  const ShopByCountryView({
-    super.key,
-    this.initialCountry,
-  });
+  const ShopByCountryView({super.key, this.initialCountry});
 
   @override
   State<ShopByCountryView> createState() => _ShopByCountryViewState();
@@ -84,7 +81,7 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -121,7 +118,9 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     margin: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 6),
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
                       color: isSelected
@@ -144,8 +143,7 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color:
-                                isSelected ? Colors.white : Colors.black87,
+                            color: isSelected ? Colors.white : Colors.black87,
                             height: 1.3,
                           ),
                         ),
@@ -162,56 +160,59 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: Colors.grey, size: 40),
-                            const SizedBox(height: 8),
-                            Text('Failed to load products',
-                                style:
-                                    TextStyle(color: Colors.grey[600])),
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: _loadProducts,
-                              child: const Text('Retry'),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.grey,
+                          size: 40,
                         ),
-                      )
-                    : _products.isEmpty
-                        ? const Center(child: Text('No products'))
-                        : GridView.builder(
-                            padding: const EdgeInsets.all(12),
-                            itemCount: _products.length,
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 0.72,
+                        const SizedBox(height: 8),
+                        Text(
+                          'Failed to load products',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: _loadProducts,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _products.isEmpty
+                ? const Center(child: Text('No products'))
+                : GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _products.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.72,
+                        ),
+                    itemBuilder: (context, index) {
+                      final product = _products[index];
+                      final country = kCountries.firstWhere(
+                        (c) => c.name == _selectedCountry,
+                      );
+                      return ProductCard(
+                        product: product,
+                        countryLabel: '${country.name} ${country.flag}',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailView(
+                              product: product,
+                              relatedProducts: _products,
                             ),
-                            itemBuilder: (context, index) {
-                              final product = _products[index];
-                              final country = kCountries.firstWhere(
-                                (c) => c.name == _selectedCountry,
-                              );
-                              return ProductCard(
-                                product: product,
-                                countryLabel:
-                                    '${country.name} ${country.flag}',
-                                onTap: () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ProductDetailView(
-                                      product: product,
-                                      relatedProducts: _products,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
                           ),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

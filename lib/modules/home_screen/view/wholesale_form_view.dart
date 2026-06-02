@@ -35,6 +35,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
   }
 
   Future<void> _submit(BuildContext context) async {
+    final primary = Theme.of(context).colorScheme.primary;
     final bloc = context.read<WholesaleFormBloc>();
     final customerName = _nameController.text.trim();
     final phoneNumber = _phoneController.text.trim();
@@ -45,7 +46,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
         title: 'Invalid Input',
         message: 'Please enter name and phone.',
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: primary,
       );
       return;
     }
@@ -56,7 +57,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
         title: 'Invalid Phone',
         message: 'Please enter a valid phone number.',
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: primary,
       );
       return;
     }
@@ -236,6 +237,8 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     required Color iconColor,
     VoidCallback? onDismiss,
   }) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -280,7 +283,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                 onDismiss?.call();
               },
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -296,13 +299,15 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return BlocProvider(
       create: (_) => WholesaleFormBloc(),
       child: Builder(
         builder: (context) => Scaffold(
           appBar: AppBar(
             title: const Text('Wholesale Form'),
-            backgroundColor: const Color(0xFFEC407A),
+            backgroundColor: primary,
             centerTitle: true,
           ),
           body: SafeArea(
@@ -356,8 +361,8 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                    color: Color(0xFFEC407A),
+                                  borderSide: BorderSide(
+                                    color: primary,
                                     width: 1.8,
                                   ),
                                 ),
@@ -434,8 +439,8 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                                 ],
                               ),
                               child: Row(
-                                children: const [
-                                  Expanded(
+                                children: [
+                                  const Expanded(
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         vertical: 14,
@@ -446,7 +451,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                                       ),
                                     ),
                                   ),
-                                  Icon(Icons.search, color: Color(0xFFEC407A)),
+                                  Icon(Icons.search, color: primary),
                                 ],
                               ),
                             ),
@@ -484,8 +489,8 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                     builder: (context, state) => Container(
                       width: double.infinity,
                       height: 54,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEC407A),
+                      decoration: BoxDecoration(
+                        color: primary,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(8),
                           topRight: Radius.circular(8),

@@ -101,7 +101,7 @@ class _EmptyFavoriteState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Center(
       child: Column(
@@ -130,7 +130,7 @@ class _EmptyFavoriteState extends StatelessWidget {
                 child: Container(
                   width: 30,
                   height: 30,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: accent,
                     shape: BoxShape.circle,
                   ),

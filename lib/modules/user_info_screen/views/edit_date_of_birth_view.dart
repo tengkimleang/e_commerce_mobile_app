@@ -43,7 +43,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC0C6E);
+    final accent = Theme.of(context).colorScheme.primary;
     final now = DateTime.now();
     final minDate = DateTime(now.year - 120, 1, 1);
     final maxDate = DateTime(now.year, now.month, now.day);
@@ -65,7 +65,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: accent,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
@@ -81,7 +81,7 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
             SizedBox(
               height: 190,
               child: CupertinoTheme(
-                data: const CupertinoThemeData(
+                data: CupertinoThemeData(
                   textTheme: CupertinoTextThemeData(
                     dateTimePickerTextStyle: TextStyle(
                       color: accent,

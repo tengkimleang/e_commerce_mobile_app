@@ -222,6 +222,8 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return SupermarketAdaptiveScaffold(
       selectedIndex: 3,
       onTap: (index) => _onBottomNavTap(context, index),
@@ -261,7 +263,7 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
                   }
 
                   return RefreshIndicator(
-                    color: const Color(0xFFEC407A),
+                    color: primary,
                     onRefresh: () => _loadOrders(showSkeleton: true),
                     child: ListView.separated(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -367,7 +369,7 @@ class _OrderHistoryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     final hasActiveFilter = selectedFilter != _OrderStatusFilter.all;
 
     return SizedBox(
@@ -487,7 +489,7 @@ class _NotificationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return SizedBox(
       width: 58,
@@ -538,7 +540,7 @@ class _FilterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return SizedBox(
       width: 52,
@@ -556,11 +558,7 @@ class _FilterButton extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Icon(
-                CupertinoIcons.slider_horizontal_3,
-                color: accent,
-                size: 22,
-              ),
+              Icon(CupertinoIcons.slider_horizontal_3, color: accent, size: 22),
               if (hasActiveFilter)
                 Positioned(
                   top: 10,
@@ -568,7 +566,7 @@ class _FilterButton extends StatelessWidget {
                   child: Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: accent,
                       shape: BoxShape.circle,
                     ),
@@ -589,7 +587,7 @@ class _OrderStatusFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.86;
 
     return SafeArea(
@@ -780,6 +778,7 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final order = entry.summary;
     final dateText = DateFormat('d MMM yyyy').format(order.orderDate);
     final timeText = DateFormat('h:mm a').format(order.orderDate);
@@ -851,8 +850,8 @@ class _OrderCard extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: '\$${order.total.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: Color(0xFFEC407A),
+                              style: TextStyle(
+                                color: primary,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -898,13 +897,13 @@ class _OrderIconTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Container(
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F7),
+        color: accent.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
@@ -1069,7 +1068,7 @@ class _EmptyOrderState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1081,7 +1080,7 @@ class _EmptyOrderState extends StatelessWidget {
               width: 84,
               height: 84,
               decoration: BoxDecoration(
-                color: const Color(0xFFFAD3E3),
+                color: accent.withValues(alpha: 0.20),
                 borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.center,
@@ -1097,7 +1096,7 @@ class _EmptyOrderState extends StatelessWidget {
               child: Container(
                 width: 30,
                 height: 30,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: accent,
                   shape: BoxShape.circle,
                 ),

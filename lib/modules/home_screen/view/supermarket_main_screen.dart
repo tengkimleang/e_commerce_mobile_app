@@ -145,6 +145,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       context: context,
       barrierColor: Colors.black54,
       builder: (ctx) {
+        final primary = Theme.of(ctx).colorScheme.primary;
         final pageCtrl = PageController(initialPage: startPage);
         int currentPage = initialIndex;
         return Dialog(
@@ -166,10 +167,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                     Positioned(
                       top: 16,
                       left: 16,
-                      child: const Text(
+                      child: Text(
                         'រូបភាព',
                         style: TextStyle(
-                          color: Color(0xFFEC407A),
+                          color: primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -198,11 +199,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Color(0xFFEC407A),
-                          ),
+                          child: Icon(Icons.close, size: 20, color: primary),
                         ),
                       ),
                     ),
@@ -221,7 +218,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                           itemBuilder: (_, i) {
                             final realIndex = i % _sliderImages.length;
                             return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(5),
                                 child: CachedNetworkImage(
@@ -233,14 +232,15 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                       child: CircularProgressIndicator(),
                                     ),
                                   ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.broken_image,
-                                      size: 48,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                                 ),
                               ),
                             );
@@ -263,7 +263,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             height: currentPage == i ? 12 : 8,
                             decoration: BoxDecoration(
                               color: currentPage == i
-                                  ? const Color(0xFFEC407A)
+                                  ? primary
                                   : Colors.grey[400],
                               shape: BoxShape.circle,
                             ),
@@ -280,7 +280,6 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       },
     );
   }
-
 
   void _showPartnerPopup(BuildContext context, String imageUrl) {
     showDialog<void>(
@@ -321,10 +320,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         size: 20,
-                        color: Color(0xFFEC407A),
+                        color: Theme.of(ctx).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -510,6 +509,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   }
 
   Widget _buildContent(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (_selectedIndex != 0) {
       return SupermarketAdaptiveScaffold(
         selectedIndex: _selectedIndex,
@@ -524,7 +524,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: Container(
-          color: const Color(0xFFEC407A),
+          color: colorScheme.primary,
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -622,8 +622,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                 ),
                                 child: Text(
                                   '$itemTypes',
-                                  style: const TextStyle(
-                                    color: Color(0xFFEC407A),
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 11,
                                   ),
@@ -795,8 +795,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   }
 
   Widget _buildSearchBar(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Container(
-      color: const Color(0xFFEC407A),
+      color: primary,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
@@ -813,14 +814,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(25),
                 ),
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
-                      Icon(Icons.search, color: Color(0xFFEC407A)),
-                      SizedBox(width: 12),
+                      Icon(Icons.search, color: primary),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
+                        child: const Text(
                           'Search products, brands and more',
                           style: TextStyle(color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
@@ -1033,14 +1034,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                           Expanded(
                             child: Container(
                               padding: const EdgeInsets.all(16.0),
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.horizontal(
                                   left: Radius.circular(14),
                                 ),
                                 gradient: LinearGradient(
                                   colors: [
-                                    Color(0xFFEC407A),
-                                    Color(0xFFEA2E6D),
+                                    Theme.of(context).colorScheme.primary,
+                                    Theme.of(context).colorScheme.secondary,
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -1173,7 +1174,7 @@ class _GuestLoginRequiredTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     return SafeArea(
       bottom: false,
       child: Container(

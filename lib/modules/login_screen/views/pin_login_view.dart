@@ -487,7 +487,7 @@ class _PinLoginViewState extends State<PinLoginView> {
           title: 'Login Failed',
           message: errorMsg.isEmpty ? 'Invalid phone or PIN code.' : errorMsg,
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -559,7 +559,7 @@ class _PinLoginViewState extends State<PinLoginView> {
         title: 'Login Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -613,7 +613,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             : 'Biometric Login Failed',
         message: result.message,
         icon: Icons.fingerprint_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     } on DioException catch (error) {
       if (!mounted) return;
@@ -634,7 +634,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             : Icons.fingerprint_rounded,
         iconColor: isNetworkError
             ? Colors.orangeAccent
-            : const Color(0xFFEC407A),
+            : Theme.of(context).colorScheme.primary,
       );
     } catch (error) {
       if (!mounted) return;
@@ -644,7 +644,7 @@ class _PinLoginViewState extends State<PinLoginView> {
         title: 'Biometric Login Failed',
         message: error.toString().replaceFirst('Exception: ', ''),
         icon: Icons.fingerprint_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -665,8 +665,8 @@ class _PinLoginViewState extends State<PinLoginView> {
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEC407A),
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(dialogContext).colorScheme.primary,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onPrimary,
             ),
             child: const Text('Verify OTP'),
           ),
@@ -697,8 +697,8 @@ class _PinLoginViewState extends State<PinLoginView> {
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEC407A),
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(dialogContext).colorScheme.primary,
+              foregroundColor: Theme.of(dialogContext).colorScheme.onPrimary,
             ),
             child: const Text('Use OTP'),
           ),
@@ -731,7 +731,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             deliveryMessage: deliveryMessage,
           ),
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -752,7 +752,7 @@ class _PinLoginViewState extends State<PinLoginView> {
         title: 'Request Failed',
         message: 'Unable to request OTP right now.',
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -786,7 +786,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             fallback: 'Unable to send OTP for PIN reset.',
           ),
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -836,7 +836,7 @@ class _PinLoginViewState extends State<PinLoginView> {
         title: 'Request Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -888,7 +888,7 @@ class _PinLoginViewState extends State<PinLoginView> {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -904,6 +904,7 @@ class _PinLoginViewState extends State<PinLoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final isShortScreen = MediaQuery.sizeOf(context).height < 700;
     final headerIconSize = isShortScreen ? 58.0 : 82.0;
     final titleFontSize = isShortScreen ? 26.0 : 34.0;
@@ -934,7 +935,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                 Icon(
                   Icons.lock_outline_rounded,
                   size: headerIconSize,
-                  color: const Color(0xFFEC407A),
+                  color: primary,
                 ),
                 SizedBox(height: isShortScreen ? 14 : 24),
                 Center(
@@ -1004,9 +1005,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                     child: Text(
                       'Show PIN',
                       style: TextStyle(
-                        color: _isPinLocked
-                            ? Colors.grey[400]
-                            : const Color(0xFFEC407A),
+                        color: _isPinLocked ? Colors.grey[400] : primary,
                         fontSize: 16,
                       ),
                     ),
@@ -1028,7 +1027,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                         _biometricActionLabel.contains('Face ID')
                             ? Icons.face_rounded
                             : Icons.fingerprint_rounded,
-                        color: const Color(0xFFEC407A),
+                        color: primary,
                       ),
                       label: Text(
                         _isBiometricSubmitting
@@ -1037,7 +1036,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                         style: TextStyle(
                           color: (_isBiometricSubmitting || _isBiometricLoading)
                               ? Colors.grey
-                              : const Color(0xFFEC407A),
+                              : primary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -1056,9 +1055,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                           ? 'Sending OTP...'
                           : 'Forgot the PIN code?',
                       style: TextStyle(
-                        color: _isSendingForgotOtp
-                            ? Colors.grey
-                            : const Color(0xFFEC407A),
+                        color: _isSendingForgotOtp ? Colors.grey : primary,
                         fontSize: 16,
                       ),
                     ),
@@ -1075,8 +1072,10 @@ class _PinLoginViewState extends State<PinLoginView> {
                           ? null
                           : (_isComplete ? _submit : null),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFEC407A),
-                        foregroundColor: Colors.white,
+                        backgroundColor: primary,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -1144,6 +1143,7 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
@@ -1154,14 +1154,10 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+              color: primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.lock_clock_rounded,
-              color: Color(0xFFEC407A),
-              size: 36,
-            ),
+            child: Icon(Icons.lock_clock_rounded, color: primary, size: 36),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -1180,10 +1176,10 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
             valueListenable: widget.countdownNotifier,
             builder: (context, seconds, child) => Text(
               widget.formatCountdown(seconds),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFFEC407A),
+                color: primary,
                 letterSpacing: 4,
               ),
             ),

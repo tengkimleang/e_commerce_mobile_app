@@ -63,7 +63,7 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return SupermarketAdaptiveScaffold(
       selectedIndex: 1,
@@ -144,10 +144,7 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
                               LoadPromotionSections(UserSession.selectedShopId),
                             );
                           },
-                          child: const Text(
-                            'Retry',
-                            style: TextStyle(color: accent),
-                          ),
+                          child: Text('Retry', style: TextStyle(color: accent)),
                         ),
                       ],
                     ),
@@ -314,6 +311,8 @@ class _PromotionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth.isFinite
@@ -347,7 +346,7 @@ class _PromotionSection extends StatelessWidget {
                       child: Text(
                         'View all  ›',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFFEC407A),
+                          color: primary,
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
                         ),
@@ -437,6 +436,8 @@ class _PromotionProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -488,8 +489,8 @@ class _PromotionProductCard extends StatelessWidget {
                         horizontal: 10,
                         vertical: 5,
                       ),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFEC407A),
+                      decoration: BoxDecoration(
+                        color: primary,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(14),
                           bottomRight: Radius.circular(14),
@@ -534,9 +535,7 @@ class _PromotionProductCard extends StatelessWidget {
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               size: 18,
-                              color: isFavorite
-                                  ? const Color(0xFFEC407A)
-                                  : Colors.grey[600],
+                              color: isFavorite ? primary : Colors.grey[600],
                             ),
                           ),
                         );
@@ -571,10 +570,10 @@ class _PromotionProductCard extends StatelessWidget {
                       children: [
                         Text(
                           '\$ ${product.price.toStringAsFixed(2)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFEC407A),
+                            color: primary,
                           ),
                         ),
                         if (product.originalPrice != null)
@@ -589,11 +588,7 @@ class _PromotionProductCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.add_shopping_cart,
-                    size: 24,
-                    color: Color(0xFFEC407A),
-                  ),
+                  Icon(Icons.add_shopping_cart, size: 24, color: primary),
                 ],
               ),
             ),

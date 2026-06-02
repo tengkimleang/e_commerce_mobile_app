@@ -32,8 +32,6 @@ class ProductDetailView extends StatefulWidget {
 }
 
 class _ProductDetailViewState extends State<ProductDetailView> {
-  static const _accent = Color(0xFFEC407A);
-
   late final PageController _imagePageController;
   List<ProductModel> _suggestions = [];
   int _activeImageIndex = 0;
@@ -111,7 +109,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = _accent;
+    final accent = Theme.of(context).colorScheme.primary;
     final product = widget.product;
     final images = _productImages;
 
@@ -252,10 +250,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                               children: [
                                 Text(
                                   '\$ ${product.price.toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFFEC407A),
+                                    color: accent,
                                   ),
                                 ),
                                 if (product.originalPrice != null) ...[
@@ -429,7 +427,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                 ),
                                 child: Text(
                                   '$quantity in cart',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: accent,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -543,7 +541,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               return SafeArea(
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: accent,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(20),
@@ -757,8 +755,6 @@ class _ProductImageSliderSheet extends StatefulWidget {
 }
 
 class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
-  static const _accent = Color(0xFFEC407A);
-
   late final PageController _pageController;
   late int _activeIndex;
 
@@ -783,6 +779,7 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return SafeArea(
       top: false,
@@ -798,11 +795,11 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
               padding: const EdgeInsets.fromLTRB(30, 28, 20, 8),
               child: Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Image',
                       style: TextStyle(
-                        color: _accent,
+                        color: primary,
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                       ),
@@ -810,7 +807,7 @@ class _ProductImageSliderSheetState extends State<_ProductImageSliderSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: _accent, size: 32),
+                    icon: Icon(Icons.close, color: primary, size: 32),
                   ),
                 ],
               ),
@@ -902,6 +899,8 @@ class _ImageDotsIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(totalDots, (index) {
@@ -913,7 +912,7 @@ class _ImageDotsIndicator extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive ? const Color(0xFFEC407A) : const Color(0xFFBDBDBD),
+            color: isActive ? primary : const Color(0xFFBDBDBD),
           ),
         );
       }),

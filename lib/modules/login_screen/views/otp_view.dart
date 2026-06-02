@@ -336,7 +336,7 @@ class _OtpViewState extends State<OtpView> {
         title: 'Request Failed',
         message: 'Full name is missing. Please go back and try signup again.',
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
       return;
     }
@@ -376,7 +376,7 @@ class _OtpViewState extends State<OtpView> {
             fallback: 'Request OTP failed.',
           ),
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -421,7 +421,7 @@ class _OtpViewState extends State<OtpView> {
         title: 'Request Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -449,7 +449,7 @@ class _OtpViewState extends State<OtpView> {
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEC407A),
+                backgroundColor: Theme.of(dialogContext).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Request New OTP'),
@@ -551,7 +551,7 @@ class _OtpViewState extends State<OtpView> {
                   errorMsg: verifyErrorMsg,
                 ),
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -581,7 +581,7 @@ class _OtpViewState extends State<OtpView> {
           message:
               'Activation token is missing. Please request a new OTP and try again.',
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -859,7 +859,7 @@ class _OtpViewState extends State<OtpView> {
         title: 'Verification Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -911,7 +911,7 @@ class _OtpViewState extends State<OtpView> {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -927,6 +927,7 @@ class _OtpViewState extends State<OtpView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -957,11 +958,9 @@ class _OtpViewState extends State<OtpView> {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEC407A).withValues(alpha: 0.08),
+                  color: primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFEC407A).withValues(alpha: 0.12),
-                  ),
+                  border: Border.all(color: primary.withValues(alpha: 0.12)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -970,7 +969,7 @@ class _OtpViewState extends State<OtpView> {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                        color: primary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -978,7 +977,7 @@ class _OtpViewState extends State<OtpView> {
                             ? Icons.send_rounded
                             : Icons.sms_outlined,
                         size: 18,
-                        color: const Color(0xFFEC407A),
+                        color: primary,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1039,7 +1038,7 @@ class _OtpViewState extends State<OtpView> {
                   onTap: () => setState(() => _showPin = !_showPin),
                   child: Text(
                     _showPin ? 'Hide OTP' : 'Show OTP',
-                    style: const TextStyle(color: Color(0xFFEC407A)),
+                    style: TextStyle(color: primary),
                   ),
                 ),
               ),
@@ -1063,7 +1062,7 @@ class _OtpViewState extends State<OtpView> {
                                 _isResending ||
                                 _resendSeconds > 0)
                             ? Colors.grey
-                            : const Color(0xFFEC407A),
+                            : primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1080,8 +1079,8 @@ class _OtpViewState extends State<OtpView> {
                         ? null
                         : (_isComplete ? _submit : null),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEC407A),
-                      foregroundColor: Colors.white,
+                      backgroundColor: primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),

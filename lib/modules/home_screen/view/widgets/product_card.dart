@@ -34,6 +34,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return LayoutBuilder(
       builder: (context, constraints) {
         final imageHeight = _imageHeightFor(constraints);
@@ -93,7 +94,7 @@ class ProductCard extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFEC407A),
+                              color: primary,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -174,7 +175,7 @@ class ProductCard extends StatelessWidget {
                                       ? Icons.favorite
                                       : Icons.favorite_border,
                                   color: isFavorite
-                                      ? const Color(0xFFEC407A)
+                                      ? primary
                                       : Colors.grey[600],
                                   size: 18,
                                 ),
@@ -225,10 +226,10 @@ class ProductCard extends StatelessWidget {
                                 children: [
                                   Text(
                                     '\$ ${product.price.toStringAsFixed(2)}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFFEC407A),
+                                      color: primary,
                                     ),
                                   ),
                                   if (product.originalPrice != null)
@@ -281,15 +282,15 @@ class ProductCard extends StatelessWidget {
                                             : Icons.add_shopping_cart,
                                         color: product.isOutOfStock
                                             ? Colors.grey[400]
-                                            : const Color(0xFFEC407A),
+                                            : primary,
                                         size: 24,
                                       ),
                                     ),
                                     if (quantity > 0)
                                       Text(
                                         '$quantity',
-                                        style: const TextStyle(
-                                          color: Color(0xFFEC407A),
+                                        style: TextStyle(
+                                          color: primary,
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
                                         ),

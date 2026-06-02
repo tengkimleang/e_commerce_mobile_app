@@ -23,6 +23,7 @@ class ApiUrl {
   static const newsGetAll = "/news";
   static const newsGetById = "/news/";
   static const notificationPromotions = "/notifications/promotions";
+  static const currentAppTheme = '/app-theme/current';
   static const requestOtp = "/auth/login/request-otp";
   static const verifyOtp = "/auth/login/verify-otp";
 

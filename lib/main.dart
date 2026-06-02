@@ -3,6 +3,9 @@ import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/theme/theme_cache.dart';
+import 'package:e_commerce_mobile_app/core/theme/theme_cubit.dart';
+import 'package:e_commerce_mobile_app/core/theme/theme_repository.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
@@ -37,18 +40,28 @@ Future<void> main() async {
             ? AppRoutes.profile
             : AppRoutes.index)
       : AppRoutes.login;
-  runApp(MyApp(initialRoute: initialRoute));
+  runApp(
+    MyApp(initialRoute: initialRoute, initialTheme: di<ThemeCache>().read()),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.initialRoute});
+  const MyApp({super.key, required this.initialRoute, this.initialTheme});
 
   final String initialRoute;
+  final CachedAppTheme? initialTheme;
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(
+          create: (_) => ThemeCubit(
+            repository: di<ThemeRepository>(),
+            cache: di<ThemeCache>(),
+            initialTheme: initialTheme,
+          )..refreshIfStale(force: true),
+        ),
         BlocProvider(create: (_) => CartBloc()),
         BlocProvider(
           create: (_) =>
@@ -74,12 +87,51 @@ class MyApp extends StatelessWidget {
                 ..loadOrders(),
         ),
       ],
-      child: MaterialApp(
+      child: _AppView(initialRoute: initialRoute),
+    );
+  }
+}
+
+class _AppView extends StatefulWidget {
+  const _AppView({required this.initialRoute});
+
+  final String initialRoute;
+
+  @override
+  State<_AppView> createState() => _AppViewState();
+}
+
+class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<ThemeCubit>().refreshIfStale();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      buildWhen: (previous, current) =>
+          previous.config.revision != current.config.revision,
+      builder: (context, state) => MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Chipmong Retail',
-        theme: AppTheme.light,
+        theme: AppTheme.fromConfig(state.config),
         scrollBehavior: const AppScrollBehavior(),
-        initialRoute: initialRoute,
+        initialRoute: widget.initialRoute,
         onGenerateRoute: onGenerateRoute,
       ),
     );

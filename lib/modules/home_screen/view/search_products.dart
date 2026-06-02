@@ -193,6 +193,8 @@ class _SearchProductsState extends State<SearchProducts>
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
@@ -249,7 +251,7 @@ class _SearchProductsState extends State<SearchProducts>
                                   height: 40,
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: const Color(0xFFEC407A),
+                                      color: primary,
                                       width: 1.5,
                                     ),
                                     borderRadius: BorderRadius.circular(25),
@@ -259,9 +261,9 @@ class _SearchProductsState extends State<SearchProducts>
                                         CrossAxisAlignment.center,
                                     children: [
                                       const SizedBox(width: 10),
-                                      const Icon(
+                                      Icon(
                                         Icons.search,
-                                        color: Color(0xFFEC407A),
+                                        color: primary,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 6),
@@ -315,11 +317,7 @@ class _SearchProductsState extends State<SearchProducts>
                       ? const SizedBox.shrink()
                       : IconButton(
                           padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.search,
-                            color: Color(0xFFEC407A),
-                            size: 24,
-                          ),
+                          icon: Icon(Icons.search, color: primary, size: 24),
                           onPressed: _activateSearch,
                         ),
                 ),
@@ -330,11 +328,7 @@ class _SearchProductsState extends State<SearchProducts>
                   margin: const EdgeInsets.only(right: 8),
                   child: IconButton(
                     padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.qr_code_scanner,
-                      color: Color(0xFFEC407A),
-                      size: 22,
-                    ),
+                    icon: Icon(Icons.qr_code_scanner, color: primary, size: 22),
                     onPressed: _onScanBarcode,
                   ),
                 ),
@@ -354,11 +348,7 @@ class _SearchProductsState extends State<SearchProducts>
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFEC407A),
-                      ),
-                    )
+                  ? Center(child: CircularProgressIndicator(color: primary))
                   : _results.isEmpty
                   ? const Center(child: Text('No products found'))
                   : GridView.builder(
@@ -400,11 +390,11 @@ class _SearchProductsState extends State<SearchProducts>
                                   color: Colors.white,
                                   shape: const CircleBorder(),
                                   elevation: 2,
-                                  child: const Padding(
-                                    padding: EdgeInsets.all(6),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(6),
                                     child: Icon(
                                       Icons.check_circle,
-                                      color: Color(0xFFEC407A),
+                                      color: primary,
                                       size: 20,
                                     ),
                                   ),
@@ -430,8 +420,8 @@ class _SearchProductsState extends State<SearchProducts>
                           horizontal: 16,
                           vertical: 12,
                         ),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEC407A),
+                        decoration: BoxDecoration(
+                          color: primary,
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(12),
                           ),
@@ -454,7 +444,7 @@ class _SearchProductsState extends State<SearchProducts>
                                 onPressed: _submitSelection,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                  foregroundColor: const Color(0xFFEC407A),
+                                  foregroundColor: primary,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),

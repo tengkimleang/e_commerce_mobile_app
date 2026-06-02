@@ -33,7 +33,7 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC0C6E);
+    final accent = Theme.of(context).colorScheme.primary;
     final canSave = _addressController.text.trim().isNotEmpty;
 
     return Scaffold(
@@ -99,8 +99,8 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
                 );
                 setState(() {});
               },
-              icon: const Icon(Icons.my_location, color: accent),
-              label: const Text(
+              icon: Icon(Icons.my_location, color: accent),
+              label: Text(
                 'Use Current Location',
                 style: TextStyle(color: accent, fontWeight: FontWeight.w600),
               ),

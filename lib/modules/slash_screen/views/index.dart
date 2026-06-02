@@ -91,7 +91,7 @@ class _IndexViewState extends State<IndexView> {
   }
 
   List<PopupMenuEntry<_BurgerMenuAction>> _buildBurgerMenuItems() {
-    const accent = Color(0xFFEC0C6E);
+    final accent = Theme.of(context).colorScheme.primary;
     final options = <_BurgerMenuItemData>[
       if (_isAuthenticated)
         const _BurgerMenuItemData(
@@ -218,7 +218,7 @@ class _IndexViewState extends State<IndexView> {
   }
 
   Future<void> _showLogoutBottomSheet() async {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
     final shouldLogout = await showModalBottomSheet<bool>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -316,7 +316,7 @@ class _IndexViewState extends State<IndexView> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFEC407A),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0,
         flexibleSpace: Padding(
           padding: const EdgeInsets.only(

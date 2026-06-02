@@ -63,10 +63,10 @@ class ProductCarouselSection extends StatelessWidget {
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: onViewAllTap,
-                    child: const Text(
+                    child: Text(
                       'View all',
                       style: TextStyle(
-                        color: Color(0xFFEC407A),
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),

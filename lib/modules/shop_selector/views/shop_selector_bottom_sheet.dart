@@ -90,7 +90,7 @@ class _ShopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const accent = Color(0xFFEC407A);
+    final accent = Theme.of(context).colorScheme.primary;
 
     return InkWell(
       onTap: () => Navigator.of(context).pop(shop),
@@ -150,7 +150,7 @@ class _ShopCard extends StatelessWidget {
                             Container(
                               width: 30,
                               height: 30,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: accent,
                                 shape: BoxShape.circle,
                               ),
@@ -161,7 +161,7 @@ class _ShopCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'CHIP MONG',
                                 maxLines: 1,
@@ -182,7 +182,7 @@ class _ShopCard extends StatelessWidget {
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: accent,
                               fontWeight: FontWeight.w700,
@@ -216,7 +216,7 @@ class _ShopCard extends StatelessWidget {
                                 color: const Color(0xFFFDE3EF),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
@@ -224,7 +224,7 @@ class _ShopCard extends StatelessWidget {
                                     size: 12,
                                     color: accent,
                                   ),
-                                  SizedBox(width: 4),
+                                  const SizedBox(width: 4),
                                   Text(
                                     'Login required',
                                     style: TextStyle(

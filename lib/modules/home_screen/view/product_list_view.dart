@@ -128,9 +128,11 @@ class _ProductListViewState extends State<ProductListView> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.calendar_today,
-                                            color: Color(0xFFEC407A),
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                             size: 16,
                                           ),
                                           const SizedBox(width: 6),
@@ -169,11 +171,11 @@ class _ProductListViewState extends State<ProductListView> {
                           ),
                         ),
                         if (_loading)
-                          const SliverFillRemaining(
+                          SliverFillRemaining(
                             hasScrollBody: false,
                             child: Center(
                               child: CircularProgressIndicator(
-                                color: Color(0xFFEC407A),
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           )

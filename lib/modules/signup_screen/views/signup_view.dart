@@ -70,6 +70,7 @@ class _SignupViewState extends State<SignupView> {
     required String phoneNumber,
     required String message,
   }) async {
+    final primary = Theme.of(context).colorScheme.primary;
     final shouldActivate = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -82,14 +83,10 @@ class _SignupViewState extends State<SignupView> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+                color: primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.restore_rounded,
-                color: Color(0xFFEC407A),
-                size: 36,
-              ),
+              child: Icon(Icons.restore_rounded, color: primary, size: 36),
             ),
             const SizedBox(height: 16),
             Text(
@@ -118,7 +115,7 @@ class _SignupViewState extends State<SignupView> {
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFEC407A),
+              foregroundColor: primary,
               textStyle: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -157,7 +154,7 @@ class _SignupViewState extends State<SignupView> {
               ? 'Unable to request activation OTP right now.'
               : errorMsg,
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -180,7 +177,7 @@ class _SignupViewState extends State<SignupView> {
         title: 'Request Failed',
         message: 'Unable to request activation OTP right now.',
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -235,7 +232,7 @@ class _SignupViewState extends State<SignupView> {
             fallback: 'Request OTP failed.',
           ),
           icon: Icons.error_outline_rounded,
-          iconColor: const Color(0xFFEC407A),
+          iconColor: Theme.of(context).colorScheme.primary,
         );
         return;
       }
@@ -309,7 +306,7 @@ class _SignupViewState extends State<SignupView> {
         title: 'Request Failed',
         message: e.toString().replaceFirst('Exception: ', ''),
         icon: Icons.error_outline_rounded,
-        iconColor: const Color(0xFFEC407A),
+        iconColor: Theme.of(context).colorScheme.primary,
       );
     }
   }
@@ -361,7 +358,7 @@ class _SignupViewState extends State<SignupView> {
             child: TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
+                foregroundColor: Theme.of(context).colorScheme.primary,
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -386,6 +383,7 @@ class _SignupViewState extends State<SignupView> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final isShortScreen = MediaQuery.sizeOf(context).height < 700;
     final logoSize = isShortScreen ? 126.0 : 180.0;
 
@@ -491,8 +489,8 @@ class _SignupViewState extends State<SignupView> {
                       ),
                       TextSpan(
                         text: 'Terms of Use',
-                        style: const TextStyle(
-                          color: Color(0xFFEC407A),
+                        style: TextStyle(
+                          color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _termsTapRecognizer,
@@ -500,8 +498,8 @@ class _SignupViewState extends State<SignupView> {
                       const TextSpan(text: ' and the '),
                       TextSpan(
                         text: 'Privacy Policy',
-                        style: const TextStyle(
-                          color: Color(0xFFEC407A),
+                        style: TextStyle(
+                          color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _privacyTapRecognizer,
@@ -522,7 +520,7 @@ class _SignupViewState extends State<SignupView> {
                       child: ElevatedButton(
                         onPressed: isButtonEnabled ? _submit : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEC407A),
+                          backgroundColor: primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
