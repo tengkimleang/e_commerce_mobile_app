@@ -1,4 +1,3 @@
-import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
 enum OrderStep { requesting, picking, delivering, delivered }
@@ -17,6 +16,7 @@ class OrderStepBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final currentIndex = OrderStep.values.indexOf(currentStep);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -29,13 +29,14 @@ class OrderStepBar extends StatelessWidget {
                   icon: _steps[i].icon,
                   isActive: i <= currentIndex,
                   isCurrent: i == currentIndex,
+                  activeColor: primary,
                 ),
                 if (i < _steps.length - 1)
                   Expanded(
                     child: Container(
                       height: 3,
                       color: i < currentIndex
-                          ? AppColors.primary
+                          ? primary
                           : Colors.grey.shade300,
                     ),
                   ),
@@ -62,7 +63,7 @@ class OrderStepBar extends StatelessWidget {
                           ? FontWeight.w700
                           : FontWeight.w400,
                       color: i == currentIndex
-                          ? AppColors.primary
+                          ? primary
                           : Colors.black45,
                     ),
                   ),
@@ -80,15 +81,17 @@ class _StepCircle extends StatelessWidget {
     required this.icon,
     required this.isActive,
     required this.isCurrent,
+    required this.activeColor,
   });
 
   final IconData icon;
   final bool isActive;
   final bool isCurrent;
+  final Color activeColor;
 
   @override
   Widget build(BuildContext context) {
-    final bg = isActive ? AppColors.primary : Colors.grey.shade300;
+    final bg = isActive ? activeColor : Colors.grey.shade300;
     final fg = isActive ? Colors.white : Colors.grey.shade500;
     return Container(
       width: 42,
@@ -99,7 +102,7 @@ class _StepCircle extends StatelessWidget {
         boxShadow: isCurrent
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
+                  color: activeColor.withValues(alpha: 0.35),
                   blurRadius: 8,
                   spreadRadius: 1,
                 ),

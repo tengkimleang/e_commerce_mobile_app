@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/maps/map_marker_icons.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
-import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/models/order_summary.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/services/directions_service.dart';
@@ -145,6 +144,8 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     final order = _order;
     final formattedDate = DateFormat(_dateFormat).format(order.orderDate);
 
@@ -182,7 +183,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
       polylines.add(
         Polyline(
           polylineId: const PolylineId('route'),
-          color: AppColors.primary,
+          color: primary,
           width: 4,
           points: _polylinePoints,
         ),
@@ -192,7 +193,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
     final initialCamera = shopLatLng ?? deliveryLatLng;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           // ── Map + title overlay ──────────────────────────────────────────
@@ -399,9 +400,9 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              const Icon(
+                              Icon(
                                 Icons.bookmark,
-                                color: AppColors.primary,
+                                color: primary,
                                 size: 16,
                               ),
                               const SizedBox(width: 4),

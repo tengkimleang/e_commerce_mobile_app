@@ -1,5 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 import 'package:flutter/material.dart';
 
@@ -131,6 +130,7 @@ class _ProductOrderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     final qtyLabel = showPickedCount
         ? 'x 0/${item.quantity}'
         : 'x ${item.quantity}';
@@ -200,10 +200,10 @@ class _ProductOrderRow extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             '\$ ${displayedPrice.toStringAsFixed(2)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+              color: primary,
             ),
           ),
         ],
