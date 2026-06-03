@@ -416,56 +416,59 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
   }) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+      builder: (dialogContext) {
+        final primary = Theme.of(dialogContext).colorScheme.primary;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 36),
               ),
-              child: Icon(icon, color: iconColor, size: 36),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                height: 1.4,
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFEC407A),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.4,
                 ),
               ),
-              child: const Text('OK'),
-            ),
+              const SizedBox(height: 20),
+            ],
           ),
-        ],
-      ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                style: TextButton.styleFrom(
+                  foregroundColor: primary,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('OK'),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -505,8 +508,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -547,13 +552,13 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       style: TextStyle(fontSize: 16, color: Color(0xFF4A4A4A)),
                     ),
                     const SizedBox(height: 32),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Old PIN',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Color(0xFFEC407A),
+                          color: primary,
                         ),
                       ),
                     ),
@@ -565,13 +570,13 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       autofocusFirst: true,
                     ),
                     const SizedBox(height: 28),
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'New PIN',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Color(0xFFEC407A),
+                          color: primary,
                         ),
                       ),
                     ),
@@ -606,7 +611,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                 if (states.contains(WidgetState.disabled)) {
                   return const Color(0xFFA6A6A8);
                 }
-                return const Color(0xFFEC407A);
+                return primary;
               }),
               foregroundColor: WidgetStateProperty.all(Colors.white),
               shape: WidgetStateProperty.all(
@@ -668,6 +673,7 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
@@ -678,12 +684,12 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFFEC407A).withValues(alpha: 0.12),
+              color: primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.lock_clock_rounded,
-              color: Color(0xFFEC407A),
+              color: primary,
               size: 36,
             ),
           ),
@@ -704,10 +710,10 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
             valueListenable: widget.countdownNotifier,
             builder: (_, seconds, __) => Text(
               widget.formatCountdown(seconds),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFFEC407A),
+                color: primary,
                 letterSpacing: 4,
               ),
             ),
