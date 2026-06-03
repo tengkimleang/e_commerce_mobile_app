@@ -73,8 +73,7 @@ class _NavItemTile extends StatelessWidget {
                 fontSize: 10,
                 color: color,
                 fontFamily: 'Battambang',
-                fontWeight:
-                    isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

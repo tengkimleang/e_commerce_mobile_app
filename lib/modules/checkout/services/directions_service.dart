@@ -7,7 +7,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class DirectionsService {
   // Dedicated Dio with no baseUrl/auth headers — only for Google APIs.
   DirectionsService([Dio? dio])
-    : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
+    : _dio =
+          dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
 
   final Dio _dio;
 
@@ -15,7 +16,7 @@ class DirectionsService {
   final String _apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
   // Routes API (new) — replaces the legacy Directions API.
   static const _routesUrl =
-    'https://routes.googleapis.com/directions/v2:computeRoutes';
+      'https://routes.googleapis.com/directions/v2:computeRoutes';
 
   /// Returns a list of [LatLng] points representing the driving route between
   /// [origin] and [destination]. Returns an empty list on failure.
@@ -66,7 +67,8 @@ class DirectionsService {
 
       final encodedPoints =
           ((routes[0] as Map<String, dynamic>)['polyline']
-                  as Map<String, dynamic>?)?['encodedPolyline'] as String?;
+                  as Map<String, dynamic>?)?['encodedPolyline']
+              as String?;
       if (encodedPoints == null || encodedPoints.isEmpty) return [];
 
       final decoded = PolylinePoints().decodePolyline(encodedPoints);
@@ -75,7 +77,9 @@ class DirectionsService {
           .toList(growable: false);
     } on DioException catch (e) {
       debugPrint('[DirectionsService] DioException: ${e.type} — ${e.message}');
-      debugPrint('[DirectionsService] Response: ${e.response?.statusCode} ${e.response?.data}');
+      debugPrint(
+        '[DirectionsService] Response: ${e.response?.statusCode} ${e.response?.data}',
+      );
       return [];
     } catch (e) {
       debugPrint('[DirectionsService] Unexpected error: $e');

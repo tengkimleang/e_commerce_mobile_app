@@ -31,8 +31,9 @@ class PrivilegePartnerRepository extends Repository {
       );
 
       final requests = (response.data ?? [])
-          .map((json) =>
-              WholesaleRequest.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => WholesaleRequest.fromJson(json as Map<String, dynamic>),
+          )
           .toList();
 
       return Right(requests);

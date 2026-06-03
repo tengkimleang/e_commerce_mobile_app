@@ -65,10 +65,7 @@ class CountryFlagBadge extends StatelessWidget {
         ],
       ),
       alignment: Alignment.center,
-      child: Text(
-        flag,
-        style: TextStyle(fontSize: size * 0.55),
-      ),
+      child: Text(flag, style: TextStyle(fontSize: size * 0.55)),
     );
   }
 }

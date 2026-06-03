@@ -8,9 +8,8 @@ import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_cache.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_cubit.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_repository.dart';
-import 'package:e_commerce_mobile_app/core/localization/locale_cubit.dart';
+
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -77,7 +76,7 @@ class MyApp extends StatelessWidget {
             initialTheme: initialTheme,
           )..refreshIfStale(force: true),
         ),
-        BlocProvider.value(value: di<LocaleCubit>()),
+        BlocProvider(create: (_) => LanguageCubit(cache: di<LanguageCache>(), initialLanguage: initialLanguage)),
         BlocProvider(create: (_) => CartBloc()),
         BlocProvider(
           create: (_) =>
@@ -139,16 +138,17 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LocaleCubit, Locale>(
-      builder: (context, locale) {
+    return BlocBuilder<LanguageCubit, LanguageState>(
+      builder: (context, languageState) {
         return BlocBuilder<ThemeCubit, ThemeState>(
           buildWhen: (previous, current) =>
               previous.config.revision != current.config.revision,
           builder: (context, state) => MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Chipmong Retail',
-            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-            locale: locale,
+            onGenerateTitle: (context) =>
+                AppLocalizations.of(context)!.appTitle,
+            locale: languageState.locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             theme: AppTheme.fromConfig(state.config),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/wholesale_form_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/search_products.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class WholesaleFormView extends StatefulWidget {
   const WholesaleFormView({super.key});
@@ -295,7 +296,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],
@@ -312,7 +313,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       child: Builder(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: const Text('Wholesale Form'),
+            title: Text(AppLocalizations.of(context)!.wholesaleForm),
             backgroundColor: primary,
             centerTitle: true,
           ),
@@ -392,7 +393,10 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                           ),
                           const SizedBox(height: 16),
 
-                          const Text('Remark', style: TextStyle(fontSize: 14)),
+                          Text(
+                            AppLocalizations.of(context)!.remark,
+                            style: TextStyle(fontSize: 14),
+                          ),
                           const SizedBox(height: 8),
                           _buildField(
                             controller: _remarkController,

@@ -7,6 +7,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../location_screen/views/map_receiving_address_view.dart';
 import '../repositories/loyalty_repository.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class LoyaltyRewardDetailScreen extends StatefulWidget {
   const LoyaltyRewardDetailScreen({
@@ -70,7 +71,11 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
           IconButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share action is coming soon')),
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.shareActionComingSoon,
+                  ),
+                ),
               );
             },
             icon: const Icon(Icons.ios_share_outlined),
@@ -127,7 +132,7 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Redeem'),
+                      : Text(AppLocalizations.of(context)!.redeem),
                 ),
               ),
             ),
@@ -1094,7 +1099,11 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             child: TextButton.icon(
                               onPressed: _openDeliveryAddressPicker,
                               icon: const Icon(Icons.my_location_rounded),
-                              label: const Text('Use current location'),
+                              label: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.useCurrentLocation,
+                              ),
                             ),
                           ),
                         ],
@@ -1136,7 +1145,9 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        child: const Text('Confirm Redemption'),
+                        child: Text(
+                          AppLocalizations.of(context)!.confirmRedemption,
+                        ),
                       ),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ProductCarouselSection extends StatelessWidget {
   final String title;
@@ -64,7 +65,7 @@ class ProductCarouselSection extends StatelessWidget {
                   GestureDetector(
                     onTap: onViewAllTap,
                     child: Text(
-                      'View all',
+                      AppLocalizations.of(context)!.viewAll,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontSize: 13,

@@ -14,6 +14,7 @@ import '../widget/loyalty_widget/tier_card.dart';
 import '../widget/loyalty_widget/tier_progress_header.dart';
 import 'loyalty_item_exchanged_detail_screen.dart';
 import 'loyalty_reward_detail_screen.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class LoyaltyCardDetailResult {
   const LoyaltyCardDetailResult({
@@ -504,8 +505,8 @@ class _LoyaltyCardDetailScreenState extends State<LoyaltyCardDetailScreen>
       debugPrint('[LoyaltyCardDetailScreen] reward card tap failed: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open reward detail right now.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.unableToOpenRewardDetail),
         ),
       );
     }

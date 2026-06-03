@@ -13,6 +13,7 @@ import '../../../core/theme/app_theme.dart';
 import '../blocs/address_bloc.dart';
 import '../blocs/address_event.dart';
 import '../models/delivery_address.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class AddAddressScreen extends StatefulWidget {
   const AddAddressScreen({
@@ -453,8 +454,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Resolved address display
-                  const Text(
-                    'Address',
+                  Text(
+                    AppLocalizations.of(context)!.address,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -520,8 +521,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  const Text(
-                    'Label',
+                  Text(
+                    AppLocalizations.of(context)!.label,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -562,8 +563,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                               : null,
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Default Delivery Address',
+                        Text(
+                          AppLocalizations.of(context)!.defaultDeliveryAddress,
                           style: TextStyle(
                             fontSize: 15,
                             color: Colors.black87,
@@ -601,8 +602,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             ),
           ),
-          child: const Text(
-            'Save',
+          child: Text(
+            AppLocalizations.of(context)!.save,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),

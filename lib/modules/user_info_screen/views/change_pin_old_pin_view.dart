@@ -6,6 +6,7 @@ import 'package:e_commerce_mobile_app/core/services/biometric/biometric_login_co
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ChangePinOldPinView extends StatefulWidget {
   const ChangePinOldPinView({super.key, required this.phoneNumber});
@@ -419,7 +420,9 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
       builder: (dialogContext) {
         final primary = Theme.of(dialogContext).colorScheme.primary;
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -436,7 +439,10 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
               const SizedBox(height: 16),
               Text(
                 title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -463,7 +469,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ),
           ],
@@ -556,10 +562,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Old PIN',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: primary,
-                        ),
+                        style: TextStyle(fontSize: 16, color: primary),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -574,10 +577,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'New PIN',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: primary,
-                        ),
+                        style: TextStyle(fontSize: 16, color: primary),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -687,11 +687,7 @@ class _PinLockAlertDialogState extends State<_PinLockAlertDialog> {
               color: primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.lock_clock_rounded,
-              color: primary,
-              size: 36,
-            ),
+            child: Icon(Icons.lock_clock_rounded, color: primary, size: 36),
           ),
           const SizedBox(height: 16),
           const Text(

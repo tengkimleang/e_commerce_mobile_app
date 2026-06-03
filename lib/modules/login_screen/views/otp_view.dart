@@ -8,6 +8,7 @@ import 'package:e_commerce_mobile_app/modules/login_screen/views/set_pin_view.da
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 enum AuthFlow { login, signup, forgotPin, reactivation }
 
@@ -917,7 +918,7 @@ class _OtpViewState extends State<OtpView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],

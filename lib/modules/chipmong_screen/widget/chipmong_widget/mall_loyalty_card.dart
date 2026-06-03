@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../models/chipmong_mall_model.dart';
 import '../loyalty_widget/loyalty_models.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class MallLoyaltyCard extends StatelessWidget {
   const MallLoyaltyCard({super.key, required this.info});
@@ -139,7 +140,7 @@ class MallLoyaltyCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 13),
                 Text(
-                  'Available points',
+                  AppLocalizations.of(context)!.availablePoints,
                   style: theme.bodySmall?.copyWith(
                     color: AppColors.textSecondary,
                     fontSize: 12,

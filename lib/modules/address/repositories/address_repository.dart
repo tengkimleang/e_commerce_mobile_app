@@ -91,8 +91,12 @@ class AddressRepository implements IAddressRepository {
     final db = await _openDb();
     await db.transaction((txn) async {
       await txn.update(_table, {'is_default': 0});
-      await txn.update(_table, {'is_default': 1},
-          where: 'id = ?', whereArgs: [id]);
+      await txn.update(
+        _table,
+        {'is_default': 1},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
     });
   }
 }

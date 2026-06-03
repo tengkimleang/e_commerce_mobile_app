@@ -5,8 +5,8 @@ class FavoriteState {
     Map<String, ProductModel> itemsById = const {},
     this.isLoaded = false,
     Set<String> pendingSyncIds = const {},
-  })  : _itemsById = itemsById,
-        _pendingSyncIds = pendingSyncIds;
+  }) : _itemsById = itemsById,
+       _pendingSyncIds = pendingSyncIds;
 
   final Map<String, ProductModel> _itemsById;
   final bool isLoaded;

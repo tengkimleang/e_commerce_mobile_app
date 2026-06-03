@@ -28,10 +28,7 @@ class NotificationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return BlocProvider<NotificationPromotionsCubit>(
       create: (_) => NotificationPromotionsCubit(
         repository: promotionsRepository ?? _resolvePromotionsRepository(),
@@ -477,10 +474,7 @@ class _NotificationPromotionErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Center(
       child: Column(
@@ -512,10 +506,7 @@ class _NotificationTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return ColoredBox(
       color: Colors.white,
@@ -545,9 +536,7 @@ class _NotificationTabs extends StatelessWidget {
             Tab(child: _NotificationTabLabel(l10n?.order ?? 'Order')),
             Tab(child: _NotificationTabLabel(l10n?.promotion ?? 'Promotion')),
             Tab(
-              child: _NotificationTabLabel(
-                l10n?.promoteCode ?? 'Promote Code',
-              ),
+              child: _NotificationTabLabel(l10n?.promoteCode ?? 'Promote Code'),
             ),
           ],
         ),
@@ -578,10 +567,7 @@ class _NotificationEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Center(
       child: Column(

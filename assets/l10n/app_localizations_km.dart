@@ -405,4 +405,83 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get searchProduct => 'ស្វែងរកផលិតផល';
+
+  @override
+  String get shareActionComingSoon => 'មុខងារចែករំលែកនឹងមកដល់ឆាប់ៗនេះ';
+
+  @override
+  String get unableToOpenLoyaltyCard =>
+      'មិនអាចបើកព័ត៌មានលម្អិតកាតសមាជិកពេលនេះទេ។';
+
+  @override
+  String get unableToOpenRewardDetail =>
+      'មិនអាចបើកព័ត៌មានលម្អិតរង្វាន់ពេលនេះទេ។';
+
+  @override
+  String get redeem => 'ប្តូរយករង្វាន់';
+
+  @override
+  String get useCurrentLocation => 'ប្រើទីតាំងបច្ចុប្បន្ន';
+
+  @override
+  String get confirmRedemption => 'បញ្ជាក់ការប្តូររង្វាន់';
+
+  @override
+  String get failedToLoadMoreProducts => 'បរាជ័យក្នុងការទាញយកផលិតផលបន្ថែម';
+
+  @override
+  String get orderCanceledSuccessfully => 'ការបញ្ជាទិញត្រូវបានលុបចោលដោយជោគជ័យ។';
+
+  @override
+  String get cancelOrder => 'លុបចោលការបញ្ជាទិញ';
+
+  @override
+  String get yourRecentPurchaseHistory => 'ប្រវត្តិការទិញថ្មីៗរបស់អ្នក';
+
+  @override
+  String get filterByStatus => 'ចម្រាញ់តាមស្ថានភាព';
+
+  @override
+  String get chipMongMall => 'ផ្សារទំនើបជីពម៉ុង';
+
+  @override
+  String get shoppingGlobalBrand => 'ទិញទំនិញម៉ាកល្បីៗជុំវិញពិភពលោក';
+
+  @override
+  String get chipMongSupermarket => 'ផ្សារទំនើបជីពម៉ុង Supermarket';
+
+  @override
+  String get exploreOurMarketplace => 'ស្វែងរកទំនិញក្នុងទីផ្សាររបស់យើង។';
+
+  @override
+  String get address => 'អាសយដ្ឋាន';
+
+  @override
+  String get label => 'ស្លាកសញ្ញា';
+
+  @override
+  String get defaultDeliveryAddress => 'អាសយដ្ឋានដឹកជញ្ជូនលំនាំដើម';
+
+  @override
+  String get save => 'រក្សាទុក';
+
+  @override
+  String get receivingAddress => 'អាសយដ្ឋានទទួល';
+
+  @override
+  String get qrCode => 'កូដ QR';
+
+  @override
+  String get qrSavedToGallery =>
+      'កូដ QR ត្រូវបានរក្សាទុកក្នុងវិចិត្រសាល/រូបថត។';
+
+  @override
+  String get savedOnDeviceForOfflineDisplay =>
+      'បានរក្សាទុកនៅលើឧបករណ៍នេះសម្រាប់ការបង្ហាញពេលគ្មានអ៊ីនធឺណិត។';
+
+  @override
+  String get availablePoints => 'ពិន្ទុដែលមាន';
+
+  @override
+  String get viewAll => 'មើលទាំងអស់';
 }

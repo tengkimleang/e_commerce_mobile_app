@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class DeleteAccountPinView extends StatefulWidget {
   const DeleteAccountPinView({super.key});
@@ -222,7 +223,7 @@ class _DeleteAccountPinViewState extends State<DeleteAccountPinView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],

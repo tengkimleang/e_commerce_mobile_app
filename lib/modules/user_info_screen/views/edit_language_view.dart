@@ -33,7 +33,7 @@ class _LanguageBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sheetHeight = MediaQuery.of(context).size.height * 0.5;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: sheetHeight,

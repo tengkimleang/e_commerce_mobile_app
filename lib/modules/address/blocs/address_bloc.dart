@@ -20,11 +20,13 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     try {
       final addresses = await _repository.getAll();
       final defaultAddress = addresses.where((a) => a.isDefault).firstOrNull;
-      emit(state.copyWith(
-        addresses: addresses,
-        selectedAddress: defaultAddress,
-        status: AddressStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          addresses: addresses,
+          selectedAddress: defaultAddress,
+          status: AddressStatus.success,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: AddressStatus.failure));
     }
@@ -34,46 +36,60 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     try {
       await _repository.insert(event.address);
       final addresses = await _repository.getAll();
-      emit(state.copyWith(
-        addresses: addresses,
-        selectedAddress: event.address.isDefault ? event.address : state.selectedAddress,
-        status: AddressStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          addresses: addresses,
+          selectedAddress: event.address.isDefault
+              ? event.address
+              : state.selectedAddress,
+          status: AddressStatus.success,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: AddressStatus.failure));
     }
   }
 
-  Future<void> _onUpdate(UpdateAddress event, Emitter<AddressState> emit) async {
+  Future<void> _onUpdate(
+    UpdateAddress event,
+    Emitter<AddressState> emit,
+  ) async {
     try {
       await _repository.update(event.address);
       final addresses = await _repository.getAll();
       final updated = state.selectedAddress?.id == event.address.id
           ? event.address
           : state.selectedAddress;
-      emit(state.copyWith(
-        addresses: addresses,
-        selectedAddress: updated,
-        status: AddressStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          addresses: addresses,
+          selectedAddress: updated,
+          status: AddressStatus.success,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: AddressStatus.failure));
     }
   }
 
-  Future<void> _onDelete(DeleteAddress event, Emitter<AddressState> emit) async {
+  Future<void> _onDelete(
+    DeleteAddress event,
+    Emitter<AddressState> emit,
+  ) async {
     try {
       await _repository.delete(event.id);
       final addresses = await _repository.getAll();
       final stillSelected = state.selectedAddress?.id == event.id
           ? null
           : state.selectedAddress;
-      emit(state.copyWith(
-        addresses: addresses,
-        selectedAddress: stillSelected,
-        clearSelected: stillSelected == null,
-        status: AddressStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          addresses: addresses,
+          selectedAddress: stillSelected,
+          clearSelected: stillSelected == null,
+          status: AddressStatus.success,
+        ),
+      );
     } catch (_) {
       emit(state.copyWith(status: AddressStatus.failure));
     }

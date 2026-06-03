@@ -22,8 +22,9 @@ class AddressState extends Equatable {
   }) {
     return AddressState(
       addresses: addresses ?? this.addresses,
-      selectedAddress:
-          clearSelected ? null : (selectedAddress ?? this.selectedAddress),
+      selectedAddress: clearSelected
+          ? null
+          : (selectedAddress ?? this.selectedAddress),
       status: status ?? this.status,
     );
   }

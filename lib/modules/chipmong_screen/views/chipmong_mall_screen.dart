@@ -18,6 +18,7 @@ import '../models/chipmong_mall_model.dart';
 import 'chipmong_mall_promotion_detail_screen.dart';
 import 'loyalty_card_detail_screen.dart';
 import '../../qr_code_screen/views/qr_code_view.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 // ---------------------------------------------------------------------------
 // Entry-point widget — provides the BLoC to the subtree
@@ -115,8 +116,8 @@ class _ChipmongMallViewState extends State<_ChipmongMallView>
       debugPrint('[ChipmongMallScreen] failed to open loyalty detail: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open loyalty card detail right now.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.unableToOpenLoyaltyCard),
         ),
       );
     }

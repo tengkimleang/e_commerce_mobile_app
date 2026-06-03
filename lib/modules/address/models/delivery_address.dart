@@ -77,7 +77,8 @@ class DeliveryAddress extends Equatable {
       nameAddress: map['name_address'] as String,
       address: map['address'] as String,
       phoneNumber: map['phone_number'] as String,
-      label: AddressLabel.values[labelIndex.clamp(0, AddressLabel.values.length - 1)],
+      label: AddressLabel
+          .values[labelIndex.clamp(0, AddressLabel.values.length - 1)],
       isDefault: isDefault,
       latitude: rawLat is num
           ? rawLat.toDouble()
@@ -90,13 +91,13 @@ class DeliveryAddress extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        nameAddress,
-        address,
-        phoneNumber,
-        label,
-        isDefault,
-        latitude,
-        longitude,
-      ];
+    id,
+    nameAddress,
+    address,
+    phoneNumber,
+    label,
+    isDefault,
+    latitude,
+    longitude,
+  ];
 }

@@ -12,6 +12,7 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_mod
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ShopCategoryProductView extends StatefulWidget {
   const ShopCategoryProductView({
@@ -174,7 +175,9 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
     } catch (_) {
       if (!mounted || requestId != _requestSerial) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load more products')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.failedToLoadMoreProducts),
+        ),
       );
     } finally {
       if (mounted && requestId == _requestSerial) {

@@ -83,9 +83,7 @@ class UserInfoModel {
   }) {
     return UserInfoModel(
       username: username ?? this.username,
-      dateOfBirth: clearDateOfBirth
-          ? null
-          : (dateOfBirth ?? this.dateOfBirth),
+      dateOfBirth: clearDateOfBirth ? null : (dateOfBirth ?? this.dateOfBirth),
       languageCode: languageCode ?? this.languageCode,
       profileImagePath: clearProfileImagePath
           ? null

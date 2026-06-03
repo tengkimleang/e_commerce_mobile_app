@@ -51,10 +51,7 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final currentShopId = _effectiveShopId;
     final isCurrentShopLoaded = _loadedShopId == currentShopId;
     if (!isCurrentShopLoaded) {
@@ -206,10 +203,7 @@ class _ShopByCategoryError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(

@@ -126,10 +126,7 @@ class _SupermarketNavigationRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return SafeArea(
       right: false,
@@ -185,10 +182,7 @@ class _BottomNavItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final accent = colorScheme.primary;
     const inactiveColor = Color(0xFF6F6A73);
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final label = _destinationLabel(l10n, destination.index);
 
     return InkResponse(

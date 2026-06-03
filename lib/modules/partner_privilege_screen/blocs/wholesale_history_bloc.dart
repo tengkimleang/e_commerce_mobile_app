@@ -11,7 +11,7 @@ class WholesaleHistoryBloc
   final PrivilegePartnerRepository _repository;
 
   WholesaleHistoryBloc(this._repository)
-      : super(const WholesaleHistoryState()) {
+    : super(const WholesaleHistoryState()) {
     on<WholesaleHistoryFetch>(_onFetch);
     on<WholesaleHistoryLoadMore>(_onLoadMore);
   }
@@ -21,28 +21,33 @@ class WholesaleHistoryBloc
     WholesaleHistoryFetch event,
     Emitter<WholesaleHistoryState> emit,
   ) async {
-    emit(state.copyWith(
-      status: WholesaleHistoryStatus.loading,
-      requests: const [],
-      currentPage: 1,
-      hasMore: true,
-      isLoadingMore: false,
-    ));
+    emit(
+      state.copyWith(
+        status: WholesaleHistoryStatus.loading,
+        requests: const [],
+        currentPage: 1,
+        hasMore: true,
+        isLoadingMore: false,
+      ),
+    );
 
-    final result =
-        await _repository.getRequests(page: 1, pageSize: _pageSize);
+    final result = await _repository.getRequests(page: 1, pageSize: _pageSize);
 
     result.fold(
-      (error) => emit(state.copyWith(
-        status: WholesaleHistoryStatus.failure,
-        errorMessage: error.message ?? 'Failed to load history',
-      )),
-      (requests) => emit(state.copyWith(
-        status: WholesaleHistoryStatus.success,
-        requests: requests,
-        currentPage: 1,
-        hasMore: requests.length >= _pageSize,
-      )),
+      (error) => emit(
+        state.copyWith(
+          status: WholesaleHistoryStatus.failure,
+          errorMessage: error.message ?? 'Failed to load history',
+        ),
+      ),
+      (requests) => emit(
+        state.copyWith(
+          status: WholesaleHistoryStatus.success,
+          requests: requests,
+          currentPage: 1,
+          hasMore: requests.length >= _pageSize,
+        ),
+      ),
     );
   }
 
@@ -62,16 +67,20 @@ class WholesaleHistoryBloc
     );
 
     result.fold(
-      (error) => emit(state.copyWith(
-        isLoadingMore: false,
-        errorMessage: error.message ?? 'Failed to load more',
-      )),
-      (newItems) => emit(state.copyWith(
-        isLoadingMore: false,
-        requests: [...state.requests, ...newItems],
-        currentPage: nextPage,
-        hasMore: newItems.length >= _pageSize,
-      )),
+      (error) => emit(
+        state.copyWith(
+          isLoadingMore: false,
+          errorMessage: error.message ?? 'Failed to load more',
+        ),
+      ),
+      (newItems) => emit(
+        state.copyWith(
+          isLoadingMore: false,
+          requests: [...state.requests, ...newItems],
+          currentPage: nextPage,
+          hasMore: newItems.length >= _pageSize,
+        ),
+      ),
     );
   }
 }

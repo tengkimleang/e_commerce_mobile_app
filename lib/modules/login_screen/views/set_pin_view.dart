@@ -8,6 +8,7 @@ import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 enum PinSetupFlow { signup, forgotPin, reactivation }
 
@@ -573,7 +574,7 @@ class _SetPinViewState extends State<SetPinView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ReceivingAddressView extends StatefulWidget {
   const ReceivingAddressView({super.key, this.initialAddress = ''});
@@ -46,8 +47,8 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.arrow_back_ios_new, size: 22),
         ),
-        title: const Text(
-          'Receiving address',
+        title: Text(
+          AppLocalizations.of(context)!.receivingAddress,
           style: TextStyle(
             fontSize: 21,
             fontWeight: FontWeight.w700,
@@ -60,8 +61,8 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Address',
+            Text(
+              AppLocalizations.of(context)!.address,
               style: TextStyle(
                 fontSize: 15,
                 color: Color(0xFF8E8B96),
@@ -101,7 +102,7 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
               },
               icon: Icon(Icons.my_location, color: accent),
               label: Text(
-                'Use Current Location',
+                AppLocalizations.of(context)!.useCurrentLocation,
                 style: TextStyle(color: accent, fontWeight: FontWeight.w600),
               ),
             ),

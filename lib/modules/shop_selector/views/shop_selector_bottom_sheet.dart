@@ -61,7 +61,7 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                     crossAxisCount: 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.62,
+                    childAspectRatio: 0.60,
                   ),
                   itemCount: shops.length,
                   itemBuilder: (context, index) {
@@ -101,12 +101,26 @@ class _ShopCard extends StatelessWidget {
     final accent = Theme.of(context).colorScheme.primary;
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
+    String storeName = shop.displayStoreName.isNotEmpty
+        ? shop.displayStoreName
+        : 'CHIP MONG';
+        
+    String mainTitle = 'CHIP MONG';
+    String subTitle = shop.displayBranchLabel;
+
+    if (storeName.toLowerCase().startsWith('chip mong')) {
+      String remaining = storeName.substring('chip mong'.length).trim();
+      if (remaining.isNotEmpty) {
+        subTitle = remaining;
+      }
+    }
+
     return InkWell(
       onTap: () => Navigator.of(context).pop(shop),
       borderRadius: BorderRadius.circular(16),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final imageRatio = showGuestLock ? 0.48 : 0.55;
+          final imageRatio = showGuestLock ? 0.45 : 0.50;
           final imageHeight = (constraints.maxHeight * imageRatio).clamp(
             104.0,
             150.0,
@@ -117,11 +131,7 @@ class _ShopCard extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: selected
-                    ? accent
-                    : (showGuestLock
-                          ? const Color(0xFFF0C0D3)
-                          : const Color(0xFFE4E4E4)),
+                color: selected ? accent : Colors.transparent,
                 width: selected ? 2 : 1,
               ),
               boxShadow: [
@@ -132,124 +142,132 @@ class _ShopCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: shop.imageUrl,
-                    height: imageHeight,
-                    fit: BoxFit.cover,
-                    placeholder: (c, s) => Container(color: Colors.grey[200]),
-                    errorWidget: (c, s, e) =>
-                        Container(color: Colors.grey[300]),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(15),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: shop.imageUrl,
+                        height: imageHeight,
+                        fit: BoxFit.cover,
+                        placeholder: (c, s) => Container(color: Colors.grey[200]),
+                        errorWidget: (c, s, e) => Container(color: Colors.grey[300]),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color: accent,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.storefront,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
+                            Padding(
+                              padding: const EdgeInsets.only(left: 58),
                               child: Text(
-                                shop.displayStoreName.isNotEmpty
-                                    ? shop.displayStoreName
-                                    : 'CHIP MONG',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                mainTitle,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 16,
                                   color: accent,
                                   fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 2),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                subTitle.toUpperCase(),
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: accent,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            if (shop.distanceKm != null)
+                              Text(
+                                '${shop.distanceKm!.toStringAsFixed(2)} Km',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.black45,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            if (showGuestLock) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFDE3EF),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.lock_outline,
+                                      size: 10,
+                                      color: accent,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      l10n?.loginRequired ?? 'Login required',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: accent,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 4),
-                        Center(
-                          child: Text(
-                            shop.displayBranchLabel,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: accent,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.4,
-                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  left: 12,
+                  top: imageHeight - 24,
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/icons/icon.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (c, e, s) => Container(
+                            color: accent,
+                            child: const Icon(Icons.storefront, color: Colors.white, size: 24),
                           ),
                         ),
-                        if (shop.distanceKm != null) ...[
-                          const SizedBox(height: 4),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              '${shop.distanceKm!.toStringAsFixed(2)} Km',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black45,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                        if (showGuestLock) ...[
-                          const SizedBox(height: 4),
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFDE3EF),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.lock_outline,
-                                    size: 12,
-                                    color: accent,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    l10n?.loginRequired ?? 'Login required',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: accent,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

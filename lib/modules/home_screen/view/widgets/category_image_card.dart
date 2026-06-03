@@ -5,11 +5,7 @@ class CategoryImageCard extends StatelessWidget {
   final String imageUrl;
   final VoidCallback? onTap;
 
-  const CategoryImageCard({
-    super.key,
-    required this.imageUrl,
-    this.onTap,
-  });
+  const CategoryImageCard({super.key, required this.imageUrl, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +31,8 @@ class CategoryImageCard extends StatelessWidget {
             height: double.infinity,
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(color: Colors.grey[200]),
-            errorWidget: (context, url, error) => Container(color: Colors.grey[300]),
+            errorWidget: (context, url, error) =>
+                Container(color: Colors.grey[300]),
           ),
         ),
       ),

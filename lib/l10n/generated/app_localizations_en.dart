@@ -418,4 +418,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get countryFrance => 'France';
+
+  @override
+  String get shareActionComingSoon => 'Share action is coming soon';
+
+  @override
+  String get unableToOpenLoyaltyCard =>
+      'Unable to open loyalty card detail right now.';
+
+  @override
+  String get unableToOpenRewardDetail =>
+      'Unable to open reward detail right now.';
+
+  @override
+  String get redeem => 'Redeem';
+
+  @override
+  String get useCurrentLocation => 'Use current location';
+
+  @override
+  String get confirmRedemption => 'Confirm Redemption';
+
+  @override
+  String get failedToLoadMoreProducts => 'Failed to load more products';
+
+  @override
+  String get orderCanceledSuccessfully => 'Order canceled successfully.';
+
+  @override
+  String get cancelOrder => 'Cancel Order';
+
+  @override
+  String get yourRecentPurchaseHistory => 'Your recent purchase history';
+
+  @override
+  String get filterByStatus => 'Filter by status';
+
+  @override
+  String get chipMongMall => 'Chip Mong Mall';
+
+  @override
+  String get shoppingGlobalBrand => 'Shopping global brand';
+
+  @override
+  String get chipMongSupermarket => 'Chip Mong Supermarket';
+
+  @override
+  String get exploreOurMarketplace => 'Explore our marketplace.';
+
+  @override
+  String get label => 'Label';
+
+  @override
+  String get defaultDeliveryAddress => 'Default Delivery Address';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get receivingAddress => 'Receiving address';
+
+  @override
+  String get qrCode => 'QR Code';
+
+  @override
+  String get qrSavedToGallery => 'QR saved to Gallery/Photos.';
+
+  @override
+  String get savedOnDeviceForOfflineDisplay =>
+      'Saved on this device for offline display.';
+
+  @override
+  String get availablePoints => 'Available points';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get phoneNumberLabel => 'Phone Number';
+
+  @override
+  String get loginOrSignup => 'Login or Signup';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get wholesaleForm => 'Wholesale Form';
+
+  @override
+  String get pleaseEnterNameAndPhone => 'Please enter name and phone.';
+
+  @override
+  String get invalidPhone => 'Invalid Phone';
+
+  @override
+  String get submissionFailed => 'Submission Failed';
+
+  @override
+  String get somethingWentWrongTryAgain =>
+      'Something went wrong. Please try again.';
+
+  @override
+  String get requestSubmitted => 'Request Submitted!';
+
+  @override
+  String get wholesaleRequestSuccess =>
+      'Your wholesale request has been submitted successfully. Our team will contact you shortly.';
+
+  @override
+  String get customerName => 'Customer Name';
+
+  @override
+  String get searchProduct => 'Search product';
 }

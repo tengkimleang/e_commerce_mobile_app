@@ -123,7 +123,7 @@ class _UserInfoViewState extends State<UserInfoView> {
               .watch<LanguageCubit>()
               .state
               .languageCode;
-          final l10n = AppLocalizations.of(context);
+          final l10n = AppLocalizations.of(context)!;
           final String address = userInfo.address.trim();
           final bool isVerified = userInfo.isVerified;
           final String profileImageUrl = userInfo.profileImageUrl.trim();

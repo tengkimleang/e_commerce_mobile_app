@@ -17,6 +17,7 @@ import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/pin_login_view.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class _ReactivateOtpLaunch {
   const _ReactivateOtpLaunch({
@@ -106,7 +107,7 @@ class LoginView extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],
@@ -463,7 +464,7 @@ class _LoginContentState extends State<_LoginContent> {
                         );
                       },
                       child: Text(
-                        AppLocalizations.of(context).signUp,
+                        AppLocalizations.of(context)!.signUp,
                         style: TextStyle(
                           color: primary,
                           fontSize: 16,
@@ -516,7 +517,7 @@ class _LoginContentState extends State<_LoginContent> {
                       color: Colors.black87,
                     ),
                     children: [
-                      TextSpan(text: AppLocalizations.of(context).phoneNumber),
+                      TextSpan(text: AppLocalizations.of(context)!.phoneNumber),
                       TextSpan(
                         text: '*',
                         style: TextStyle(color: primary),
@@ -533,7 +534,9 @@ class _LoginContentState extends State<_LoginContent> {
                       keyboardType: TextInputType.phone,
                       textAlignVertical: TextAlignVertical.center,
                       decoration: InputDecoration(
-                        hintText: AppLocalizations.of(context).enterPhoneNumber,
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.enterPhoneNumber,
                         hintStyle: TextStyle(color: Colors.grey[500]),
                         filled: true,
                         fillColor: Colors.grey.shade50,

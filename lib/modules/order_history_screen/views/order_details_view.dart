@@ -6,6 +6,7 @@ import 'package:e_commerce_mobile_app/modules/checkout/widgets/product_order_sec
 import 'package:e_commerce_mobile_app/modules/checkout/repositories/orders_repository.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class OrderDetailsView extends StatefulWidget {
   const OrderDetailsView({
@@ -108,7 +109,11 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
       if (!mounted) return;
       setState(() => _order = updated);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order canceled successfully.')),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.orderCanceledSuccessfully,
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -186,7 +191,11 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text('Cancel Order'),
+                                      : Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.cancelOrder,
+                                        ),
                                 ),
                               ),
                             ),

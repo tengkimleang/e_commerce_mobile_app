@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../models/chipmong_mall_model.dart';
 import 'loyalty_models.dart';
 import 'tier_badge.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class TierCard extends StatelessWidget {
   const TierCard({super.key, required this.tier, required this.info});
@@ -88,7 +89,7 @@ class _ActiveContent extends StatelessWidget {
         ),
         const Spacer(),
         Text(
-          'Available points',
+          AppLocalizations.of(context)!.availablePoints,
           style: TextStyle(
             fontSize: 11,
             color: Colors.grey[500],

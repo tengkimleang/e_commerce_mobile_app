@@ -823,6 +823,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search product'**
   String get searchProduct;
+
+  /// No description provided for @shareActionComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Share action is coming soon'**
+  String get shareActionComingSoon;
+
+  /// No description provided for @unableToOpenLoyaltyCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open loyalty card detail right now.'**
+  String get unableToOpenLoyaltyCard;
+
+  /// No description provided for @unableToOpenRewardDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open reward detail right now.'**
+  String get unableToOpenRewardDetail;
+
+  /// No description provided for @redeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get redeem;
+
+  /// No description provided for @useCurrentLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use current location'**
+  String get useCurrentLocation;
+
+  /// No description provided for @confirmRedemption.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Redemption'**
+  String get confirmRedemption;
+
+  /// No description provided for @failedToLoadMoreProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load more products'**
+  String get failedToLoadMoreProducts;
+
+  /// No description provided for @orderCanceledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Order canceled successfully.'**
+  String get orderCanceledSuccessfully;
+
+  /// No description provided for @cancelOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Order'**
+  String get cancelOrder;
+
+  /// No description provided for @yourRecentPurchaseHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Your recent purchase history'**
+  String get yourRecentPurchaseHistory;
+
+  /// No description provided for @filterByStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by status'**
+  String get filterByStatus;
+
+  /// No description provided for @chipMongMall.
+  ///
+  /// In en, this message translates to:
+  /// **'Chip Mong Mall'**
+  String get chipMongMall;
+
+  /// No description provided for @shoppingGlobalBrand.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping global brand'**
+  String get shoppingGlobalBrand;
+
+  /// No description provided for @chipMongSupermarket.
+  ///
+  /// In en, this message translates to:
+  /// **'Chip Mong Supermarket'**
+  String get chipMongSupermarket;
+
+  /// No description provided for @exploreOurMarketplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore our marketplace.'**
+  String get exploreOurMarketplace;
+
+  /// No description provided for @address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get address;
+
+  /// No description provided for @label.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get label;
+
+  /// No description provided for @defaultDeliveryAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Delivery Address'**
+  String get defaultDeliveryAddress;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @receivingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving address'**
+  String get receivingAddress;
+
+  /// No description provided for @qrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR Code'**
+  String get qrCode;
+
+  /// No description provided for @qrSavedToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'QR saved to Gallery/Photos.'**
+  String get qrSavedToGallery;
+
+  /// No description provided for @savedOnDeviceForOfflineDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device for offline display.'**
+  String get savedOnDeviceForOfflineDisplay;
+
+  /// No description provided for @availablePoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Available points'**
+  String get availablePoints;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAll;
 }
 
 class _AppLocalizationsDelegate

@@ -56,7 +56,9 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
     // GS1 Digital Link URL — extract digits after /01/
     final urlMatch = RegExp(r'/01/0*([1-9]\d+|\d)(?:[/?]|$)').firstMatch(raw);
     if (urlMatch != null) {
-      debugPrint('[SCANNER] GS1 Digital Link detected, extracted: "${urlMatch.group(1)}"');
+      debugPrint(
+        '[SCANNER] GS1 Digital Link detected, extracted: "${urlMatch.group(1)}"',
+      );
       return urlMatch.group(1)!;
     }
     // (01)XXXXXXXXXXXXXX
@@ -73,7 +75,9 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
     final raw = capture.barcodes.firstOrNull?.rawValue;
     if (raw == null || raw.isEmpty) return;
     debugPrint('[SCANNER] Detected barcode raw value: "$raw"');
-    debugPrint('[SCANNER] Barcode format: ${capture.barcodes.firstOrNull?.format}');
+    debugPrint(
+      '[SCANNER] Barcode format: ${capture.barcodes.firstOrNull?.format}',
+    );
     final value = _parseBarcode(raw);
     debugPrint('[SCANNER] Parsed barcode: "$value"');
     _processing = true;
@@ -93,7 +97,8 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
       if (raw == null || raw.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('No barcode found in the selected image')),
+            content: Text('No barcode found in the selected image'),
+          ),
         );
         return;
       }
@@ -116,10 +121,7 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
       body: Stack(
         children: [
           // ── Camera feed ──────────────────────────────────
-          MobileScanner(
-            controller: _scanner,
-            onDetect: _onDetect,
-          ),
+          MobileScanner(controller: _scanner, onDetect: _onDetect),
 
           // ── Dark overlay with transparent scan box ───────
           CustomPaint(
@@ -168,8 +170,11 @@ class _ScanBarcodeViewState extends State<ScanBarcodeView>
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.chevron_left,
-                        color: Colors.white, size: 32),
+                    icon: const Icon(
+                      Icons.chevron_left,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const Expanded(
@@ -261,11 +266,7 @@ class _OverlayPainter extends CustomPainter {
     void drawCorner(double x, double y, double startAngle) {
       // Arc
       canvas.drawArc(
-        Rect.fromCenter(
-          center: Offset(x, y),
-          width: r * 2,
-          height: r * 2,
-        ),
+        Rect.fromCenter(center: Offset(x, y), width: r * 2, height: r * 2),
         startAngle,
         math.pi / 2,
         false,

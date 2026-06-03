@@ -26,16 +26,16 @@ class ChipmongMallState {
   });
 
   const ChipmongMallState.initial()
-      : promotions = const [],
-        programs = const [],
-        news = const [],
-        loyaltyInfo = chipmongMallDefaultLoyalty,
-        bannerImages = const [],
-        selectedTabIndex = 0,
-        bottomNavIndex = 0,
-        isLoading = true,
-        selectedBranch = 'CHIP MONG 271 MEGA MALL',
-        errorMessage = null;
+    : promotions = const [],
+      programs = const [],
+      news = const [],
+      loyaltyInfo = chipmongMallDefaultLoyalty,
+      bannerImages = const [],
+      selectedTabIndex = 0,
+      bottomNavIndex = 0,
+      isLoading = true,
+      selectedBranch = 'CHIP MONG 271 MEGA MALL',
+      errorMessage = null;
 
   List<ChipmongMallPromotion> get currentTabItems {
     switch (selectedTabIndex) {

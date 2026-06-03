@@ -19,8 +19,7 @@ class TierProgressHeader extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final safeCurrentPage =
-        currentPage.clamp(0, tiers.length - 1).toInt();
+    final safeCurrentPage = currentPage.clamp(0, tiers.length - 1).toInt();
     final prev = safeCurrentPage > 0 ? tiers[safeCurrentPage - 1] : null;
     final curr = tiers[safeCurrentPage];
     final next = safeCurrentPage < tiers.length - 1

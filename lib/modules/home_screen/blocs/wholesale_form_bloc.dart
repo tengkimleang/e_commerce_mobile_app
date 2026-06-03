@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 part 'wholesale_form_event.dart';
 part 'wholesale_form_state.dart';
 
-class WholesaleFormBloc
-    extends Bloc<WholesaleFormEvent, WholesaleFormState> {
+class WholesaleFormBloc extends Bloc<WholesaleFormEvent, WholesaleFormState> {
   WholesaleFormBloc() : super(const WholesaleFormState()) {
     on<AddSelectedProducts>(_onAddSelectedProducts);
     on<RemoveSelectedProduct>(_onRemoveSelectedProduct);
@@ -30,22 +29,17 @@ class WholesaleFormBloc
     RemoveSelectedProduct event,
     Emitter<WholesaleFormState> emit,
   ) {
-    final updated =
-        state.selectedProducts.where((e) => e['id'] != event.id).toList();
+    final updated = state.selectedProducts
+        .where((e) => e['id'] != event.id)
+        .toList();
     emit(state.copyWith(selectedProducts: updated));
   }
 
-  void _onSetPhoneValid(
-    SetPhoneValid event,
-    Emitter<WholesaleFormState> emit,
-  ) {
+  void _onSetPhoneValid(SetPhoneValid event, Emitter<WholesaleFormState> emit) {
     emit(state.copyWith(isPhoneValid: event.isValid));
   }
 
-  void _onSetSubmitting(
-    SetSubmitting event,
-    Emitter<WholesaleFormState> emit,
-  ) {
+  void _onSetSubmitting(SetSubmitting event, Emitter<WholesaleFormState> emit) {
     emit(state.copyWith(isSubmitting: event.isSubmitting));
   }
 }

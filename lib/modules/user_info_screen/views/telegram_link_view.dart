@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 /// Screen that guides the user through linking their Telegram account as an
 /// OTP fallback channel.
@@ -66,7 +67,8 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
       final success = result['success'] == true;
 
       if (errorCode.isNotEmpty || !success) {
-        final isAuthError = errorCode == 'AUTH401' ||
+        final isAuthError =
+            errorCode == 'AUTH401' ||
             errorCode == 'HTTP401' ||
             errorCode == 'UNAUTHORIZED';
         final msg = isAuthError
@@ -85,10 +87,10 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
           ? Map<String, dynamic>.from(result['data'] as Map)
           : result;
 
-      final code =
-          (data['code'] ?? result['code'] ?? '').toString().trim();
-      final botUsername =
-          (data['botUsername'] ?? result['botUsername'] ?? '').toString().trim();
+      final code = (data['code'] ?? result['code'] ?? '').toString().trim();
+      final botUsername = (data['botUsername'] ?? result['botUsername'] ?? '')
+          .toString()
+          .trim();
 
       if (code.isEmpty) {
         setState(() {
@@ -109,7 +111,8 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
       _startPolling();
     } on DioException catch (e) {
       if (!mounted) return;
-      final isNetwork = e.type == DioExceptionType.connectionError ||
+      final isNetwork =
+          e.type == DioExceptionType.connectionError ||
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout;
@@ -163,7 +166,9 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open Telegram. Please try manually.')),
+          const SnackBar(
+            content: Text('Could not open Telegram. Please try manually.'),
+          ),
         );
       }
     }
@@ -171,9 +176,9 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
 
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Code copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Code copied to clipboard')));
   }
 
   @override
@@ -212,16 +217,11 @@ class _TelegramLinkViewState extends State<TelegramLinkView> {
     }
 
     if (_errorMessage.isNotEmpty) {
-      return _ErrorState(
-        message: _errorMessage,
-        onRetry: _requestCode,
-      );
+      return _ErrorState(message: _errorMessage, onRetry: _requestCode);
     }
 
     if (_isLinked) {
-      return _SuccessState(
-        onDone: () => Navigator.of(context).pop(true),
-      );
+      return _SuccessState(onDone: () => Navigator.of(context).pop(true));
     }
 
     if (_isTimedOut) {
@@ -352,10 +352,7 @@ class _LinkingInstructions extends StatelessWidget {
             const SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(
-                color: accent,
-                strokeWidth: 2,
-              ),
+              child: CircularProgressIndicator(color: accent, strokeWidth: 2),
             ),
             const SizedBox(width: 10),
             Text(
@@ -453,7 +450,10 @@ class _SuccessState extends StatelessWidget {
               ),
             ),
             onPressed: onDone,
-            child: const Text('Done', style: TextStyle(fontSize: 16)),
+            child: Text(
+              AppLocalizations.of(context)!.done,
+              style: TextStyle(fontSize: 16),
+            ),
           ),
         ),
       ],

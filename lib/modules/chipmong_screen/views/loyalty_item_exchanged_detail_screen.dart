@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
   const LoyaltyItemExchangedDetailScreen({super.key, required this.exchange});
@@ -281,7 +282,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ),
@@ -345,10 +346,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
       width: 82,
       height: 82,
       color: AppColors.primary.withAlpha(14),
-      child: Icon(
-        Icons.image_outlined,
-        color: AppColors.primary.withAlpha(90),
-      ),
+      child: Icon(Icons.image_outlined, color: AppColors.primary.withAlpha(90)),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/maps/address_search_view.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class MapReceivingAddressResult {
   const MapReceivingAddressResult({
@@ -449,8 +450,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Address',
+              Text(
+                AppLocalizations.of(context)!.address,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -502,8 +503,8 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Text(
-                    'Save',
+                  child: Text(
+                    AppLocalizations.of(context)!.save,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                   ),
                 ),

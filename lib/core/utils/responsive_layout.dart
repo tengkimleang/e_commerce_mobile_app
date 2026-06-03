@@ -149,8 +149,8 @@ class ResponsiveCenter extends StatelessWidget {
         final availableWidth = constraints.maxWidth.isFinite
             ? constraints.maxWidth
             : windowWidth;
-        final effectiveWidth = maxWidth ??
-            AppResponsive.maxContentWidthForWidth(availableWidth);
+        final effectiveWidth =
+            maxWidth ?? AppResponsive.maxContentWidthForWidth(availableWidth);
 
         return Align(
           alignment: alignment,
@@ -169,9 +169,9 @@ class AppScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-        ...super.dragDevices,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
+    ...super.dragDevices,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.invertedStylus,
+  };
 }

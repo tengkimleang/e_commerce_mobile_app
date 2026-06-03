@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 Future<DateTime?> showDateOfBirthPickerDialog(
   BuildContext context, {
@@ -123,8 +124,8 @@ class _DateOfBirthDialogState extends State<_DateOfBirthDialog> {
                 onPressed: () {
                   Navigator.of(widget.dialogContext).pop(_selectedDate);
                 },
-                child: const Text(
-                  'Save',
+                child: Text(
+                  AppLocalizations.of(context)!.save,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w500,

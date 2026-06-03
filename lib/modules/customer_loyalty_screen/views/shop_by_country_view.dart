@@ -13,10 +13,8 @@ class CountryEntry {
   final String flag;
   const CountryEntry({required this.name, required this.flag});
 
-  String displayName(AppLocalizations? l10n) => _localizedCountryName(
-    l10n,
-    name,
-  );
+  String displayName(AppLocalizations? l10n) =>
+      _localizedCountryName(l10n, name);
 }
 
 // Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
@@ -88,10 +86,7 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = Localizations.of<AppLocalizations>(
-      context,
-      AppLocalizations,
-    );
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/chipmong_mall_model.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ChipmongMallPromotionDetailScreen extends StatefulWidget {
   const ChipmongMallPromotionDetailScreen({super.key, required this.promo});
@@ -69,7 +70,11 @@ class _ChipmongMallPromotionDetailScreenState
           IconButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share action is coming soon')),
+                SnackBar(
+                  content: Text(
+                    AppLocalizations.of(context)!.shareActionComingSoon,
+                  ),
+                ),
               );
             },
             icon: const Icon(Icons.ios_share_outlined),

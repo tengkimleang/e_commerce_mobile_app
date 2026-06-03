@@ -19,6 +19,7 @@ import 'package:e_commerce_mobile_app/modules/order_track/views/order_track_scre
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 enum _OrderStatusFilter {
   all,
@@ -388,7 +389,7 @@ class _OrderHistoryHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Orders',
+                        AppLocalizations.of(context)!.orders,
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: const Color(0xFF15131A),
@@ -399,7 +400,7 @@ class _OrderHistoryHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Your recent purchase history',
+                        AppLocalizations.of(context)!.yourRecentPurchaseHistory,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: const Color(0xFF7A7780),
                           fontSize: 15,
@@ -617,8 +618,8 @@ class _OrderStatusFilterSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
-                const Text(
-                  'Filter by status',
+                Text(
+                  AppLocalizations.of(context)!.filterByStatus,
                   style: TextStyle(
                     color: Color(0xFF1D1B24),
                     fontSize: 18,

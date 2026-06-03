@@ -18,6 +18,7 @@ import '../../chipmong_screen/views/chipmong_mall_screen.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
 import '../../user_info_screen/views/edit_language_view.dart';
 import '../../login_screen/views/login_view.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class IndexView extends StatefulWidget {
   const IndexView({super.key});
@@ -94,7 +95,7 @@ class _IndexViewState extends State<IndexView> {
 
   List<PopupMenuEntry<_BurgerMenuAction>> _buildBurgerMenuItems() {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final languageCode = context.read<LanguageCubit>().state.languageCode;
     final options = <_BurgerMenuItemData>[
       if (_isAuthenticated)
@@ -223,7 +224,7 @@ class _IndexViewState extends State<IndexView> {
 
   Future<void> _showLogoutBottomSheet() async {
     final accent = Theme.of(context).colorScheme.primary;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final shouldLogout = await showModalBottomSheet<bool>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -347,8 +348,8 @@ class _IndexViewState extends State<IndexView> {
                         MaterialPageRoute(builder: (_) => const LoginView()),
                       );
                     },
-                    child: const Text(
-                      'Login or Signup',
+                    child: Text(
+                      AppLocalizations.of(context)!.loginOrSignup,
                       style: TextStyle(fontSize: 15, color: Colors.white),
                     ),
                   ),

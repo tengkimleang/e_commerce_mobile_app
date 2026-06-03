@@ -7,6 +7,7 @@ import '../blocs/address_event.dart';
 import '../blocs/address_state.dart';
 import '../models/delivery_address.dart';
 import 'add_address_screen.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ReceivingAddressScreen extends StatelessWidget {
   const ReceivingAddressScreen({super.key});
@@ -27,8 +28,8 @@ class ReceivingAddressScreen extends StatelessWidget {
             color: Colors.black87,
           ),
         ),
-        title: const Text(
-          'Receiving address',
+        title: Text(
+          AppLocalizations.of(context)!.receivingAddress,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -234,8 +235,8 @@ class _UseCurrentLocationButton extends StatelessWidget {
               borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
             ),
           ),
-          child: const Text(
-            'Use Current Location',
+          child: Text(
+            AppLocalizations.of(context)!.useCurrentLocation,
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           ),
         ),

@@ -400,11 +400,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              Icon(
-                                Icons.bookmark,
-                                color: primary,
-                                size: 16,
-                              ),
+                              Icon(Icons.bookmark, color: primary, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 '${order.deliveryAddress.nameAddress} , ${order.deliveryAddress.phoneNumber}',

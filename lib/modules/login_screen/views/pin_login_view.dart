@@ -13,6 +13,7 @@ import 'package:e_commerce_mobile_app/modules/slash_screen/views/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class PinLoginView extends StatefulWidget {
   const PinLoginView({super.key, required this.phoneNumber});
@@ -894,7 +895,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],

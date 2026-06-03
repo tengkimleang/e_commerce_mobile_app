@@ -11,7 +11,6 @@ class TierBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final grad = tier.badgeGradient;
     return Container(
-      
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: grad == null ? tier.badgeColor : null,
@@ -23,9 +22,9 @@ class TierBadge extends StatelessWidget {
               )
             : null,
         borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
-                    ),
+          bottomLeft: Radius.circular(10),
+          topRight: Radius.circular(10),
+        ),
         boxShadow: grad != null
             ? [
                 BoxShadow(
@@ -39,11 +38,7 @@ class TierBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.workspace_premium,
-            color: Colors.white,
-            size: 13,
-          ),
+          const Icon(Icons.workspace_premium, color: Colors.white, size: 13),
           const SizedBox(width: 4),
           Text(
             tier.name.toUpperCase(),

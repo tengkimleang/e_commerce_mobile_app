@@ -38,7 +38,9 @@ class LoyaltyFilterBar extends StatelessWidget {
                       duration: const Duration(milliseconds: 170),
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 6),
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primary

@@ -16,6 +16,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/repositories/user
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
 import '../models/mall_membership_qr_model.dart';
 import '../repositories/mall_membership_qr_repository.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class QrCodeView extends StatefulWidget {
   final bool showBottomNavigation;
@@ -254,7 +255,7 @@ class _QrHeader extends StatelessWidget {
           height: 86,
           child: Center(
             child: Text(
-              'QR Code',
+              AppLocalizations.of(context)!.qrCode,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: accent,
                 fontWeight: FontWeight.w700,
@@ -492,7 +493,9 @@ class _QrCodeBodyState extends State<QrCodeBody> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('QR saved to Gallery/Photos.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.qrSavedToGallery),
+        ),
       );
     } catch (_) {
       if (!mounted) return;
@@ -614,10 +617,12 @@ class _QrCodeBodyState extends State<QrCodeBody> {
                         ),
                       ),
                     if ((_savedQrPath ?? '').isNotEmpty)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(top: 12),
                         child: Text(
-                          'Saved on this device for offline display.',
+                          AppLocalizations.of(
+                            context,
+                          )!.savedOnDeviceForOfflineDisplay,
                           style: TextStyle(
                             fontSize: 12,
                             color: Color(0xFF8E8E8E),
@@ -718,8 +723,8 @@ class _MallPointsBanner extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Available points',
+              Text(
+                AppLocalizations.of(context)!.availablePoints,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 13,

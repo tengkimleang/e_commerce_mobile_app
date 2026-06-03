@@ -9,6 +9,7 @@ import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_c
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class SignupView extends StatefulWidget {
   const SignupView({super.key, this.initialPhoneNumber});
@@ -364,7 +365,7 @@ class _SignupViewState extends State<SignupView> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ),
         ],
@@ -420,7 +421,10 @@ class _SignupViewState extends State<SignupView> {
                   ),
                 ),
                 SizedBox(height: isShortScreen ? 12 : 18),
-                const Text('Phone number', style: TextStyle(fontSize: 15)),
+                Text(
+                  AppLocalizations.of(context)!.phoneNumberLabel,
+                  style: TextStyle(fontSize: 15),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _phoneController,
