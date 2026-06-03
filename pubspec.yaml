@@ -67,7 +67,6 @@ flutter:
     - assets/icons/logo.png
     - assets/images/profile.png
     - assets/images/
-    - assets/l10n/
 
   fonts:
     - family: Inter

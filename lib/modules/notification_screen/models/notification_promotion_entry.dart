@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 
 enum NotificationPromotionType { category, content }
 
@@ -8,6 +9,12 @@ class NotificationPromotionEntry extends Equatable {
     required this.type,
     required this.title,
     required this.description,
+    this.titleEn = '',
+    this.titleKm = '',
+    this.descriptionEn = '',
+    this.descriptionKm = '',
+    this.contentEn = '',
+    this.contentKm = '',
     required this.imageUrl,
     this.categoryId,
     this.displayOrder,
@@ -21,6 +28,12 @@ class NotificationPromotionEntry extends Equatable {
   final NotificationPromotionType type;
   final String title;
   final String description;
+  final String titleEn;
+  final String titleKm;
+  final String descriptionEn;
+  final String descriptionKm;
+  final String contentEn;
+  final String contentKm;
   final String imageUrl;
   final int? categoryId;
   final int? displayOrder;
@@ -31,6 +44,30 @@ class NotificationPromotionEntry extends Equatable {
 
   bool get isCategory => type == NotificationPromotionType.category;
   bool get isContent => type == NotificationPromotionType.content;
+  String get displayTitle => displayTitleFor(AppLanguage.currentLanguageCode);
+  String get displayDescription =>
+      displayDescriptionFor(AppLanguage.currentLanguageCode);
+
+  String displayTitleFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: titleEn,
+    khmer: titleKm,
+    legacy: title,
+  );
+
+  String displayDescriptionFor(String languageCode) =>
+      AppLanguage.localizedText(
+        languageCode: languageCode,
+        english: descriptionEn,
+        khmer: descriptionKm,
+        legacy: description,
+      );
+
+  String displayContentFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: contentEn,
+    khmer: contentKm,
+  );
 
   factory NotificationPromotionEntry.fromJson(Map<String, dynamic> json) {
     final typeText = _asString(json['type']).toLowerCase();
@@ -45,6 +82,15 @@ class NotificationPromotionEntry extends Equatable {
       type: type,
       title: _asString(json['title']),
       description: _asString(json['description']),
+      titleEn: _firstNonEmpty([json['titleEn'], json['title']]),
+      titleKm: _asString(json['titleKm']),
+      descriptionEn: _firstNonEmpty([
+        json['descriptionEn'],
+        json['description'],
+      ]),
+      descriptionKm: _asString(json['descriptionKm']),
+      contentEn: _asString(json['contentEn']),
+      contentKm: _asString(json['contentKm']),
       imageUrl: _asString(json['imageUrl']),
       categoryId: _asInt(json['categoryId']),
       displayOrder: _asInt(json['displayOrder']),
@@ -60,6 +106,14 @@ class NotificationPromotionEntry extends Equatable {
   static String _asString(dynamic value) {
     if (value == null) return '';
     return value.toString().trim();
+  }
+
+  static String _firstNonEmpty(List<dynamic> values) {
+    for (final value in values) {
+      final text = _asString(value);
+      if (text.isNotEmpty) return text;
+    }
+    return '';
   }
 
   static int? _asInt(dynamic value) {
@@ -86,6 +140,12 @@ class NotificationPromotionEntry extends Equatable {
     type,
     title,
     description,
+    titleEn,
+    titleKm,
+    descriptionEn,
+    descriptionKm,
+    contentEn,
+    contentKm,
     imageUrl,
     categoryId,
     displayOrder,

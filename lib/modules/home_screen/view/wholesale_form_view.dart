@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,7 +66,12 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
     bloc.add(const SetSubmitting(true));
     try {
       final selected = bloc.state.selectedProducts;
-      final dio = Dio(BaseOptions(baseUrl: ApiUrl.baseUrl));
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: ApiUrl.baseUrl,
+          headers: {'Accept-Language': AppLanguage.currentLanguageCode},
+        ),
+      );
       final payload = {
         'customerName': customerName,
         'phoneNumber': phoneNumber,

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 
 class ShopByCategoryModel extends Equatable {
   const ShopByCategoryModel({
@@ -19,7 +20,13 @@ class ShopByCategoryModel extends Equatable {
   final int displayOrder;
   final bool isActive;
 
-  String get displayTitle => titleKm.isNotEmpty ? titleKm : titleEn;
+  String get displayTitle => displayTitleFor(AppLanguage.currentLanguageCode);
+
+  String displayTitleFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: titleEn,
+    khmer: titleKm,
+  );
 
   factory ShopByCategoryModel.fromJson(Map<String, dynamic> json) {
     final titleEn = _firstNonEmpty([

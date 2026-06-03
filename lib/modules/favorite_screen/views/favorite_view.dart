@@ -4,6 +4,7 @@ import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -12,6 +13,10 @@ class FavoriteView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F3),
       appBar: AppBar(
@@ -26,9 +31,9 @@ class FavoriteView extends StatelessWidget {
             color: Color(0xFF1D1B24),
           ),
         ),
-        title: const Text(
-          'Favorites',
-          style: TextStyle(
+        title: Text(
+          l10n?.favorites ?? 'Favorites',
+          style: const TextStyle(
             fontSize: 21,
             fontWeight: FontWeight.w700,
             color: Color(0xFF1D1B24),
@@ -102,6 +107,10 @@ class _EmptyFavoriteState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return Center(
       child: Column(
@@ -142,7 +151,7 @@ class _EmptyFavoriteState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No favorite products yet',
+            l10n?.noFavoriteProductsYet ?? 'No favorite products yet',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: accent.withValues(alpha: 0.65),
               fontWeight: FontWeight.w700,

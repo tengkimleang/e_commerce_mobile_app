@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 
 class CategoryModel extends Equatable {
@@ -28,15 +29,31 @@ class CategoryModel extends Equatable {
     this.promotionDisplayOrder,
   });
 
-  /// Shows Khmer name when available, falls back to English.
-  String get displayTitle => nameKm.isNotEmpty ? nameKm : nameEn;
+  /// Shows the selected app language when available, with rollout fallbacks.
+  String get displayTitle => displayTitleFor(AppLanguage.currentLanguageCode);
+
+  String displayTitleFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: nameEn,
+    khmer: nameKm,
+  );
 
   /// Formats promo date range as "1-31 មេសា" using the exact end day from BE.
   String? get promoLabel {
     if (promoStartAt == null || promoEndAt == null) return null;
     const khmerMonths = [
-      'មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា',
-      'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ',
+      'មករា',
+      'កុម្ភៈ',
+      'មីនា',
+      'មេសា',
+      'ឧសភា',
+      'មិថុនា',
+      'កក្កដា',
+      'សីហា',
+      'កញ្ញា',
+      'តុលា',
+      'វិច្ឆិកា',
+      'ធ្នូ',
     ];
     return '${promoStartAt!.day}-${promoEndAt!.day} ${khmerMonths[promoEndAt!.month - 1]}';
   }
@@ -49,13 +66,14 @@ class CategoryModel extends Equatable {
       bannerImageUrl: (json['bannerImageUrl'] as String?) ?? '',
       displayOrder: (json['displayOrder'] as int?) ?? 0,
       isActive: (json['isActive'] as bool?) ?? true,
-      promoStartAt: json['promoStartAt'] != null      
+      promoStartAt: json['promoStartAt'] != null
           ? DateTime.tryParse(json['promoStartAt'] as String)?.toLocal()
           : null,
       promoEndAt: json['promoEndAt'] != null
           ? DateTime.tryParse(json['promoEndAt'] as String)?.toLocal()
           : null,
-      previewProducts: (json['previewProducts'] as List<dynamic>?)
+      previewProducts:
+          (json['previewProducts'] as List<dynamic>?)
               ?.map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -66,8 +84,15 @@ class CategoryModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id, nameEn, nameKm, bannerImageUrl, displayOrder, isActive,
-        promoStartAt, promoEndAt, showInPromotion, promotionDisplayOrder,
-      ];
+    id,
+    nameEn,
+    nameKm,
+    bannerImageUrl,
+    displayOrder,
+    isActive,
+    promoStartAt,
+    promoEndAt,
+    showInPromotion,
+    promotionDisplayOrder,
+  ];
 }
-

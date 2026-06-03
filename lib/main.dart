@@ -1,12 +1,16 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cache.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cubit.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_cache.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_cubit.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_repository.dart';
+import 'package:e_commerce_mobile_app/core/localization/locale_cubit.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -26,6 +30,7 @@ import 'package:e_commerce_mobile_app/modules/user_info_screen/services/profile_
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -41,14 +46,24 @@ Future<void> main() async {
             : AppRoutes.index)
       : AppRoutes.login;
   runApp(
-    MyApp(initialRoute: initialRoute, initialTheme: di<ThemeCache>().read()),
+    MyApp(
+      initialRoute: initialRoute,
+      initialTheme: di<ThemeCache>().read(),
+      initialLanguage: di<LanguageCache>().read(),
+    ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.initialRoute, this.initialTheme});
+  const MyApp({
+    super.key,
+    required this.initialRoute,
+    required this.initialLanguage,
+    this.initialTheme,
+  });
 
   final String initialRoute;
+  final String initialLanguage;
   final CachedAppTheme? initialTheme;
 
   @override
@@ -62,6 +77,7 @@ class MyApp extends StatelessWidget {
             initialTheme: initialTheme,
           )..refreshIfStale(force: true),
         ),
+        BlocProvider.value(value: di<LocaleCubit>()),
         BlocProvider(create: (_) => CartBloc()),
         BlocProvider(
           create: (_) =>
@@ -123,17 +139,25 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ThemeState>(
-      buildWhen: (previous, current) =>
-          previous.config.revision != current.config.revision,
-      builder: (context, state) => MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Chipmong Retail',
-        theme: AppTheme.fromConfig(state.config),
-        scrollBehavior: const AppScrollBehavior(),
-        initialRoute: widget.initialRoute,
-        onGenerateRoute: onGenerateRoute,
-      ),
+    return BlocBuilder<LocaleCubit, Locale>(
+      builder: (context, locale) {
+        return BlocBuilder<ThemeCubit, ThemeState>(
+          buildWhen: (previous, current) =>
+              previous.config.revision != current.config.revision,
+          builder: (context, state) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Chipmong Retail',
+            onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+            locale: locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            theme: AppTheme.fromConfig(state.config),
+            scrollBehavior: const AppScrollBehavior(),
+            initialRoute: widget.initialRoute,
+            onGenerateRoute: onGenerateRoute,
+          ),
+        );
+      },
     );
   }
 }

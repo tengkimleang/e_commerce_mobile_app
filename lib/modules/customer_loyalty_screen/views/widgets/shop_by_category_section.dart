@@ -6,6 +6,7 @@ import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/sho
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_by_category_view.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_category_product_view.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/widgets/shop_category_card.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class ShopByCategorySection extends StatefulWidget {
@@ -50,6 +51,10 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     final currentShopId = _effectiveShopId;
     final isCurrentShopLoaded = _loadedShopId == currentShopId;
     if (!isCurrentShopLoaded) {
@@ -73,9 +78,9 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              const Text(
-                'Shop by category',
-                style: TextStyle(
+              Text(
+                l10n?.shopByCategory ?? 'Shop by category',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1D1B24),
@@ -87,7 +92,7 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
                 child: Row(
                   children: [
                     Text(
-                      'View all',
+                      l10n?.viewAll ?? 'View all',
                       style: TextStyle(
                         color: accent,
                         fontSize: 14,
@@ -174,7 +179,11 @@ class _ShopByCategorySectionState extends State<ShopByCategorySection> {
         builder: (_) => ShopByCategoryView(
           shopId: _effectiveShopId,
           title: _effectiveShopName.isEmpty
-              ? 'Shop by category'
+              ? (Localizations.of<AppLocalizations>(
+                      context,
+                      AppLocalizations,
+                    )?.shopByCategory ??
+                    'Shop by category')
               : _effectiveShopName,
         ),
       ),
@@ -197,6 +206,10 @@ class _ShopByCategoryError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -210,16 +223,17 @@ class _ShopByCategoryError extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: Colors.grey, size: 20),
             const SizedBox(width: 8),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Failed to load shop categories',
-                style: TextStyle(color: Colors.black54),
+                l10n?.failedToLoadShopCategories ??
+                    'Failed to load shop categories',
+                style: const TextStyle(color: Colors.black54),
               ),
             ),
             TextButton(
               onPressed: onRetry,
               child: Text(
-                'Retry',
+                l10n?.retry ?? 'Retry',
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),

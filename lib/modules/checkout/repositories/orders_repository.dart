@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
@@ -41,6 +42,7 @@ class OrdersRepository {
     final fallbackAuth = _asString(_dio.options.headers['Authorization']);
     return {
       'Content-Type': 'application/json',
+      'Accept-Language': AppLanguage.currentLanguageCode,
       if (token.isNotEmpty) 'Authorization': 'Bearer $token',
       if (token.isEmpty && fallbackAuth.isNotEmpty)
         'Authorization': fallbackAuth,

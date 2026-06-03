@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_by_country_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // Country model
@@ -12,6 +13,9 @@ class _Country {
   final String name;
   final String flag; // emoji flag
   const _Country({required this.name, required this.flag});
+
+  String displayName(AppLocalizations? l10n) =>
+      _localizedCountryName(l10n, name);
 }
 
 // Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
@@ -82,6 +86,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,9 +96,9 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              const Text(
-                'Shop by country',
-                style: TextStyle(
+              Text(
+                l10n?.shopByCountry ?? 'Shop by country',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,
@@ -110,7 +115,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                 child: Row(
                   children: [
                     Text(
-                      'View all',
+                      l10n?.viewAll ?? 'View all',
                       style: TextStyle(
                         fontSize: 14,
                         color: accent,
@@ -135,7 +140,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               _Chip(
-                label: 'All',
+                label: l10n?.all ?? 'All',
                 selected: _selected == null,
                 onTap: () {
                   setState(() => _selected = null);
@@ -147,7 +152,7 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
                   padding: const EdgeInsets.only(left: 8),
                   child: _Chip(
                     flag: c.flag,
-                    label: c.name.toUpperCase(),
+                    label: c.displayName(l10n).toUpperCase(),
                     selected: _selected == c.name,
                     onTap: () {
                       setState(() => _selected = c.name);
@@ -167,12 +172,12 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
           child: _isLoading
               ? const _CountryProductSkeletonList()
               : _filtered.isEmpty
-              ? const Center(child: Text('No products'))
+              ? Center(child: Text(l10n?.noProducts ?? 'No products'))
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _filtered.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, _) => const SizedBox(width: 12),
                   itemBuilder: (context, index) {
                     final product = _filtered[index];
                     return SizedBox(
@@ -195,6 +200,26 @@ class _ShopByCountrySectionState extends State<ShopByCountrySection> {
       ],
     );
   }
+}
+
+String _localizedCountryName(AppLocalizations? l10n, String countryName) {
+  if (l10n == null) return countryName;
+  return switch (countryName) {
+    'Cambodia' => l10n.countryCambodia,
+    'Canada' => l10n.countryCanada,
+    'Egypt' => l10n.countryEgypt,
+    'South Korea' => l10n.countrySouthKorea,
+    'Japan' => l10n.countryJapan,
+    'China' => l10n.countryChina,
+    'Singapore' => l10n.countrySingapore,
+    'Italy' => l10n.countryItaly,
+    'Spain' => l10n.countrySpain,
+    'Indonesia' => l10n.countryIndonesia,
+    'Argentina' => l10n.countryArgentina,
+    'United States' => l10n.countryUnitedStates,
+    'France' => l10n.countryFrance,
+    _ => countryName,
+  };
 }
 
 class _CountryProductSkeletonList extends StatelessWidget {

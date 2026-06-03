@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/data/product_data.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/customer_loyalty_screen.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/blocs/supermarket_category_event.dart';
@@ -510,6 +511,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   Widget _buildContent(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     if (_selectedIndex != 0) {
       return SupermarketAdaptiveScaffold(
         selectedIndex: _selectedIndex,
@@ -550,9 +552,9 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'Shop at',
-                            style: TextStyle(
+                          Text(
+                            l10n?.shopAt ?? 'Shop at',
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 11,
                               fontWeight: FontWeight.w400,
@@ -562,10 +564,11 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  _selectedShop?.storeName ??
+                                  _selectedShop?.displayStoreName ??
                                       (UserSession.selectedShopName.isNotEmpty
                                           ? UserSession.selectedShopName
-                                          : 'Select Shop'),
+                                          : (l10n?.selectShopFallback ??
+                                                'Select Shop')),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 13,
@@ -712,14 +715,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                         _launchTimer?.cancel();
                         setState(() => _showLaunchPopup = false);
                       },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 8,
                         ),
                         child: Text(
-                          'Skip',
-                          style: TextStyle(color: Colors.white),
+                          l10n?.skip ?? 'Skip',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ),
@@ -762,6 +765,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
   Future<void> _showShopSelectorBottomSheet() async {
     final shopState = context.read<ShopBloc>().state;
     if (shopState is! ShopsLoaded || shopState.shops.isEmpty) return;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     final selected = await showShopSelectorBottomSheet(
       context,
@@ -774,8 +778,10 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     if (_isGuest && !selected.guestAllowed) {
       await showAuthRequiredDialog(
         context,
-        title: 'Branch unavailable',
-        message: 'This branch requires Login or Signup',
+        title: l10n?.branchUnavailable ?? 'Branch unavailable',
+        message:
+            l10n?.branchRequiresLoginOrSignup ??
+            'This branch requires Login or Signup',
       );
       return;
     }
@@ -796,6 +802,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
 
   Widget _buildSearchBar(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Container(
       color: primary,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -815,15 +822,16 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
                     children: [
                       Icon(Icons.search, color: primary),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: const Text(
-                          'Search products, brands and more',
-                          style: TextStyle(color: Colors.grey),
+                        child: Text(
+                          l10n?.searchProductsBrandsMore ??
+                              'Search products, brands and more',
+                          style: const TextStyle(color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -843,6 +851,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
     BuildContext context,
     SupermarketCategoryState categoryState,
   ) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth.isFinite
@@ -937,13 +946,14 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                   isGuest: _isGuest,
                   shopId: _selectedShop?.shopId ?? UserSession.selectedShopId,
                   shopName:
-                      _selectedShop?.storeName ?? UserSession.selectedShopName,
+                      _selectedShop?.displayStoreName ??
+                      UserSession.selectedShopName,
                 ),
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'Partner Privileges',
+                    l10n?.partnerPrivileges ?? 'Partner Privileges',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1051,7 +1061,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Wholesale Price',
+                                    l10n?.wholesalePrice ?? 'Wholesale Price',
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -1063,7 +1073,8 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    'High quality products\nwith special price',
+                                    l10n?.wholesalePriceSubtitle ??
+                                        'High quality products\nwith special price',
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(color: Colors.white70),
                                   ),
@@ -1175,6 +1186,7 @@ class _GuestLoginRequiredTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return SafeArea(
       bottom: false,
       child: Container(
@@ -1207,7 +1219,10 @@ class _GuestLoginRequiredTab extends StatelessWidget {
                   onPressed: () {
                     showAuthRequiredDialog(context);
                   },
-                  child: const Text('Login', style: TextStyle(fontSize: 16)),
+                  child: Text(
+                    l10n?.login ?? 'Login',
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ),

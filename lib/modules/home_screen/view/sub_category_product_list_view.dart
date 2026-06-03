@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 
@@ -100,6 +101,7 @@ class _SubCategoryProductListViewState
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -165,16 +167,20 @@ class _SubCategoryProductListViewState
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _onRefresh,
-                                      child: const Text('Retry'),
+                                      child: Text(l10n?.retry ?? 'Retry'),
                                     ),
                                   ],
                                 ),
                               ),
                             )
                           else if (_products.isEmpty && !_loading)
-                            const SliverFillRemaining(
+                            SliverFillRemaining(
                               hasScrollBody: false,
-                              child: Center(child: Text('No products found')),
+                              child: Center(
+                                child: Text(
+                                  l10n?.noProductsFound ?? 'No products found',
+                                ),
+                              ),
                             )
                           else
                             SliverPadding(

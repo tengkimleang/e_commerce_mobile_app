@@ -1,8 +1,14 @@
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+
 /// Unified product model used across the entire application.
 /// Replaces both the old `ProductItem` and `ProductModel` duplicates.
 class ProductModel {
   final String id;
   final String name;
+  final String nameEn;
+  final String nameKm;
+  final String descriptionEn;
+  final String descriptionKm;
   final double price;
   final double? originalPrice;
   final String imageUrl;
@@ -33,6 +39,10 @@ class ProductModel {
   const ProductModel({
     required this.id,
     required this.name,
+    this.nameEn = '',
+    this.nameKm = '',
+    this.descriptionEn = '',
+    this.descriptionKm = '',
     required this.price,
     this.originalPrice,
     required this.imageUrl,
@@ -50,6 +60,10 @@ class ProductModel {
   ProductModel copyWith({
     String? id,
     String? name,
+    String? nameEn,
+    String? nameKm,
+    String? descriptionEn,
+    String? descriptionKm,
     double? price,
     double? originalPrice,
     String? imageUrl,
@@ -66,6 +80,10 @@ class ProductModel {
     return ProductModel(
       id: id ?? this.id,
       name: name ?? this.name,
+      nameEn: nameEn ?? this.nameEn,
+      nameKm: nameKm ?? this.nameKm,
+      descriptionEn: descriptionEn ?? this.descriptionEn,
+      descriptionKm: descriptionKm ?? this.descriptionKm,
       price: price ?? this.price,
       originalPrice: originalPrice ?? this.originalPrice,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -115,9 +133,17 @@ class ProductModel {
     }
     final rawStockQty = (json['stockQty'] as num?)?.toInt();
 
+    final legacyName = (json['name'] as String?) ?? '';
+    final nameEn = (json['nameEn'] as String?) ?? legacyName;
+    final nameKm = (json['nameKm'] as String?) ?? '';
+
     return ProductModel(
       id: (json['id'] ?? '').toString(),
-      name: (json['name'] as String?) ?? '',
+      name: legacyName,
+      nameEn: nameEn,
+      nameKm: nameKm,
+      descriptionEn: (json['descriptionEn'] as String?) ?? '',
+      descriptionKm: (json['descriptionKm'] as String?) ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       originalPrice: (rawOriginalPrice != null && rawOriginalPrice > 0)
           ? rawOriginalPrice
@@ -147,6 +173,10 @@ class ProductModel {
     return {
       'id': id,
       'name': name,
+      'nameEn': nameEn,
+      'nameKm': nameKm,
+      'descriptionEn': descriptionEn,
+      'descriptionKm': descriptionKm,
       'price': price,
       'originalPrice': originalPrice,
       'imageUrl': imageUrl,
@@ -179,6 +209,22 @@ class ProductModel {
 
     return images;
   }
+
+  String get displayName => displayNameFor(AppLanguage.currentLanguageCode);
+
+  String displayNameFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: nameEn,
+    khmer: nameKm,
+    legacy: name,
+  );
+
+  String displayDescriptionFor(String languageCode) =>
+      AppLanguage.localizedText(
+        languageCode: languageCode,
+        english: descriptionEn,
+        khmer: descriptionKm,
+      );
 
   static List<String> _parseImageUrls(Map<String, dynamic> json) {
     final rawGallery =

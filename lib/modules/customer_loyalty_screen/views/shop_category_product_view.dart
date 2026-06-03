@@ -4,6 +4,7 @@ import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
@@ -322,7 +323,14 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
                 ),
                 TextButton(
                   onPressed: _loadSubCategories,
-                  child: const Text('Retry', style: TextStyle(color: _accent)),
+                  child: Text(
+                    Localizations.of<AppLocalizations>(
+                          context,
+                          AppLocalizations,
+                        )?.retry ??
+                        'Retry',
+                    style: const TextStyle(color: _accent),
+                  ),
                 ),
               ],
             ),
@@ -332,6 +340,7 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
   }
 
   Widget _buildProductContent() {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     if (_loadingProducts && _products.isEmpty) {
       return SkeletonProductGrid(controller: _scrollController);
     }
@@ -340,15 +349,15 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
       return _ScrollableMessage(
         icon: Icons.error_outline,
         message: _productError!,
-        actionLabel: 'Retry',
+        actionLabel: l10n?.retry ?? 'Retry',
         onAction: _fetchFirstPage,
       );
     }
 
     if (_products.isEmpty) {
-      return const _ScrollableMessage(
+      return _ScrollableMessage(
         icon: Icons.inventory_2_outlined,
-        message: 'No products found',
+        message: l10n?.noProductsFound ?? 'No products found',
       );
     }
 
@@ -410,6 +419,7 @@ class _CategoryProductHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return SizedBox(
       height: 64,
       child: Row(
@@ -466,7 +476,9 @@ class _CategoryProductHeader extends StatelessWidget {
                   onPressed: searchActive
                       ? onDeactivateSearch
                       : onActivateSearch,
-                  tooltip: searchActive ? 'Close search' : 'Search products',
+                  tooltip: searchActive
+                      ? (l10n?.closeSearch ?? 'Close search')
+                      : (l10n?.searchProducts ?? 'Search products'),
                   icon: Icon(
                     searchActive ? Icons.close : Icons.search,
                     color: const Color(0xFFEC407A),
@@ -478,7 +490,7 @@ class _CategoryProductHeader extends StatelessWidget {
                 width: 48,
                 child: IconButton(
                   onPressed: onOpenFilter,
-                  tooltip: 'Filter subcategories',
+                  tooltip: l10n?.filterSubcategories ?? 'Filter subcategories',
                   icon: const Icon(
                     Icons.filter_alt_outlined,
                     color: Color(0xFFEC407A),
@@ -507,9 +519,10 @@ class _SubCategoryFilterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final labels = <String>[
-      'All',
-      ...subCategories.map((subCategory) => subCategory.name),
+      l10n?.all ?? 'All',
+      ...subCategories.map((subCategory) => subCategory.displayName),
     ];
 
     return Scaffold(
@@ -621,6 +634,7 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Container(
       key: const ValueKey('shop-category-search-container'),
       height: 42,
@@ -641,8 +655,8 @@ class _SearchField extends StatelessWidget {
               focusNode: focusNode,
               style: AppTypography.input,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                hintText: 'Search products',
+              decoration: InputDecoration(
+                hintText: l10n?.searchProducts ?? 'Search products',
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,

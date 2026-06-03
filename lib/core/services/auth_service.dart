@@ -3,6 +3,7 @@ import 'dart:convert' show jsonDecode, utf8;
 import 'dart:io' show File;
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:flutter/foundation.dart';
 
@@ -61,7 +62,10 @@ class AuthService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: _baseUrl,
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept-Language': AppLanguage.currentLanguageCode,
+      },
       responseType: ResponseType.plain,
       receiveDataWhenStatusError: true,
       connectTimeout: const Duration(seconds: 15),
@@ -72,6 +76,17 @@ class AuthService {
       validateStatus: (status) => status != null,
     ),
   );
+
+  AuthService() {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers['Accept-Language'] = AppLanguage.currentLanguageCode;
+          handler.next(options);
+        },
+      ),
+    );
+  }
 
   void _debugLog(String message) {
     if (!kDebugMode) return;
@@ -250,12 +265,14 @@ class AuthService {
 
   Map<String, dynamic> _authHeaders({String? accessToken}) {
     final token = (accessToken ?? UserSession.token ?? '').trim();
-    if (token.isEmpty) return const {};
-    return {'Authorization': 'Bearer $token'};
+    return {
+      'Accept-Language': AppLanguage.currentLanguageCode,
+      if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
   }
 
   Map<String, dynamic> _englishAuthHeaders({String? accessToken}) {
-    return {..._authHeaders(accessToken: accessToken), 'Accept-Language': 'en'};
+    return _authHeaders(accessToken: accessToken);
   }
 
   String _readStringFromPayloadAndData(
@@ -433,7 +450,12 @@ class AuthService {
         .post(
           _refreshEndpoint,
           data: {'refreshToken': tokenToUse},
-          options: Options(headers: {'Content-Type': 'application/json'}),
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept-Language': AppLanguage.currentLanguageCode,
+            },
+          ),
         )
         .timeout(
           const Duration(seconds: 20),
@@ -461,11 +483,7 @@ class AuthService {
           _logoutEndpoint,
           data: payload,
           options: Options(
-            headers: {
-              ..._authHeaders(),
-              'Accept-Language': 'en',
-              'Content-Type': 'application/json',
-            },
+            headers: {..._authHeaders(), 'Content-Type': 'application/json'},
           ),
         )
         .timeout(

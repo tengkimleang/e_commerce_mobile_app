@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/category_image_card.dart';
@@ -68,6 +69,7 @@ class _ProductListViewState extends State<ProductListView> {
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     final products = _products;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -180,9 +182,13 @@ class _ProductListViewState extends State<ProductListView> {
                             ),
                           )
                         else if (products.isEmpty)
-                          const SliverFillRemaining(
+                          SliverFillRemaining(
                             hasScrollBody: false,
-                            child: Center(child: Text('No products found')),
+                            child: Center(
+                              child: Text(
+                                l10n?.noProductsFound ?? 'No products found',
+                              ),
+                            ),
                           )
                         else
                           SliverPadding(

@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 Future<String?> showLanguageBottomSheet(
@@ -24,14 +25,15 @@ class _LanguageBottomSheet extends StatelessWidget {
   final String selectedLanguageCode;
   final BuildContext sheetContext;
 
-  static const _options = <_LanguageOption>[
-    _LanguageOption(code: 'en', label: 'English'),
-    _LanguageOption(code: 'km', label: 'Khmer'),
+  static final _options = <_LanguageOption>[
+    _LanguageOption(code: 'en', label: (l10n) => l10n.english),
+    _LanguageOption(code: 'km', label: (l10n) => l10n.khmer),
   ];
 
   @override
   Widget build(BuildContext context) {
     final sheetHeight = MediaQuery.of(context).size.height * 0.5;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       height: sheetHeight,
@@ -48,10 +50,10 @@ class _LanguageBottomSheet extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Language',
-                      style: TextStyle(
+                      l10n.language,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF2E2E2E),
@@ -73,6 +75,7 @@ class _LanguageBottomSheet extends StatelessWidget {
                 _LanguageTile(
                   option: _options[i],
                   isSelected: selectedLanguageCode == _options[i].code,
+                  label: _options[i].label(l10n),
                   onTap: () => Navigator.of(sheetContext).pop(_options[i].code),
                 ),
                 if (i != _options.length - 1) const SizedBox(height: 14),
@@ -90,11 +93,13 @@ class _LanguageTile extends StatelessWidget {
   const _LanguageTile({
     required this.option,
     required this.isSelected,
+    required this.label,
     required this.onTap,
   });
 
   final _LanguageOption option;
   final bool isSelected;
+  final String label;
   final VoidCallback onTap;
 
   @override
@@ -126,7 +131,7 @@ class _LanguageTile extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: Text(
-                  option.label,
+                  label,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
@@ -190,5 +195,5 @@ class _LanguageOption {
   const _LanguageOption({required this.code, required this.label});
 
   final String code;
-  final String label;
+  final String Function(AppLocalizations l10n) label;
 }

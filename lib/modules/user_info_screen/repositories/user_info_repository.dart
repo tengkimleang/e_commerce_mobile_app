@@ -1,4 +1,6 @@
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cache.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/models/user_info_model.dart';
@@ -198,12 +200,15 @@ class UserInfoRepository {
 
   Future<void> cacheUserInfo(UserInfoModel model) async {
     final prefs = await SharedPreferences.getInstance();
+    final languageCode = AppLanguage.normalize(model.languageCode);
     await prefs.setString(_cacheNameKey, model.username.trim());
     await prefs.setString(_cacheAddressKey, model.address.trim());
     await prefs.setString(_cachePhoneKey, model.phoneNumber.trim());
     await prefs.setBool(_cacheVerifiedKey, model.isVerified);
     await prefs.setInt(_cachePointsKey, model.points);
-    await prefs.setString(_cacheLanguageKey, model.languageCode.trim());
+    await prefs.setString(_cacheLanguageKey, languageCode);
+    await prefs.setString(LanguageCache.languageCodeKey, languageCode);
+    AppLanguage.setCurrentLanguageCode(languageCode);
 
     final dateText = _formatDateOnly(model.dateOfBirth);
     if (dateText.isEmpty) {

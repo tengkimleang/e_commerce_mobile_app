@@ -7,6 +7,7 @@ import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/model/product_model.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
@@ -97,7 +98,7 @@ class _SearchProductsState extends State<SearchProducts>
         .map(
           (product) => {
             'id': product.id,
-            'title': product.name,
+            'title': product.displayName,
             'price': '\$ ${product.price.toStringAsFixed(2)}',
             'image': product.imageUrl,
           },
@@ -135,6 +136,7 @@ class _SearchProductsState extends State<SearchProducts>
   }
 
   Future<void> _onScanBarcode() async {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final code = await Navigator.pushNamed<String>(
       context,
       AppRoutes.scanBarcode,
@@ -150,15 +152,25 @@ class _SearchProductsState extends State<SearchProducts>
       debugPrint('[BARCODE SEARCH] Product result: $product');
       if (product == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Product not found for this barcode')),
+          SnackBar(
+            content: Text(
+              l10n?.productNotFoundForBarcode ??
+                  'Product not found for this barcode',
+            ),
+          ),
         );
       } else if (widget.selectionMode) {
         setState(() {
           _selectedProductsById[product.id] = product;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${product.name} added')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              l10n?.productAdded(product.displayName) ??
+                  '${product.displayName} added',
+            ),
+          ),
+        );
       } else {
         Navigator.push(
           context,
@@ -171,8 +183,11 @@ class _SearchProductsState extends State<SearchProducts>
       debugPrint('[BARCODE SEARCH] Exception: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to look up product. Please try again.'),
+          SnackBar(
+            content: Text(
+              l10n?.failedToLookUpProduct ??
+                  'Failed to look up product. Please try again.',
+            ),
           ),
         );
       }
@@ -194,6 +209,7 @@ class _SearchProductsState extends State<SearchProducts>
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Scaffold(
       appBar: PreferredSize(
@@ -230,10 +246,10 @@ class _SearchProductsState extends State<SearchProducts>
                           // "Search" title — slides out to the left
                           SlideTransition(
                             position: _titleSlideAnim,
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'Search',
-                                style: TextStyle(
+                                l10n?.search ?? 'Search',
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -274,9 +290,11 @@ class _SearchProductsState extends State<SearchProducts>
                                           style: AppTypography.input.copyWith(
                                             fontSize: 14,
                                           ),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Search prod...',
-                                            hintStyle: TextStyle(
+                                          decoration: InputDecoration(
+                                            hintText:
+                                                l10n?.searchProductHint ??
+                                                'Search prod...',
+                                            hintStyle: const TextStyle(
                                               color: Colors.grey,
                                               fontSize: 14,
                                             ),
@@ -350,7 +368,9 @@ class _SearchProductsState extends State<SearchProducts>
               child: _loading
                   ? Center(child: CircularProgressIndicator(color: primary))
                   : _results.isEmpty
-                  ? const Center(child: Text('No products found'))
+                  ? Center(
+                      child: Text(l10n?.noProductsFound ?? 'No products found'),
+                    )
                   : GridView.builder(
                       itemCount: _results.length,
                       gridDelegate: AppResponsive.productGridDelegateForWidth(
@@ -430,7 +450,8 @@ class _SearchProductsState extends State<SearchProducts>
                           children: [
                             Expanded(
                               child: Text(
-                                '${_selectedProductsById.length} Items',
+                                l10n?.itemCount(_selectedProductsById.length) ??
+                                    '${_selectedProductsById.length} Items',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -449,7 +470,7 @@ class _SearchProductsState extends State<SearchProducts>
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text('Add'),
+                                child: Text(l10n?.add ?? 'Add'),
                               ),
                             ),
                           ],

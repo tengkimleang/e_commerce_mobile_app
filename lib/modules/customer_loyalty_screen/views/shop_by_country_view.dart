@@ -3,6 +3,7 @@ import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 // ── shared data (mirrors shop_by_country_section.dart) ──────────────────────
@@ -11,6 +12,11 @@ class CountryEntry {
   final String name;
   final String flag;
   const CountryEntry({required this.name, required this.flag});
+
+  String displayName(AppLocalizations? l10n) => _localizedCountryName(
+    l10n,
+    name,
+  );
 }
 
 // Products are filtered by ProductModel.countryOfOrigin — no hardcoded ID map needed.
@@ -82,6 +88,10 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -90,9 +100,9 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         centerTitle: true,
-        title: const Text(
-          'Shop by country',
-          style: TextStyle(
+        title: Text(
+          l10n?.shopByCountry ?? 'Shop by country',
+          style: const TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w700,
             fontSize: 17,
@@ -137,7 +147,7 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          country.name.toUpperCase(),
+                          country.displayName(l10n).toUpperCase(),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           style: TextStyle(
@@ -171,19 +181,20 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Failed to load products',
+                          l10n?.failedToLoadProducts ??
+                              'Failed to load products',
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: _loadProducts,
-                          child: const Text('Retry'),
+                          child: Text(l10n?.retry ?? 'Retry'),
                         ),
                       ],
                     ),
                   )
                 : _products.isEmpty
-                ? const Center(child: Text('No products'))
+                ? Center(child: Text(l10n?.noProducts ?? 'No products'))
                 : GridView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: _products.length,
@@ -201,7 +212,8 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
                       );
                       return ProductCard(
                         product: product,
-                        countryLabel: '${country.name} ${country.flag}',
+                        countryLabel:
+                            '${country.displayName(l10n)} ${country.flag}',
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => ProductDetailView(
@@ -218,4 +230,24 @@ class _ShopByCountryViewState extends State<ShopByCountryView> {
       ),
     );
   }
+}
+
+String _localizedCountryName(AppLocalizations? l10n, String countryName) {
+  if (l10n == null) return countryName;
+  return switch (countryName) {
+    'Cambodia' => l10n.countryCambodia,
+    'Canada' => l10n.countryCanada,
+    'Egypt' => l10n.countryEgypt,
+    'South Korea' => l10n.countrySouthKorea,
+    'Japan' => l10n.countryJapan,
+    'China' => l10n.countryChina,
+    'Singapore' => l10n.countrySingapore,
+    'Italy' => l10n.countryItaly,
+    'Spain' => l10n.countrySpain,
+    'Indonesia' => l10n.countryIndonesia,
+    'Argentina' => l10n.countryArgentina,
+    'United States' => l10n.countryUnitedStates,
+    'France' => l10n.countryFrance,
+    _ => countryName,
+  };
 }

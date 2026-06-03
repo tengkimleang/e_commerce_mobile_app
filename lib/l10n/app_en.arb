@@ -1,0 +1,255 @@
+{
+  "@@locale": "en",
+  "appTitle": "Chipmong Retail",
+  "@appTitle": {
+    "description": "Application title shown to the OS and app shell."
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Generic label for language settings."
+  },
+  "english": "English",
+  "@english": {
+    "description": "English language option label."
+  },
+  "khmer": "Khmer",
+  "@khmer": {
+    "description": "Khmer language option label."
+  },
+  "setProfilePhoto": "Set profile photo",
+  "@setProfilePhoto": {
+    "description": "Menu action for choosing a profile photo."
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout menu and dialog title."
+  },
+  "reallyWantToLogout": "Really want to logout?",
+  "@reallyWantToLogout": {
+    "description": "Logout confirmation message."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Generic cancel button label."
+  },
+  "yes": "Yes",
+  "@yes": {
+    "description": "Generic yes confirmation button label."
+  },
+  "signUp": "Sign Up",
+  "@signUp": {
+    "description": "Sign up action label."
+  },
+  "phoneNumber": "Phone number",
+  "@phoneNumber": {
+    "description": "Phone number input label."
+  },
+  "enterPhoneNumber": "Enter phone number",
+  "@enterPhoneNumber": {
+    "description": "Phone number input placeholder."
+  },
+  "personalInformation": "Personal Information",
+  "@personalInformation": {
+    "description": "Profile personal information section title."
+  },
+  "yourName": "Your Name",
+  "@yourName": {
+    "description": "Profile name field label."
+  },
+  "dateOfBirth": "Date of Birth",
+  "@dateOfBirth": {
+    "description": "Profile date of birth field label."
+  },
+  "address": "Address",
+  "@address": {
+    "description": "Profile address field label."
+  },
+  "notAdded": "Not Added",
+  "@notAdded": {
+    "description": "Fallback value when profile information has not been added."
+  },
+  "account": "Account",
+  "@account": {
+    "description": "Profile account section title."
+  },
+  "security": "Security",
+  "@security": {
+    "description": "Profile security section title."
+  },
+  "changePin": "Change PIN",
+  "@changePin": {
+    "description": "Profile action to change PIN."
+  },
+  "change": "Change",
+  "@change": {
+    "description": "Generic change action label."
+  },
+  "termsAndConditions": "Terms & Conditions",
+  "@termsAndConditions": {
+    "description": "Terms and conditions menu item."
+  },
+  "seeMore": "See More",
+  "@seeMore": {
+    "description": "Generic see more action label."
+  },
+  "dangerZone": "Danger Zone",
+  "@dangerZone": {
+    "description": "Profile section for dangerous account actions."
+  },
+  "orderStatusRequesting": "Requesting",
+  "@orderStatusRequesting": {
+    "description": "Display label for REQUESTING order status."
+  },
+  "orderStatusPicking": "Picking",
+  "@orderStatusPicking": {
+    "description": "Display label for PICKING order status."
+  },
+  "orderStatusDelivering": "Delivering",
+  "@orderStatusDelivering": {
+    "description": "Display label for DELIVERING order status."
+  },
+  "orderStatusDelivered": "Delivered",
+  "@orderStatusDelivered": {
+    "description": "Display label for DELIVERED order status."
+  },
+  "orderStatusCanceled": "Canceled",
+  "@orderStatusCanceled": {
+    "description": "Display label for CANCELED order status."
+  },
+  "home": "Home",
+  "offers": "Offers",
+  "scan": "Scan",
+  "orders": "Orders",
+  "profile": "Profile",
+  "favorites": "Favorites",
+  "noFavoriteProductsYet": "No favorite products yet",
+  "notification": "Notification",
+  "order": "Order",
+  "promotion": "Promotion",
+  "promoteCode": "Promote Code",
+  "failedToLoadPromotions": "Failed to load promotions",
+  "retry": "Retry",
+  "noResultFound": "No result found",
+  "shopByCountry": "Shop by country",
+  "shopByCategory": "Shop by category",
+  "failedToLoadShopCategories": "Failed to load shop categories",
+  "viewAll": "View all",
+  "all": "All",
+  "noProducts": "No products",
+  "failedToLoadProducts": "Failed to load products",
+  "exchangePoints": "Exchange Points",
+  "priceChecking": "Price Checking",
+  "search": "Search",
+  "searchProductHint": "Search prod...",
+  "noProductsFound": "No products found",
+  "searchProducts": "Search products",
+  "closeSearch": "Close search",
+  "filterSubcategories": "Filter subcategories",
+  "noCategoriesAvailable": "No categories available",
+  "failedToLoadCategoriesRetry": "Failed to load categories. Retry",
+  "productNotFoundForBarcode": "Product not found for this barcode",
+  "failedToLookUpProduct": "Failed to look up product. Please try again.",
+  "productAdded": "{productName} added",
+  "@productAdded": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "itemCount": "{count, plural, =1{1 Item} other{{count} Items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "add": "Add",
+  "partnerPrivileges": "Partner Privileges",
+  "wholesalePrice": "Wholesale Price",
+  "wholesalePriceSubtitle": "High quality products\nwith special price",
+  "wholesaleRequest": "Wholesale Request",
+  "dropYourInquiry": "Drop your Inquiry",
+  "requestHistory": "Request History",
+  "failedToLoadHistory": "Failed to load history",
+  "allCaughtUp": "All caught up",
+  "requestNumber": "Request #{requestId}",
+  "@requestNumber": {
+    "placeholders": {
+      "requestId": {
+        "type": "String"
+      }
+    }
+  },
+  "customer": "Customer",
+  "phone": "Phone",
+  "remark": "Remark",
+  "productImages": "Product Images",
+  "close": "Close",
+  "selectShop": "Select shop",
+  "loginRequired": "Login required",
+  "shopAt": "Shop at",
+  "branchUnavailable": "Branch unavailable",
+  "branchRequiresLoginOrSignup": "This branch requires Login or Signup",
+  "selectShopFallback": "Select Shop",
+  "searchProductsBrandsMore": "Search products, brands and more",
+  "skip": "Skip",
+  "login": "Login",
+  "exchange": "Exchange",
+  "noPromotionsAvailable": "No promotions available",
+  "paymentMethod": "Payment method",
+  "cashOnDelivery": "Cash on Delivery",
+  "checkOut": "Check Out",
+  "yourCart": "Your Cart",
+  "yourCartIsEmpty": "Your cart is empty",
+  "deliveryInfo": "Delivery Info",
+  "noDeliveryAddressSelected": "No delivery address selected",
+  "selectAddress": "Select address",
+  "deliveryFee": "Delivery Fee",
+  "subtotal": "Subtotal",
+  "packageFees": "Package fees",
+  "discount": "Discount",
+  "total": "Total",
+  "includingVat": "(incl.VAT)",
+  "enterPromoCodeHere": "Enter promo code here",
+  "apply": "APPLY",
+  "placeOrder": "Place Order",
+  "pleaseSelectDeliveryAddressFirst": "Please select a delivery address first",
+  "confirmOrder": "Confirm Order",
+  "confirmOrderMessage": "Please confirm your order. After staff approval, cancellation may no longer be available.",
+  "back": "Back",
+  "confirm": "Confirm",
+  "orderSubmitted": "Order Submitted!",
+  "orderPlacedSuccessfully": "Your order #{orderNumber} has been placed\nsuccessfully.",
+  "@orderPlacedSuccessfully": {
+    "placeholders": {
+      "orderNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "trackOrder": "Track Order",
+  "supermarketPointMember": "Supermarket Point Member",
+  "pointValue": "POINT {points}",
+  "@pointValue": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "countryCambodia": "Cambodia",
+  "countryCanada": "Canada",
+  "countryEgypt": "Egypt",
+  "countrySouthKorea": "South Korea",
+  "countryJapan": "Japan",
+  "countryChina": "China",
+  "countrySingapore": "Singapore",
+  "countryItaly": "Italy",
+  "countrySpain": "Spain",
+  "countryIndonesia": "Indonesia",
+  "countryArgentina": "Argentina",
+  "countryUnitedStates": "United States",
+  "countryFrance": "France"
+}

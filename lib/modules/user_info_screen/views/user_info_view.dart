@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cubit.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/chipmong_screen/views/chipmong_mall_screen.dart';
@@ -40,7 +43,6 @@ const _profileSurface = Colors.white;
 const _profileText = Color(0xFF1F1D27);
 const _profileMuted = Color(0xFF77727D);
 const _profileLine = Color(0xFFF0EAF0);
-const _profileIconBg = Color(0xFFFFEEF5);
 const _profileShadow = Color(0x14000000);
 
 class UserInfoView extends StatefulWidget {
@@ -117,7 +119,11 @@ class _UserInfoViewState extends State<UserInfoView> {
               : sessionPhone;
           final String phoneDisplay = _formatPhoneNumber(rawPhone);
           final DateTime? dateOfBirth = userInfo.dateOfBirth;
-          final String languageCode = userInfo.languageCode;
+          final String languageCode = context
+              .watch<LanguageCubit>()
+              .state
+              .languageCode;
+          final l10n = AppLocalizations.of(context);
           final String address = userInfo.address.trim();
           final bool isVerified = userInfo.isVerified;
           final String profileImageUrl = userInfo.profileImageUrl.trim();
@@ -125,7 +131,7 @@ class _UserInfoViewState extends State<UserInfoView> {
               userInfo.profileImagePath?.trim() ?? '';
 
           String dateOfBirthLabel() {
-            if (dateOfBirth == null) return 'Not Added';
+            if (dateOfBirth == null) return l10n.notAdded;
             const monthNames = [
               'Jan',
               'Feb',
@@ -146,8 +152,8 @@ class _UserInfoViewState extends State<UserInfoView> {
           }
 
           String languageLabel() {
-            if (languageCode == 'km') return 'Khmer';
-            return 'English';
+            if (languageCode == AppLanguage.khmer) return l10n.khmer;
+            return l10n.english;
           }
 
           return SupermarketAdaptiveScaffold(
@@ -170,27 +176,27 @@ class _UserInfoViewState extends State<UserInfoView> {
                       onExchangeTap: () => _openChipmongMallLoyalty(context),
                     ),
                     const SizedBox(height: 28),
-                    const _SectionTitle(title: 'Personal Information'),
+                    _SectionTitle(title: l10n.personalInformation),
                     const SizedBox(height: 12),
                     _ProfileSectionCard(
                       children: [
                         _InfoRow(
                           icon: Icons.person_outline_rounded,
-                          label: 'Your Name',
+                          label: l10n.yourName,
                           value: username,
                           onTap: () => _openEditUsername(context, username),
                         ),
                         _InfoRow(
                           icon: Icons.calendar_month_outlined,
-                          label: 'Date of Birth',
+                          label: l10n.dateOfBirth,
                           value: dateOfBirthLabel(),
                           onTap: () =>
                               _openEditDateOfBirth(context, dateOfBirth),
                         ),
                         _InfoRow(
                           icon: Icons.location_on_outlined,
-                          label: 'Address',
-                          value: address.isEmpty ? 'Not Added' : address,
+                          label: l10n.address,
+                          value: address.isEmpty ? l10n.notAdded : address,
                           onTap: () => _openReceivingAddress(
                             context,
                             currentAddress: address,
@@ -198,14 +204,14 @@ class _UserInfoViewState extends State<UserInfoView> {
                         ),
                         _InfoRow(
                           icon: Icons.translate_rounded,
-                          label: 'Language',
+                          label: l10n.language,
                           value: languageLabel(),
                           onTap: () => _openEditLanguage(context, languageCode),
                         ),
                       ],
                     ),
                     const SizedBox(height: 22),
-                    const _SectionTitle(title: 'Account'),
+                    _SectionTitle(title: l10n.account),
                     const SizedBox(height: 12),
                     _ProfileSectionCard(
                       children: [
@@ -216,22 +222,22 @@ class _UserInfoViewState extends State<UserInfoView> {
                       ],
                     ),
                     const SizedBox(height: 22),
-                    const _SectionTitle(title: 'Security'),
+                    _SectionTitle(title: l10n.security),
                     const SizedBox(height: 12),
                     _ProfileSectionCard(
                       children: [
                         _SecurityRow(
                           icon: Icons.lock_outline_rounded,
-                          title: 'Change PIN',
-                          trailingText: 'Change',
+                          title: l10n.changePin,
+                          trailingText: l10n.change,
                           onTap: () => _openChangePin(context),
                         ),
                         _BiometricLoginTile(phoneNumber: rawPhone),
                         const _TelegramBackupTile(),
                         _SecurityRow(
                           icon: Icons.policy_outlined,
-                          title: 'Terms & Conditions',
-                          trailingText: 'See More',
+                          title: l10n.termsAndConditions,
+                          trailingText: l10n.seeMore,
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
@@ -243,7 +249,7 @@ class _UserInfoViewState extends State<UserInfoView> {
                       ],
                     ),
                     const SizedBox(height: 22),
-                    const _SectionTitle(title: 'Danger Zone'),
+                    _SectionTitle(title: l10n.dangerZone),
                     const SizedBox(height: 12),
                     _DangerZoneTile(
                       onTap: () => _showDeleteAccountDialog(context),
@@ -334,6 +340,7 @@ class _UserInfoViewState extends State<UserInfoView> {
 
     if (selectedCode == null || selectedCode == currentCode) return;
     if (!context.mounted) return;
+    await context.read<LanguageCubit>().changeLanguage(selectedCode);
     _bloc.add(UpdateLanguage(selectedCode));
   }
 
@@ -863,8 +870,6 @@ class _SkeletonSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
     return Container(
       decoration: BoxDecoration(
         color: _profileSurface,
@@ -939,6 +944,7 @@ class _HeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final token = (UserSession.token ?? '').trim();
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final imageHeaders = token.isEmpty
         ? null
         : <String, String>{'Authorization': 'Bearer $token'};
@@ -1032,11 +1038,11 @@ class _HeaderCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'Supermarket Point Member',
+                  Text(
+                    l10n?.supermarketPointMember ?? 'Supermarket Point Member',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
                       height: 1.2,
                       color: _profileMuted,
@@ -1152,6 +1158,7 @@ class _MemberIdChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1165,7 +1172,7 @@ class _MemberIdChip extends StatelessWidget {
           Icon(Icons.copyright_rounded, color: primary, size: 16),
           const SizedBox(width: 6),
           Text(
-            'POINT $points',
+            l10n?.pointValue(points) ?? 'POINT $points',
             style: TextStyle(
               color: primary,
               fontSize: 14,
@@ -1187,6 +1194,7 @@ class _ExchangeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Material(
       color: Colors.transparent,
@@ -1206,7 +1214,7 @@ class _ExchangeButton extends StatelessWidget {
               Icon(Icons.swap_horiz_rounded, color: primary, size: 18),
               const SizedBox(width: 6),
               Text(
-                'Exchange',
+                l10n?.exchange ?? 'Exchange',
                 style: TextStyle(
                   color: primary,
                   fontSize: 14,
@@ -1251,8 +1259,6 @@ class _ProfileSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -1329,8 +1335,6 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1547,8 +1551,6 @@ class _DangerZoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Theme.of(context).colorScheme.primary;
-
     return Material(
       color: const Color(0xFFFFEEF5),
       borderRadius: BorderRadius.circular(10),

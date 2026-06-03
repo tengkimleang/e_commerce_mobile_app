@@ -72,7 +72,7 @@ class NotificationPromotionContentDetailView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.title,
+                    entry.displayTitle,
                     style: const TextStyle(
                       color: Color(0xFF1D1B24),
                       fontSize: 25,
@@ -89,7 +89,7 @@ class NotificationPromotionContentDetailView extends StatelessWidget {
                   ],
                   const SizedBox(height: 24),
                   Text(
-                    entry.description,
+                    entry.displayDescription,
                     style: const TextStyle(
                       color: Color(0xFF5C565F),
                       fontSize: 18,

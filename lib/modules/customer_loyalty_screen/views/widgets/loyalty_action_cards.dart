@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class LoyaltyActionCards extends StatelessWidget {
@@ -17,13 +18,17 @@ class LoyaltyActionCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
           Expanded(
             child: _OverlayCard(
-              title: 'Exchange Points',
+              title: l10n?.exchangePoints ?? 'Exchange Points',
               imageUrl: exchangePointsImageUrl,
               onTap: onExchangePointsTap,
             ),
@@ -31,7 +36,7 @@ class LoyaltyActionCards extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: _OverlayCard(
-              title: 'Price Checking',
+              title: l10n?.priceChecking ?? 'Price Checking',
               imageUrl: priceCheckingImageUrl,
               onTap: onPriceCheckingTap,
             ),

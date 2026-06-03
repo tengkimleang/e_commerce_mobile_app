@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/wholesale_form_view.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/blocs/wholesale_history_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/partner_privilege_screen/blocs/wholesale_history_event.dart';
@@ -99,10 +100,11 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wholesale Request'),
+        title: Text(l10n?.wholesaleRequest ?? 'Wholesale Request'),
         backgroundColor: primary,
       ),
       body: BlocListener<WholesaleHistoryBloc, WholesaleHistoryState>(
@@ -169,9 +171,9 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                       }
                     },
                     icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text(
-                      'Drop your Inquiry',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    label: Text(
+                      l10n?.dropYourInquiry ?? 'Drop your Inquiry',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ),
@@ -183,7 +185,7 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Request History',
+                      l10n?.requestHistory ?? 'Request History',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -214,7 +216,10 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                       ),
                       child: Center(
                         child: Text(
-                          state.errorMessage ?? 'Failed to load history',
+                          (state.errorMessage?.trim().isNotEmpty ?? false)
+                              ? state.errorMessage!.trim()
+                              : (l10n?.failedToLoadHistory ??
+                                    'Failed to load history'),
                           style: const TextStyle(color: Colors.grey),
                         ),
                       ),
@@ -235,7 +240,7 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                           vertical: 4,
                         ),
                         itemCount: state.requests.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, i) =>
                             _RequestCard(request: state.requests[i]),
                       ),
@@ -253,7 +258,7 @@ class _BecomePartnerBodyState extends State<_BecomePartnerBody> {
                             : !state.hasMore
                             ? Center(
                                 child: Text(
-                                  'All caught up',
+                                  l10n?.allCaughtUp ?? 'All caught up',
                                   style: TextStyle(
                                     color: Colors.grey[400],
                                     fontSize: 13,
@@ -359,6 +364,7 @@ class _EmptyHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 60),
@@ -376,7 +382,7 @@ class _EmptyHistory extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'No result found',
+              l10n?.noResultFound ?? 'No result found',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: primary,
                 fontWeight: FontWeight.w600,
@@ -398,6 +404,7 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final hasImages = request.productImageUrls.isNotEmpty;
     final firstImage = hasImages ? request.productImageUrls.first : null;
     final extraCount = request.productImageUrls.length - 1;
@@ -410,7 +417,7 @@ class _RequestCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -432,12 +439,12 @@ class _RequestCard extends StatelessWidget {
                         width: 72,
                         height: 72,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
+                        placeholder: (_, _) => Container(
                           width: 72,
                           height: 72,
                           color: Colors.grey[200],
                         ),
-                        errorWidget: (_, __, ___) => Container(
+                        errorWidget: (_, _, _) => Container(
                           width: 72,
                           height: 72,
                           color: Colors.grey[200],
@@ -496,7 +503,8 @@ class _RequestCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Request #${request.id}',
+                          l10n?.requestNumber(request.id.toString()) ??
+                              'Request #${request.id}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -596,6 +604,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final r = widget.request;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return DraggableScrollableSheet(
       initialChildSize: 0.62,
       minChildSize: 0.4,
@@ -626,7 +635,7 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Request #${r.id}',
+                  l10n?.requestNumber(r.id.toString()) ?? 'Request #${r.id}',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -651,19 +660,30 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
             ),
             const SizedBox(height: 20),
             // Info rows
-            _infoRow(Icons.person_outline, 'Customer', r.customerName),
+            _infoRow(
+              Icons.person_outline,
+              l10n?.customer ?? 'Customer',
+              r.customerName,
+            ),
             const SizedBox(height: 10),
-            _infoRow(Icons.phone_outlined, 'Phone', r.phoneNumber),
+            _infoRow(
+              Icons.phone_outlined,
+              l10n?.phone ?? 'Phone',
+              r.phoneNumber,
+            ),
             if (r.remark.isNotEmpty) ...[
               const SizedBox(height: 10),
-              _infoRow(Icons.notes, 'Remark', r.remark),
+              _infoRow(Icons.notes, l10n?.remark ?? 'Remark', r.remark),
             ],
             // Product images
             if (r.productImageUrls.isNotEmpty) ...[
               const SizedBox(height: 24),
-              const Text(
-                'Product Images',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              Text(
+                l10n?.productImages ?? 'Product Images',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 10),
               SizedBox(
@@ -680,9 +700,9 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                           child: CachedNetworkImage(
                             imageUrl: r.productImageUrls[i],
                             fit: BoxFit.cover,
-                            placeholder: (_, __) =>
+                            placeholder: (_, _) =>
                                 Container(color: Colors.grey[200]),
-                            errorWidget: (_, __, ___) => Container(
+                            errorWidget: (_, _, _) => Container(
                               color: Colors.grey[200],
                               child: const Icon(
                                 Icons.broken_image,
@@ -735,9 +755,9 @@ class _RequestDetailSheetState extends State<_RequestDetailSheet> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
-                  'Close',
-                  style: TextStyle(color: Colors.white, fontSize: 15),
+                child: Text(
+                  l10n?.close ?? 'Close',
+                  style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
               ),
             ),

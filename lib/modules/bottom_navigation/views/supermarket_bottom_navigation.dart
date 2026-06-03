@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class SupermarketAdaptiveScaffold extends StatelessWidget {
   const SupermarketAdaptiveScaffold({
@@ -125,6 +126,10 @@ class _SupermarketNavigationRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return SafeArea(
       right: false,
@@ -154,7 +159,7 @@ class _SupermarketNavigationRail extends StatelessWidget {
               (destination) => NavigationRailDestination(
                 icon: Icon(destination.icon),
                 selectedIcon: Icon(destination.selectedIcon),
-                label: Text(destination.label),
+                label: Text(_destinationLabel(l10n, destination.index)),
               ),
             )
             .toList(),
@@ -180,6 +185,11 @@ class _BottomNavItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final accent = colorScheme.primary;
     const inactiveColor = Color(0xFF6F6A73);
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
+    final label = _destinationLabel(l10n, destination.index);
 
     return InkResponse(
       onTap: () => onTap(destination.index),
@@ -188,7 +198,7 @@ class _BottomNavItem extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
-        label: destination.label,
+        label: label,
         child: Center(
           child: SizedBox(
             height: 64,
@@ -211,7 +221,7 @@ class _BottomNavItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  destination.label,
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -235,13 +245,25 @@ class _SupermarketDestination {
     required this.index,
     required this.icon,
     required this.selectedIcon,
-    required this.label,
   });
 
   final int index;
   final IconData icon;
   final IconData selectedIcon;
-  final String label;
+}
+
+String _destinationLabel(AppLocalizations? l10n, int index) {
+  if (l10n == null) {
+    return const ['Home', 'Offers', 'Scan', 'Orders', 'Profile'][index];
+  }
+  return switch (index) {
+    0 => l10n.home,
+    1 => l10n.offers,
+    2 => l10n.scan,
+    3 => l10n.orders,
+    4 => l10n.profile,
+    _ => '',
+  };
 }
 
 const _destinations = [
@@ -249,30 +271,25 @@ const _destinations = [
     index: 0,
     icon: CupertinoIcons.house,
     selectedIcon: CupertinoIcons.house_fill,
-    label: 'Home',
   ),
   _SupermarketDestination(
     index: 1,
     icon: CupertinoIcons.tag,
     selectedIcon: CupertinoIcons.tag_fill,
-    label: 'Offers',
   ),
   _SupermarketDestination(
     index: 2,
     icon: CupertinoIcons.qrcode,
     selectedIcon: CupertinoIcons.qrcode,
-    label: 'Scan',
   ),
   _SupermarketDestination(
     index: 3,
     icon: CupertinoIcons.doc_text,
     selectedIcon: CupertinoIcons.doc_text_fill,
-    label: 'Orders',
   ),
   _SupermarketDestination(
     index: 4,
     icon: CupertinoIcons.person,
     selectedIcon: CupertinoIcons.person_fill,
-    label: 'Profile',
   ),
 ];

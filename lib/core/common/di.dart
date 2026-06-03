@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/constants/app_constants.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cache.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_cache.dart';
 import 'package:e_commerce_mobile_app/core/theme/theme_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
@@ -17,6 +19,8 @@ Future<void> initializeDependenciesInjection() async {
   final prefs = await SharedPreferences.getInstance();
   di.registerSingleton(prefs);
   di.registerSingleton(ThemeCache(prefs));
+  di.registerSingleton(LanguageCache(prefs));
+  AppLanguage.setCurrentLanguageCode(di<LanguageCache>().read());
   //HTTPS
   di.registerFactory(() {
     final header = <String, dynamic>{};
@@ -24,7 +28,16 @@ Future<void> initializeDependenciesInjection() async {
       header.addAll({'Authorization': "Bearer ${prefs.getString('token')}"});
     }
     final options = BaseOptions(baseUrl: ApiUrl.baseUrl, headers: header);
-    return Dio(options);
+    final dio = Dio(options);
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          options.headers['Accept-Language'] = AppLanguage.currentLanguageCode;
+          handler.next(options);
+        },
+      ),
+    );
+    return dio;
   });
 
   // Categories repository — wired to the real ASP.NET Core API.

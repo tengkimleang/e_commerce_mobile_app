@@ -37,7 +37,10 @@ void main() {
     expect(find.text('Orders'), findsOneWidget);
     expect(find.text('Your recent purchase history'), findsOneWidget);
     expect(find.text('Search orders...'), findsOneWidget);
-    expect(find.text('Filter'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('order-history-filter-button')),
+      findsOneWidget,
+    );
     expect(find.text('Order #00001'), findsOneWidget);
     expect(find.text('Order #00002'), findsOneWidget);
     expect(find.text('Canceled'), findsOneWidget);

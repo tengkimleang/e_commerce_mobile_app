@@ -1,6 +1,9 @@
 // lib/modules/login_screen/views/login_view.dart
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/edit_language_view.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -460,7 +463,7 @@ class _LoginContentState extends State<_LoginContent> {
                         );
                       },
                       child: Text(
-                        "Sign Up",
+                        AppLocalizations.of(context).signUp,
                         style: TextStyle(
                           color: primary,
                           fontSize: 16,
@@ -473,14 +476,23 @@ class _LoginContentState extends State<_LoginContent> {
                       onPressed: () {
                         showLanguageBottomSheet(
                           context,
-                          selectedLanguageCode: 'en',
+                          selectedLanguageCode: context
+                              .read<LanguageCubit>()
+                              .state
+                              .languageCode,
                         ).then((selectedCode) {
-                          if (selectedCode != null) {
-                            // Handle language change if needed
-                          }
+                          if (selectedCode == null || !context.mounted) return;
+                          context.read<LanguageCubit>().changeLanguage(
+                            selectedCode,
+                          );
                         });
                       },
-                      icon: const Text("🇬🇧", style: TextStyle(fontSize: 20)),
+                      icon: Text(
+                        AppLanguage.flagFor(
+                          context.watch<LanguageCubit>().state.languageCode,
+                        ),
+                        style: const TextStyle(fontSize: 20),
+                      ),
                     ),
                   ],
                 ),
@@ -504,7 +516,7 @@ class _LoginContentState extends State<_LoginContent> {
                       color: Colors.black87,
                     ),
                     children: [
-                      const TextSpan(text: 'Phone number'),
+                      TextSpan(text: AppLocalizations.of(context).phoneNumber),
                       TextSpan(
                         text: '*',
                         style: TextStyle(color: primary),
@@ -521,7 +533,7 @@ class _LoginContentState extends State<_LoginContent> {
                       keyboardType: TextInputType.phone,
                       textAlignVertical: TextAlignVertical.center,
                       decoration: InputDecoration(
-                        hintText: "Enter phone number",
+                        hintText: AppLocalizations.of(context).enterPhoneNumber,
                         hintStyle: TextStyle(color: Colors.grey[500]),
                         filled: true,
                         fillColor: Colors.grey.shade50,

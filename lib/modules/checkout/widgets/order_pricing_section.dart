@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
+
 /// Shared pricing breakdown widget used in both CheckoutScreen and
 /// OrderTrackScreen.
 class OrderPricingSection extends StatelessWidget {
@@ -25,13 +27,14 @@ class OrderPricingSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _PricingRow(
-            label: 'Payment method',
+            label: l10n?.paymentMethod ?? 'Payment method',
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -39,7 +42,7 @@ class OrderPricingSection extends StatelessWidget {
                   'assets/icons/cod_icon.png',
                   width: 24,
                   height: 24,
-                  errorBuilder: (_, __, ___) => const Icon(
+                  errorBuilder: (_, _, _) => const Icon(
                     Icons.local_shipping_outlined,
                     size: 20,
                     color: Colors.brown,
@@ -59,7 +62,7 @@ class OrderPricingSection extends StatelessWidget {
           ),
           const Divider(height: 1, thickness: 0.5),
           _PricingRow(
-            label: 'Delivery Fee',
+            label: l10n?.deliveryFee ?? 'Delivery Fee',
             trailing: _buildSubLabel(
               icon: const _FoodpandaIcon(),
               label: 'Foodpanda',
@@ -67,11 +70,20 @@ class OrderPricingSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          _SimpleRow(label: 'Subtotal', value: '\$ ${subtotal.toStringAsFixed(2)}'),
-          _SimpleRow(label: 'Package fees', value: '\$ ${packageFees.toStringAsFixed(2)}'),
-          _SimpleRow(label: 'Discount', value: '-\$ ${discount.toStringAsFixed(2)}'),
           _SimpleRow(
-            label: 'Promote Code',
+            label: l10n?.subtotal ?? 'Subtotal',
+            value: '\$ ${subtotal.toStringAsFixed(2)}',
+          ),
+          _SimpleRow(
+            label: l10n?.packageFees ?? 'Package fees',
+            value: '\$ ${packageFees.toStringAsFixed(2)}',
+          ),
+          _SimpleRow(
+            label: l10n?.discount ?? 'Discount',
+            value: '-\$ ${discount.toStringAsFixed(2)}',
+          ),
+          _SimpleRow(
+            label: l10n?.promoteCode ?? 'Promote Code',
             value: '-\$ ${promoDiscount.toStringAsFixed(2)}',
             labelSuffix: const Padding(
               padding: EdgeInsets.only(left: 4),
@@ -81,17 +93,17 @@ class OrderPricingSection extends StatelessWidget {
           const Divider(height: 16, thickness: 0.5),
           Row(
             children: [
-              const Text(
-                'Total',
-                style: TextStyle(
+              Text(
+                l10n?.total ?? 'Total',
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Colors.black87,
                 ),
               ),
-              const Text(
-                '(incl.VAT)',
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+              Text(
+                l10n?.includingVat ?? '(incl.VAT)',
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
               const Spacer(),
               Text(
@@ -120,12 +132,19 @@ class OrderPricingSection extends StatelessWidget {
       children: [
         icon,
         const SizedBox(width: 4),
-        Text(label,
-            style: const TextStyle(fontSize: 13, color: Colors.black54)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Colors.black54),
+        ),
         const SizedBox(width: 12),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
       ],
     );
   }

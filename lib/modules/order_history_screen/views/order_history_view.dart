@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/notification_screen/views/notification_view.dart';
@@ -1069,6 +1070,7 @@ class _EmptyOrderState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1112,7 +1114,7 @@ class _EmptyOrderState extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'No result found',
+          l10n?.noResultFound ?? 'No result found',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             color: accent.withValues(alpha: 0.65),
             fontWeight: FontWeight.w700,

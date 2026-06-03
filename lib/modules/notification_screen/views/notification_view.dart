@@ -16,6 +16,7 @@ import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_
 import 'package:e_commerce_mobile_app/modules/order_history_screen/models/order_history_entry.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/views/order_details_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_list_view.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +28,10 @@ class NotificationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     return BlocProvider<NotificationPromotionsCubit>(
       create: (_) => NotificationPromotionsCubit(
         repository: promotionsRepository ?? _resolvePromotionsRepository(),
@@ -44,9 +49,9 @@ class NotificationView extends StatelessWidget {
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.arrow_back_ios_new, size: 22),
             ),
-            title: const Text(
-              'Notification',
-              style: TextStyle(
+            title: Text(
+              l10n?.notification ?? 'Notification',
+              style: const TextStyle(
                 fontSize: 21,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1B24),
@@ -309,7 +314,7 @@ class _NotificationPromotionTabState extends State<_NotificationPromotionTab> {
       Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => ProductListView(
-            title: categoryTitle ?? entry.title,
+            title: categoryTitle ?? entry.displayTitle,
             categoryImageUrl: entry.imageUrl,
             products: const [],
             categoryId: entry.categoryId,
@@ -390,7 +395,7 @@ class _NotificationPromotionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      entry.title,
+                      entry.displayTitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -402,7 +407,7 @@ class _NotificationPromotionCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      entry.description,
+                      entry.displayDescription,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -472,6 +477,10 @@ class _NotificationPromotionErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return Center(
       child: Column(
@@ -479,15 +488,15 @@ class _NotificationPromotionErrorState extends StatelessWidget {
         children: [
           Icon(Icons.error_outline, size: 48, color: Colors.grey.shade500),
           const SizedBox(height: 12),
-          const Text(
-            'Failed to load promotions',
-            style: TextStyle(color: Color(0xFF6A6A6A), fontSize: 15),
+          Text(
+            l10n?.failedToLoadPromotions ?? 'Failed to load promotions',
+            style: const TextStyle(color: Color(0xFF6A6A6A), fontSize: 15),
           ),
           const SizedBox(height: 14),
           TextButton(
             onPressed: onRetry,
             child: Text(
-              'Retry',
+              l10n?.retry ?? 'Retry',
               style: TextStyle(color: accent, fontWeight: FontWeight.w700),
             ),
           ),
@@ -503,6 +512,10 @@ class _NotificationTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return ColoredBox(
       color: Colors.white,
@@ -528,10 +541,14 @@ class _NotificationTabs extends StatelessWidget {
             height: 1.1,
             letterSpacing: 0,
           ),
-          tabs: const [
-            Tab(child: _NotificationTabLabel('Order')),
-            Tab(child: _NotificationTabLabel('Promotion')),
-            Tab(child: _NotificationTabLabel('Promote Code')),
+          tabs: [
+            Tab(child: _NotificationTabLabel(l10n?.order ?? 'Order')),
+            Tab(child: _NotificationTabLabel(l10n?.promotion ?? 'Promotion')),
+            Tab(
+              child: _NotificationTabLabel(
+                l10n?.promoteCode ?? 'Promote Code',
+              ),
+            ),
           ],
         ),
       ),
@@ -561,6 +578,10 @@ class _NotificationEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
 
     return Center(
       child: Column(
@@ -601,7 +622,7 @@ class _NotificationEmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No result found',
+            l10n?.noResultFound ?? 'No result found',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: accent.withValues(alpha: 0.65),
               fontWeight: FontWeight.w700,

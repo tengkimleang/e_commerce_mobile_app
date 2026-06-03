@@ -7,6 +7,7 @@ import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/utils/country_flag_utils.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_event.dart';
@@ -109,6 +110,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final accent = Theme.of(context).colorScheme.primary;
     final product = widget.product;
     final images = _productImages;
@@ -228,7 +230,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                     maintainSize: true,
                                     maintainState: true,
                                     child: Text(
-                                      product.name.toUpperCase(),
+                                      product.displayName.toUpperCase(),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w800,
@@ -524,7 +526,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 left: 0,
                 right: 0,
                 child: _ProductCollapsingHeaderOverlay(
-                  title: product.name,
+                  title: product.displayName,
                   imageHeight: imageHeight,
                   scrollOffset: _scrollOffset,
                   onBack: () => Navigator.of(context).pop(),
@@ -564,7 +566,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Total: \$ ${cartState.totalAmount.toStringAsFixed(2)}',
+                              '${l10n?.total ?? 'Total'}: \$ ${cartState.totalAmount.toStringAsFixed(2)}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
@@ -592,9 +594,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: const Text(
-                            'Check Out',
-                            style: TextStyle(
+                          child: Text(
+                            l10n?.checkOut ?? 'Check Out',
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,

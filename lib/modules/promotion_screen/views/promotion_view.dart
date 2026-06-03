@@ -9,6 +9,7 @@ import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/bottom_navigation/views/supermarket_bottom_navigation.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/favorite_screen/blocs/favorite_event.dart';
@@ -64,6 +65,7 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return SupermarketAdaptiveScaffold(
       selectedIndex: 1,
@@ -92,7 +94,7 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
                 height: 86,
                 child: Center(
                   child: Text(
-                    'Promotion',
+                    l10n?.promotion ?? 'Promotion',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: accent,
                       fontWeight: FontWeight.w700,
@@ -133,7 +135,8 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Failed to load promotions',
+                          l10n?.failedToLoadPromotions ??
+                              'Failed to load promotions',
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                         const SizedBox(height: 16),
@@ -144,7 +147,10 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
                               LoadPromotionSections(UserSession.selectedShopId),
                             );
                           },
-                          child: Text('Retry', style: TextStyle(color: accent)),
+                          child: Text(
+                            l10n?.retry ?? 'Retry',
+                            style: TextStyle(color: accent),
+                          ),
                         ),
                       ],
                     ),
@@ -155,7 +161,8 @@ class _PromotionScaffoldState extends State<_PromotionScaffold> {
                   if (sections.isEmpty) {
                     return Center(
                       child: Text(
-                        'No promotions available',
+                        l10n?.noPromotionsAvailable ??
+                            'No promotions available',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     );
@@ -548,7 +555,7 @@ class _PromotionProductCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
               child: Text(
-                product.name.toUpperCase(),
+                product.displayName.toUpperCase(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_state.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,6 +25,7 @@ class _CartViewState extends State<CartView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -31,9 +33,9 @@ class _CartViewState extends State<CartView> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
         centerTitle: true,
-        title: const Text(
-          'Your Cart',
-          style: TextStyle(
+        title: Text(
+          l10n?.yourCart ?? 'Your Cart',
+          style: const TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -43,10 +45,13 @@ class _CartViewState extends State<CartView> {
       body: BlocBuilder<CartBloc, CartState>(
         builder: (context, state) {
           if (state.items.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'Your cart is empty',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                l10n?.yourCartIsEmpty ?? 'Your cart is empty',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             );
           }
@@ -59,9 +64,9 @@ class _CartViewState extends State<CartView> {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                 child: Row(
                   children: [
-                    const Text(
-                      'Delivery Info',
-                      style: TextStyle(
+                    Text(
+                      l10n?.deliveryInfo ?? 'Delivery Info',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
@@ -72,18 +77,18 @@ class _CartViewState extends State<CartView> {
                       onTap: () async {
                         final result = await Navigator.of(context)
                             .pushNamed<DeliveryAddress>(
-                                AppRoutes.receivingAddress);
+                              AppRoutes.receivingAddress,
+                            );
                         if (result != null && context.mounted) {
-                          context
-                              .read<AddressBloc>()
-                              .add(SelectAddress(result));
-                          Navigator.of(context)
-                              .pushNamed(AppRoutes.checkout);
+                          context.read<AddressBloc>().add(
+                            SelectAddress(result),
+                          );
+                          Navigator.of(context).pushNamed(AppRoutes.checkout);
                         }
                       },
-                      child: const Text(
-                        'Select address',
-                        style: TextStyle(
+                      child: Text(
+                        l10n?.selectAddress ?? 'Select address',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.primary,
@@ -107,8 +112,11 @@ class _CartViewState extends State<CartView> {
                     color: const Color(0xFFFFF0F5),
                     child: Row(
                       children: [
-                        const Icon(Icons.place_rounded,
-                            color: AppColors.primary, size: 18),
+                        const Icon(
+                          Icons.place_rounded,
+                          color: AppColors.primary,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -142,11 +150,12 @@ class _CartViewState extends State<CartView> {
 
               const Divider(height: 1, thickness: 0.5),
               InkWell(
-                onTap: () =>
-                    setState(() => _orderExpanded = !_orderExpanded),
+                onTap: () => setState(() => _orderExpanded = !_orderExpanded),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 12),
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       const Text(
@@ -210,65 +219,62 @@ class _CartItemRow extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showDetail(context),
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Thumbnail
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CachedNetworkImage(
-              imageUrl: item.product.imageUrl,
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-              placeholder: (c, s) => Container(color: Colors.grey[200]),
-              errorWidget: (c, s, e) =>
-                  Container(color: Colors.grey[300]),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Thumbnail
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: item.product.imageUrl,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                placeholder: (c, s) => Container(color: Colors.grey[200]),
+                errorWidget: (c, s, e) => Container(color: Colors.grey[300]),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          // Name + qty
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.product.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+            // Name + qty
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'x ${item.quantity}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
+                  const SizedBox(height: 4),
+                  Text(
+                    'x ${item.quantity}',
+                    style: const TextStyle(fontSize: 13, color: Colors.black54),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          // Price
-          Text(
-            '\$ ${(item.product.price * item.quantity).toStringAsFixed(2)}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primary,
+            // Price
+            Text(
+              '\$ ${(item.product.price * item.quantity).toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -382,7 +388,9 @@ class _CartItemSheetState extends State<_CartItemSheet> {
                               left: 10,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black45,
                                   borderRadius: BorderRadius.circular(12),
@@ -497,7 +505,8 @@ class _CartItemSheetState extends State<_CartItemSheet> {
                           child: CheckboxListTile(
                             value: _removeIfUnavailable,
                             onChanged: (v) => setState(
-                                () => _removeIfUnavailable = v ?? true),
+                              () => _removeIfUnavailable = v ?? true,
+                            ),
                             title: const Text(
                               'Remove it from my order',
                               style: TextStyle(
@@ -526,5 +535,3 @@ class _CartItemSheetState extends State<_CartItemSheet> {
     );
   }
 }
-
-

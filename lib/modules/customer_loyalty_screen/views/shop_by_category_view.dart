@@ -1,6 +1,7 @@
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/repositories/shop_by_category_repository.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/models/shop_by_category_model.dart';
 import 'package:e_commerce_mobile_app/modules/customer_loyalty_screen/views/shop_category_product_view.dart';
@@ -40,6 +41,7 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final currentShopId = _effectiveShopId;
     final isCurrentShopLoaded = _loadedShopId == currentShopId;
     if (!isCurrentShopLoaded) {
@@ -54,7 +56,9 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
         .where((category) => category.isActive)
         .toList();
     final title = _formatHeaderTitle(
-      widget.title.trim().isEmpty ? 'Shop by category' : widget.title.trim(),
+      widget.title.trim().isEmpty
+          ? (l10n?.shopByCategory ?? 'Shop by category')
+          : widget.title.trim(),
     );
 
     return Scaffold(
@@ -104,7 +108,12 @@ class _ShopByCategoryViewState extends State<ShopByCategoryView> {
                   : _error != null
                   ? _ShopByCategoryLoadError(onRetry: _loadCategories)
                   : activeCategories.isEmpty
-                  ? const Center(child: Text('No categories available'))
+                  ? Center(
+                      child: Text(
+                        l10n?.noCategoriesAvailable ??
+                            'No categories available',
+                      ),
+                    )
                   : RefreshIndicator(
                       onRefresh: _loadCategories,
                       child: GridView.builder(
@@ -197,10 +206,14 @@ class _ShopByCategoryLoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Center(
       child: TextButton(
         onPressed: onRetry,
-        child: const Text('Failed to load categories. Retry'),
+        child: Text(
+          l10n?.failedToLoadCategoriesRetry ??
+              'Failed to load categories. Retry',
+        ),
       ),
     );
   }

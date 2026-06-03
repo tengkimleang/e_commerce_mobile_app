@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/models/shop_option.dart';
 
 Future<ShopOption?> showShopSelectorBottomSheet(
@@ -15,6 +16,10 @@ Future<ShopOption?> showShopSelectorBottomSheet(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (context) {
+      final l10n = Localizations.of<AppLocalizations>(
+        context,
+        AppLocalizations,
+      );
       return FractionallySizedBox(
         heightFactor: 0.86,
         child: Container(
@@ -28,10 +33,10 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                 padding: const EdgeInsets.fromLTRB(20, 18, 12, 12),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Select shop',
-                        style: TextStyle(
+                        l10n?.selectShop ?? 'Select shop',
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF333333),
@@ -61,9 +66,12 @@ Future<ShopOption?> showShopSelectorBottomSheet(
                   itemCount: shops.length,
                   itemBuilder: (context, index) {
                     final shop = shops[index];
+                    final isSelected = shop.shopId.isNotEmpty
+                        ? shop.shopId == selectedShop.shopId
+                        : shop.storeName == selectedShop.storeName;
                     return _ShopCard(
                       shop: shop,
-                      selected: shop.storeName == selectedShop.storeName,
+                      selected: isSelected,
                       showGuestLock: isGuest && !shop.guestAllowed,
                     );
                   },
@@ -91,6 +99,7 @@ class _ShopCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return InkWell(
       onTap: () => Navigator.of(context).pop(shop),
@@ -163,7 +172,9 @@ class _ShopCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                'CHIP MONG',
+                                shop.displayStoreName.isNotEmpty
+                                    ? shop.displayStoreName
+                                    : 'CHIP MONG',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -178,7 +189,7 @@ class _ShopCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Center(
                           child: Text(
-                            shop.branchLabel,
+                            shop.displayBranchLabel,
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -226,7 +237,7 @@ class _ShopCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Login required',
+                                    l10n?.loginRequired ?? 'Login required',
                                     style: TextStyle(
                                       fontSize: 10,
                                       color: accent,

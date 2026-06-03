@@ -15,6 +15,7 @@ import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_cubit.dar
 import 'package:e_commerce_mobile_app/modules/checkout/cubits/checkout_state.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/order_pricing_section.dart';
 import 'package:e_commerce_mobile_app/modules/checkout/widgets/product_order_section.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/order_history_screen/cubits/order_history_cubit.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_state.dart';
@@ -130,6 +131,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return BlocListener<CheckoutCubit, CheckoutState>(
       listenWhen: (prev, curr) {
         final becameSuccess =
@@ -185,9 +187,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
-            'Check Out',
-            style: TextStyle(
+          title: Text(
+            l10n?.checkOut ?? 'Check Out',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
@@ -239,6 +241,7 @@ class _CheckoutBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(
@@ -278,7 +281,7 @@ class _CheckoutBody extends StatelessWidget {
                       packageFees -
                       checkoutState.promoDiscount;
                   return OrderPricingSection(
-                    paymentMethod: 'Cash on Delivery',
+                    paymentMethod: l10n?.cashOnDelivery ?? 'Cash on Delivery',
                     deliveryFee: deliveryFee,
                     subtotal: subtotal,
                     packageFees: packageFees,
@@ -331,7 +334,7 @@ class _MapSection extends StatelessWidget {
           markerId: const MarkerId('store'),
           position: shopLatLng,
           icon: storeMarkerIcon,
-          infoWindow: InfoWindow(title: shop.storeName),
+          infoWindow: InfoWindow(title: shop.displayStoreName),
         ),
       );
     }
@@ -392,6 +395,7 @@ class _MapSection extends StatelessWidget {
 class _AddressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return BlocBuilder<AddressBloc, AddressState>(
       builder: (context, state) {
         final address = state.selectedAddress?.address ?? '';
@@ -416,7 +420,10 @@ class _AddressBar extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    address.isEmpty ? 'No delivery address selected' : address,
+                    address.isEmpty
+                        ? (l10n?.noDeliveryAddressSelected ??
+                              'No delivery address selected')
+                        : address,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -443,13 +450,14 @@ class _DeliveryInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
         children: [
-          const Text(
-            'Delivery Info',
-            style: TextStyle(
+          Text(
+            l10n?.deliveryInfo ?? 'Delivery Info',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
@@ -462,9 +470,9 @@ class _DeliveryInfoRow extends StatelessWidget {
               if (addr == null) {
                 return GestureDetector(
                   onTap: () => onSelectAddress(context),
-                  child: const Text(
-                    'Select address',
-                    style: TextStyle(
+                  child: Text(
+                    l10n?.selectAddress ?? 'Select address',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: AppColors.primary,
@@ -517,7 +525,7 @@ class _ShopNameRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shop = selectedShop(context);
-    final name = shop?.storeName ?? '';
+    final name = shop?.displayStoreName ?? '';
     if (name.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -543,14 +551,15 @@ class _PromoCodeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Promote Code',
-            style: TextStyle(
+          Text(
+            l10n?.promoteCode ?? 'Promote Code',
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
@@ -572,11 +581,17 @@ class _PromoCodeRow extends StatelessWidget {
                     style: AppTypography.input,
                     onChanged: (v) =>
                         context.read<CheckoutCubit>().updatePromoCode(v),
-                    decoration: const InputDecoration(
-                      hintText: 'Enter promo code here',
-                      hintStyle: TextStyle(fontSize: 13, color: Colors.black38),
+                    decoration: InputDecoration(
+                      hintText:
+                          l10n?.enterPromoCodeHere ?? 'Enter promo code here',
+                      hintStyle: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black38,
+                      ),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -604,9 +619,9 @@ class _PromoCodeRow extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
-                  child: const Text(
-                    'APPLY',
-                    style: TextStyle(
+                  child: Text(
+                    l10n?.apply ?? 'APPLY',
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.5,
@@ -637,6 +652,7 @@ class _PlaceOrderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return BlocBuilder<CheckoutCubit, CheckoutState>(
       builder: (context, checkoutState) {
         final isLoading = checkoutState.status == CheckoutStatus.placingOrder;
@@ -665,9 +681,9 @@ class _PlaceOrderButton extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Place Order',
-                        style: TextStyle(
+                    : Text(
+                        l10n?.placeOrder ?? 'Place Order',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.4,
@@ -684,8 +700,17 @@ class _PlaceOrderButton extends StatelessWidget {
   Future<void> _onPlaceOrder(BuildContext context) async {
     final addr = context.read<AddressBloc>().state.selectedAddress;
     if (addr == null) {
+      final l10n = Localizations.of<AppLocalizations>(
+        context,
+        AppLocalizations,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a delivery address first')),
+        SnackBar(
+          content: Text(
+            l10n?.pleaseSelectDeliveryAddressFirst ??
+                'Please select a delivery address first',
+          ),
+        ),
       );
       return;
     }
@@ -705,20 +730,22 @@ class _PlaceOrderButton extends StatelessWidget {
   }
 
   Future<bool?> _showPlaceOrderConfirmation(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return showDialog<bool>(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Confirm Order'),
-          content: const Text(
-            'Please confirm your order. '
-            'After staff approval, cancellation may no longer be available.',
+          title: Text(l10n?.confirmOrder ?? 'Confirm Order'),
+          content: Text(
+            l10n?.confirmOrderMessage ??
+                'Please confirm your order. '
+                    'After staff approval, cancellation may no longer be available.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Back'),
+              child: Text(l10n?.back ?? 'Back'),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -726,7 +753,7 @@ class _PlaceOrderButton extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Confirm'),
+              child: Text(l10n?.confirm ?? 'Confirm'),
             ),
           ],
         );
@@ -748,6 +775,7 @@ class _OrderSuccessDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
@@ -769,9 +797,9 @@ class _OrderSuccessDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Order Submitted!',
-              style: TextStyle(
+            Text(
+              l10n?.orderSubmitted ?? 'Order Submitted!',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
@@ -779,7 +807,8 @@ class _OrderSuccessDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your order #$orderNumber has been placed\nsuccessfully.',
+              l10n?.orderPlacedSuccessfully(orderNumber) ??
+                  'Your order #$orderNumber has been placed\nsuccessfully.',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 13, color: Colors.black54),
             ),
@@ -796,9 +825,12 @@ class _OrderSuccessDialog extends StatelessWidget {
                   ),
                 ),
                 onPressed: onTrackOrder,
-                child: const Text(
-                  'Track Order',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                child: Text(
+                  l10n?.trackOrder ?? 'Track Order',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),

@@ -2,8 +2,12 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+import 'package:e_commerce_mobile_app/core/localization/language_cubit.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/profile_image_source_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:e_commerce_mobile_app/core/common/auth_required_dialog.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
@@ -25,13 +29,11 @@ class IndexView extends StatefulWidget {
 class _IndexViewState extends State<IndexView> {
   final AuthService _authService = AuthService();
   final UserInfoRepository _userInfoRepository = UserInfoRepository();
-  String _languageCode = 'en';
   String? _profileImagePath;
   String _profileImageUrl = '';
   UserInfoModel? _userInfo;
   final GlobalKey _menuButtonKey = GlobalKey();
   bool get _isAuthenticated => UserSession.isAuthenticated;
-  String get _languageLabel => _languageCode == 'km' ? 'Khmer' : 'English';
 
   String get _displayName {
     final name = UserSession.displayName.trim();
@@ -66,7 +68,7 @@ class _IndexViewState extends State<IndexView> {
     if (!_isAuthenticated) return;
 
     final userInfo = await _userInfoRepository.loadUserInfo(
-      fallbackLanguageCode: _languageCode,
+      fallbackLanguageCode: AppLanguage.currentLanguageCode,
     );
     if (!mounted) return;
 
@@ -80,35 +82,37 @@ class _IndexViewState extends State<IndexView> {
   Future<void> _openLanguageSelector() async {
     final selectedCode = await showLanguageBottomSheet(
       context,
-      selectedLanguageCode: _languageCode,
+      selectedLanguageCode: context.read<LanguageCubit>().state.languageCode,
     );
 
-    if (!mounted || selectedCode == null || selectedCode == _languageCode) {
+    if (!mounted || selectedCode == null) {
       return;
     }
 
-    setState(() => _languageCode = selectedCode);
+    await context.read<LanguageCubit>().changeLanguage(selectedCode);
   }
 
   List<PopupMenuEntry<_BurgerMenuAction>> _buildBurgerMenuItems() {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = AppLocalizations.of(context);
+    final languageCode = context.read<LanguageCubit>().state.languageCode;
     final options = <_BurgerMenuItemData>[
       if (_isAuthenticated)
-        const _BurgerMenuItemData(
+        _BurgerMenuItemData(
           action: _BurgerMenuAction.setProfilePhoto,
           icon: Icons.camera_alt_outlined,
-          label: 'Set profile photo',
+          label: l10n.setProfilePhoto,
         ),
       _BurgerMenuItemData(
         action: _BurgerMenuAction.language,
         icon: Icons.g_translate_outlined,
-        label: _languageLabel,
+        label: AppLanguage.labelFor(languageCode),
       ),
       if (_isAuthenticated)
-        const _BurgerMenuItemData(
+        _BurgerMenuItemData(
           action: _BurgerMenuAction.logout,
           icon: Icons.logout_rounded,
-          label: 'Logout',
+          label: l10n.logout,
         ),
     ];
 
@@ -201,7 +205,7 @@ class _IndexViewState extends State<IndexView> {
     final current =
         (_userInfo ??
                 await _userInfoRepository.loadUserInfo(
-                  fallbackLanguageCode: _languageCode,
+                  fallbackLanguageCode: AppLanguage.currentLanguageCode,
                 ))
             .copyWith(profileImagePath: pickedFile.path);
     final updated = await _userInfoRepository.uploadProfileImage(
@@ -219,6 +223,7 @@ class _IndexViewState extends State<IndexView> {
 
   Future<void> _showLogoutBottomSheet() async {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = AppLocalizations.of(context);
     final shouldLogout = await showModalBottomSheet<bool>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -231,18 +236,18 @@ class _IndexViewState extends State<IndexView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Logout',
-              style: TextStyle(
+            Text(
+              l10n.logout,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1B22),
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Really want to logout?',
-              style: TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
+            Text(
+              l10n.reallyWantToLogout,
+              style: const TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
             ),
             const SizedBox(height: 28),
             Row(
@@ -260,9 +265,9 @@ class _IndexViewState extends State<IndexView> {
                         ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(false),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontSize: 15),
+                      child: Text(
+                        l10n.cancel,
+                        style: const TextStyle(fontSize: 15),
                       ),
                     ),
                   ),
@@ -281,7 +286,10 @@ class _IndexViewState extends State<IndexView> {
                         ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(true),
-                      child: const Text('Yes', style: TextStyle(fontSize: 15)),
+                      child: Text(
+                        l10n.yes,
+                        style: const TextStyle(fontSize: 15),
+                      ),
                     ),
                   ),
                 ),

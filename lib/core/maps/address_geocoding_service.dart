@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geocoding/geocoding.dart';
@@ -55,7 +56,7 @@ class AddressGeocodingService {
       final body = <String, dynamic>{
         'input': trimmed,
         'includedRegionCodes': ['kh'],
-        'languageCode': 'en',
+        'languageCode': AppLanguage.currentLanguageCode,
         'regionCode': 'KH',
       };
       if (sessionToken != null) {
@@ -232,9 +233,7 @@ class AddressGeocodingService {
     }
 
     try {
-      final queryParameters = <String, dynamic>{
-        'sessionToken': ?sessionToken,
-      };
+      final queryParameters = <String, dynamic>{'sessionToken': ?sessionToken};
 
       final response = await _dio.get<Map<String, dynamic>>(
         '$_googlePlaceDetailsUrl/${Uri.encodeComponent(placeId)}',

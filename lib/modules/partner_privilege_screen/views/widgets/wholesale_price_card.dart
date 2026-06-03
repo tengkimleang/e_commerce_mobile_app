@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class WholesalePriceCard extends StatelessWidget {
@@ -7,6 +8,10 @@ class WholesalePriceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: InkWell(
@@ -47,7 +52,7 @@ class WholesalePriceCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Wholesale Price',
+                        l10n?.wholesalePrice ?? 'Wholesale Price',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               color: Colors.white,
@@ -57,7 +62,8 @@ class WholesalePriceCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'High quality products\nwith special price',
+                        l10n?.wholesalePriceSubtitle ??
+                            'High quality products\nwith special price',
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: Colors.white70),

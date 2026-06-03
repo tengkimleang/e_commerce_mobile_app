@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_event.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/blocs/user_info_state.dart';
@@ -75,7 +76,9 @@ class UserInfoBloc extends Bloc<UserInfoEvent, UserInfoState> {
     UpdateLanguage event,
     Emitter<UserInfoState> emit,
   ) async {
-    _model = _model.copyWith(languageCode: event.languageCode);
+    _model = _model.copyWith(
+      languageCode: AppLanguage.normalize(event.languageCode),
+    );
     await _emitUpdated(emit);
   }
 

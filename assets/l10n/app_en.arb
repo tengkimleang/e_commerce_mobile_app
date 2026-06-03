@@ -1,0 +1,180 @@
+{
+  "@@locale": "en",
+  "appTitle": "Chipmong Retail",
+  "hello": "Hello",
+  "loginOrSignup": "Login or Signup",
+  "logout": "Logout",
+  "language": "Language",
+  "english": "English",
+  "khmer": "Khmer",
+  "noConnection": "No Connection",
+  "serverError": "Server Error",
+  "invalidInput": "Invalid Input",
+  "somethingWentWrong": "Something Went Wrong",
+  "accountNotFound": "Account Not Found",
+  "phoneDeleted": "This phone number has been deleted",
+  "activatePhonePrompt": "To activate this phone number back, please click confirm activation and do the verification process again.",
+  "unableToRequestOtp": "Unable to request activation OTP right now.",
+  "pleaseSignUpFirst": "Please sign up first.",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "goToSignUp": "Go to Sign Up",
+  "confirmActivation": "Confirm Activation",
+  "phoneNumberLabel": "Phone number",
+  "enterPhoneNumber": "Enter phone number",
+  "agreeTermsPrefix": "By clicking Next button you are agreeing to the ",
+  "termsOfUse": "Terms of Use",
+  "agreeTermsMiddle": " and the ",
+  "privacyPolicy": "Privacy Policy",
+  "invalidPhoneNumber": "Please enter a valid phone number",
+  "signUp": "Sign Up",
+  "continueAsGuest": "Continue as guest",
+  "login": "Login",
+  "footerVersion": "@2026 CHIP MONG GROUP | v1.8.3",
+  "enterOtpCode": "Enter OTP Code",
+  "otpSentTelegram": "Your OTP has been sent to Telegram. Please check your Telegram chat and enter the 4-digit code below.",
+  "otpSentSms": "Your OTP has been sent by SMS to {phoneNumber}. Please check your phone and enter the 4-digit code below.",
+  "@otpSentSms": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "otpSentAgainTelegram": "OTP has been sent again to your Telegram.",
+  "otpSentAgainSms": "OTP has been sent again to {phoneNumber}.",
+  "@otpSentAgainSms": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "verificationFailed": "Verification Failed",
+  "requestFailed": "Request Failed",
+  "pleaseWait": "Please Wait",
+  "fullNameMissing": "Full name is missing. Please go back and try signup again.",
+  "requestOtpFailed": "Request OTP failed.",
+  "pleaseWaitSeconds": "Please wait {seconds} second(s) before requesting OTP.",
+  "@pleaseWaitSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "noInternetConnection": "No internet connection. Please check your network and try again.",
+  "unableToRequestOtpRightNow": "Unable to request OTP right now.",
+  "otpVerificationFailed": "OTP verification failed.",
+  "phoneNotRegistered": "This phone is not registered. Please sign up first.",
+  "activationTokenMissing": "Activation token is missing. Please request a new OTP and try again.",
+  "serverErrorTryLater": "Server error. Please try again later.",
+  "unableToReachServer": "Unable to reach the server. Please try again.",
+  "back": "Back",
+  "requestNewOtp": "Request New OTP",
+  "showOtp": "Show OTP",
+  "hideOtp": "Hide OTP",
+  "sending": "Sending...",
+  "resendOtpIn": "Resend OTP in {seconds}s",
+  "@resendOtpIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "resendOtp": "Resend OTP",
+  "verifyOtp": "VERIFY OTP",
+  "enterPinCode": "Enter your PIN Code",
+  "enterPinForPhone": "Please enter the PIN Code to login for {phoneNumber}",
+  "@enterPinForPhone": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "pinNotSetTitle": "PIN Not Set",
+  "pinLoginNotReady": "PIN Login Not Ready",
+  "loginFailed": "Login Failed",
+  "biometricNotReady": "Biometric Login Not Ready",
+  "biometricFailed": "Biometric Login Failed",
+  "pinNotSetMessage": "PIN is not set yet. Please verify OTP and create a PIN first.",
+  "pinLoginEndpointNotAvailable": "PIN login endpoint is not available on backend yet. Use OTP login for now?",
+  "invalidPhoneOrPin": "Invalid phone or PIN code.",
+  "unableToVerifyPin": "Unable to verify your PIN right now.",
+  "unableToVerifyBiometric": "Unable to verify biometric login right now.",
+  "unableToSendOtpPinReset": "Unable to send OTP for PIN reset.",
+  "useOtp": "Use OTP",
+  "pinTemporarilyLocked": "PIN Temporarily Locked",
+  "tooManyIncorrectAttempts": "Too many incorrect attempts.",
+  "remaining": "remaining",
+  "showPin": "Show PIN",
+  "scanning": "Scanning...",
+  "sendingOtp": "Sending OTP...",
+  "forgotPinCode": "Forgot the PIN code?",
+  "submit": "SUBMIT",
+  "setNewPin": "Set new PIN",
+  "resetYourPin": "Reset your PIN",
+  "makeSureYouRemember": "Make sure you remember",
+  "chooseNewPinLogin": "Choose a new PIN for login",
+  "chooseNewPinReactivate": "Choose a new PIN to reactivate your account",
+  "pinSetupFailed": "PIN Setup Failed",
+  "pinResetFailed": "PIN reset failed. Please try again.",
+  "unableToSetPin": "Unable to set your PIN right now. Please try again.",
+  "unableToSetPinRightNow": "Unable to set PIN right now.",
+  "pinUpdatedLoginFailed": "Your PIN was updated, but automatic sign-in failed. Please log in with your new PIN.",
+  "yourCart": "Your Cart",
+  "yourCartIsEmpty": "Your cart is empty",
+  "deliveryInfo": "Delivery Info",
+  "productOrder": "Product Order",
+  "selectAddress": "Select address",
+  "ifProductNotAvailable": "If this product is not available",
+  "removeFromMyOrder": "Remove it from my order",
+  "home": "Home",
+  "offers": "Offers",
+  "scan": "Scan",
+  "orders": "Orders",
+  "profile": "Profile",
+  "outOfStock": "Out of Stock",
+  "addToCart": "Add to cart",
+  "checkOut": "Check Out",
+  "itemsDetail": "{count} Items detail",
+  "@itemsDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalAmount": "Total: $ {amount}",
+  "@totalAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "percentOff": "{percent}% OFF",
+  "@percentOff": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "youMayAlsoLike": "You may also like",
+  "noRelatedProducts": "No related products",
+  "image": "Image",
+  "wholesaleForm": "Wholesale Form",
+  "pleaseEnterNameAndPhone": "Please enter name and phone.",
+  "invalidPhone": "Invalid Phone",
+  "submissionFailed": "Submission Failed",
+  "somethingWentWrongTryAgain": "Something went wrong. Please try again.",
+  "requestSubmitted": "Request Submitted!",
+  "wholesaleRequestSuccess": "Your wholesale request has been submitted successfully. Our team will contact you shortly.",
+  "done": "Done",
+  "customerName": "Customer Name",
+  "remark": "Remark",
+  "searchProduct": "Search product"
+}

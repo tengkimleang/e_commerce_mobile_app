@@ -1,4 +1,5 @@
 import 'package:e_commerce_mobile_app/core/models/product_item.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -47,5 +48,34 @@ void main() {
       'https://example.com/side.png',
       'https://example.com/back.png',
     ]);
+  });
+
+  test(
+    'displayName prefers selected language with legacy rollout fallback',
+    () {
+      final product = ProductModel.fromJson({
+        'id': '1',
+        'name': 'Legacy Product',
+        'nameEn': 'English Product',
+        'nameKm': 'ផលិតផលខ្មែរ',
+        'price': 1,
+        'imageUrl': '',
+      });
+
+      expect(product.displayNameFor(AppLanguage.english), 'English Product');
+      expect(product.displayNameFor(AppLanguage.khmer), 'ផលិតផលខ្មែរ');
+    },
+  );
+
+  test('displayName falls back to legacy name while BE migrates', () {
+    final product = ProductModel.fromJson({
+      'id': '1',
+      'name': 'Legacy Product',
+      'price': 1,
+      'imageUrl': '',
+    });
+
+    expect(product.displayNameFor(AppLanguage.english), 'Legacy Product');
+    expect(product.displayNameFor(AppLanguage.khmer), 'Legacy Product');
   });
 }

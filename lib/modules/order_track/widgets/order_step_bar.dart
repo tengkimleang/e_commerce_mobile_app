@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 enum OrderStep { requesting, picking, delivering, delivered }
@@ -8,16 +9,25 @@ class OrderStepBar extends StatelessWidget {
   final OrderStep currentStep;
 
   static const _steps = [
-    _StepConfig(icon: Icons.hourglass_top_rounded, label: 'Requesting'),
-    _StepConfig(icon: Icons.shopping_cart_outlined, label: 'Picking'),
-    _StepConfig(icon: Icons.delivery_dining_outlined, label: 'Delivering'),
-    _StepConfig(icon: Icons.check_circle_outline_rounded, label: 'Delivered'),
+    _StepConfig(icon: Icons.hourglass_top_rounded),
+    _StepConfig(icon: Icons.shopping_cart_outlined),
+    _StepConfig(icon: Icons.delivery_dining_outlined),
+    _StepConfig(icon: Icons.check_circle_outline_rounded),
   ];
 
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final currentIndex = OrderStep.values.indexOf(currentStep);
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
+    final labels = l10n == null
+        ? const ['Requesting', 'Picking', 'Delivering', 'Delivered']
+        : [
+            l10n.orderStatusRequesting,
+            l10n.orderStatusPicking,
+            l10n.orderStatusDelivering,
+            l10n.orderStatusDelivered,
+          ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
@@ -35,9 +45,7 @@ class OrderStepBar extends StatelessWidget {
                   Expanded(
                     child: Container(
                       height: 3,
-                      color: i < currentIndex
-                          ? primary
-                          : Colors.grey.shade300,
+                      color: i < currentIndex ? primary : Colors.grey.shade300,
                     ),
                   ),
               ],
@@ -51,7 +59,7 @@ class OrderStepBar extends StatelessWidget {
                 SizedBox(
                   width: 60,
                   child: Text(
-                    _steps[i].label,
+                    labels[i],
                     textAlign: i == 0
                         ? TextAlign.left
                         : i == _steps.length - 1
@@ -62,9 +70,7 @@ class OrderStepBar extends StatelessWidget {
                       fontWeight: i == currentIndex
                           ? FontWeight.w700
                           : FontWeight.w400,
-                      color: i == currentIndex
-                          ? primary
-                          : Colors.black45,
+                      color: i == currentIndex ? primary : Colors.black45,
                     ),
                   ),
                 ),
@@ -115,8 +121,7 @@ class _StepCircle extends StatelessWidget {
 }
 
 class _StepConfig {
-  const _StepConfig({required this.icon, required this.label});
+  const _StepConfig({required this.icon});
 
   final IconData icon;
-  final String label;
 }
