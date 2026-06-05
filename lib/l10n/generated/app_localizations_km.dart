@@ -492,7 +492,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get ok => 'យល់ព្រម';
 
   @override
-  String get phoneNumberLabel => 'លេខទូរស័ព្ទ';
+  String get phoneNumberLabel => 'លេខទូរសព្ទ:';
 
   @override
   String get loginWithBiometric => 'ចូលដោយជីវវិទ្យា';
@@ -565,4 +565,65 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get next => 'បន្ទាប់';
+
+  @override
+  String get enterPinCode => 'បញ្ចូលលេខកូដ PIN របស់អ្នក';
+
+  @override
+  String pleaseEnterPinCodeFor(String phoneNumber) {
+    return 'សូមបញ្ចូលលេខកូដ PIN ដើម្បីចូលគណនីសម្រាប់ $phoneNumber';
+  }
+
+  @override
+  String get showPin => 'បង្ហាញ PIN';
+
+  @override
+  String get hidePin => 'លាក់ PIN';
+
+  @override
+  String get forgotPinCode => 'ភ្លេចលេខកូដ PIN?';
+
+  @override
+  String get submitAllCaps => 'បញ្ជូន';
+
+  @override
+  String get setNewPin => 'កំណត់លេខកូដ PIN ថ្មី';
+
+  @override
+  String get makeSureYouRemember => 'សូមប្រាកដថាអ្នកចងចាំវា';
+
+  @override
+  String get oldPin => 'លេខកូដ PIN ចាស់';
+
+  @override
+  String get newPin => 'លេខកូដ PIN ថ្មី';
+
+  @override
+  String get resetYourPin => 'កំណត់លេខកូដ PIN របស់អ្នកឡើងវិញ';
+
+  @override
+  String get chooseNewPinForLogin => 'ជ្រើសរើសលេខកូដ PIN ថ្មីសម្រាប់ចូលគណនី';
+
+  @override
+  String get chooseNewPinToReactivate =>
+      'ជ្រើសរើសលេខកូដ PIN ថ្មីដើម្បីដំណើរការគណនីរបស់អ្នកឡើងវិញ';
+
+  @override
+  String get loginWithFaceId => 'ចូលដោយ Face ID';
+
+  @override
+  String get usernameLabel => 'ឈ្មោះអ្នកប្រើប្រាស់:';
+
+  @override
+  String get supermarketPointLabel => 'ពិន្ទុផ្សារទំនើប:';
+
+  @override
+  String get removeTelegramBackup => 'លុបការបម្រុងទុកតាមតេឡេក្រាម';
+
+  @override
+  String get otpSmsWarningTelegram =>
+      'លេខកូដ OTP នឹងត្រូវផ្ញើតាម SMS តែប៉ុណ្ណោះ បន្ទាប់ពីអ្នកលុបការបម្រុងទុកតាមតេឡេក្រាម។';
+
+  @override
+  String get remove => 'លុប';
 }

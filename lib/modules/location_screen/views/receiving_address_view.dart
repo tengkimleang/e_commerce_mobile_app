@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ReceivingAddressView extends StatefulWidget {
@@ -72,7 +73,7 @@ class _ReceivingAddressViewState extends State<ReceivingAddressView> {
             const SizedBox(height: 8),
             TextField(
               controller: _addressController,
-              style: AppTypography.input,
+              style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
               onChanged: (_) => setState(() {}),
               minLines: 3,
               maxLines: 5,

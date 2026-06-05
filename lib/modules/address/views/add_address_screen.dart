@@ -10,6 +10,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/maps/address_search_view.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import '../blocs/address_bloc.dart';
 import '../blocs/address_event.dart';
 import '../models/delivery_address.dart';
@@ -383,7 +384,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   color: Colors.transparent,
                   child: TextField(
                     controller: _searchCtrl,
-                    style: AppTypography.input,
+                    style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                     readOnly: true,
                     showCursor: false,
                     textInputAction: TextInputAction.search,
@@ -669,7 +670,7 @@ class _FormTextField extends StatelessWidget {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       onChanged: onChanged,
-      style: AppTypography.input.copyWith(fontSize: 15, color: Colors.black87),
+      style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer).copyWith(fontSize: 15, color: Colors.black87),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Color(0xFFB0AFBA), fontSize: 14),

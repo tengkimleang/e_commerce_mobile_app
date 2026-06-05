@@ -47,6 +47,7 @@ dependencies:
   local_auth_android: ^2.0.8
   local_auth_darwin: ^2.0.3
   flutter_secure_storage: ^10.2.0
+  google_fonts: ^8.1.0
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +68,7 @@ flutter:
     - assets/icons/logo.png
     - assets/images/profile.png
     - assets/images/
+    - assets/google_fonts/
 
   fonts:
     - family: Inter

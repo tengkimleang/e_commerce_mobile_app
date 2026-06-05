@@ -162,16 +162,16 @@ class _QrCodeViewState extends State<QrCodeView> {
                         ),
                         child: Column(
                           children: [
-                            _InfoRow(label: 'Username:', value: usernameLabel),
+                            _InfoRow(label: AppLocalizations.of(context)?.usernameLabel ?? 'Username:', value: usernameLabel),
                             const SizedBox(height: 10),
                             const _DashedDivider(),
                             const SizedBox(height: 10),
-                            _InfoRow(label: 'Phone number:', value: phoneLabel),
+                            _InfoRow(label: AppLocalizations.of(context)?.phoneNumberLabel ?? 'Phone number:', value: phoneLabel),
                             const SizedBox(height: 10),
                             const _DashedDivider(),
                             const SizedBox(height: 10),
                             _InfoRow(
-                              label: 'Supermarket Point:',
+                              label: AppLocalizations.of(context)?.supermarketPointLabel ?? 'Supermarket Point:',
                               value: points,
                             ),
                           ],
@@ -1019,7 +1019,7 @@ class _MallMemberInfoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         children: [
-          _MallInfoRow(label: 'Username:', value: name),
+          _MallInfoRow(label: AppLocalizations.of(context)?.usernameLabel ?? 'Username:', value: name),
           const _MallDashedDivider(),
           _MallInfoRow(label: 'Tier Level:', value: level),
           const _MallDashedDivider(),

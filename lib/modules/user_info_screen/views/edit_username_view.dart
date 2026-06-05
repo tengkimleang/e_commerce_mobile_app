@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 
 Future<String?> showEditUsernameBottomSheet(
   BuildContext context, {
@@ -106,7 +107,7 @@ class _EditUsernameBottomSheetState extends State<_EditUsernameBottomSheet> {
                 child: TextField(
                   controller: _usernameController,
                   autofocus: true,
-                  style: AppTypography.input.copyWith(color: Color(0xFF4A4A4A)),
+                  style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer).copyWith(color: Color(0xFF4A4A4A)),
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _submit(),
                   decoration: const InputDecoration(

@@ -5,6 +5,7 @@ import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/data/categories_repository.dart';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/utils/responsive_layout.dart';
 import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
 import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
@@ -287,7 +288,7 @@ class _SearchProductsState extends State<SearchProducts>
                                         child: TextField(
                                           controller: _controller,
                                           focusNode: _focusNode,
-                                          style: AppTypography.input.copyWith(
+                                          style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer).copyWith(
                                             fontSize: 14,
                                           ),
                                           decoration: InputDecoration(

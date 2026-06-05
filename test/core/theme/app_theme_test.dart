@@ -22,11 +22,13 @@ void main() {
     expect(theme.textTheme.titleMedium?.fontSize, 18);
     expect(theme.textTheme.bodyMedium?.fontSize, 16);
     expect(theme.textTheme.bodySmall?.fontSize, 12);
-    expect(AppTypography.input.fontFamily, 'Battambang');
-    expect(AppTypography.input.fontFamilyFallback, [
+    expect(AppTypography.inputStyle(isKhmer: true).fontFamily, 'Battambang');
+    expect(AppTypography.inputStyle(isKhmer: true).fontFamilyFallback, [
       'KhmerOSSiemreap',
       AppTypography.primaryFontFamily,
     ]);
+    expect(AppTypography.inputStyle(isKhmer: false).fontFamily,
+        AppTypography.primaryFontFamily);
   });
 
   test('builds runtime colors without changing the typography standard', () {
@@ -53,6 +55,6 @@ void main() {
       theme.textTheme.bodyMedium?.fontFamily,
       AppTypography.primaryFontFamily,
     );
-    expect(AppTypography.input.fontFamily, 'Battambang');
+    expect(AppTypography.inputStyle(isKhmer: true).fontFamily, 'Battambang');
   });
 }

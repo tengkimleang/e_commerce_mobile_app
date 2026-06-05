@@ -767,9 +767,10 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
     final primary = Theme.of(context).colorScheme.primary;
     final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final status = _deviceStatus;
-    final rawLabel = status?.settingsLabel ?? 'Login with Biometric:';
-    final label = rawLabel.replaceFirst(RegExp(r':+$'), '').trim();
-    final displayLabel = label.isEmpty ? (l10n?.loginWithBiometric ?? 'Login with Biometric') : label;
+    final isFaceId = status?.isFaceIdAvailable == true && Platform.isIOS;
+    final displayLabel = isFaceId
+        ? (l10n?.loginWithFaceId ?? 'Login with Face ID')
+        : (l10n?.loginWithBiometric ?? 'Login with Biometric');
     final canEnable =
         status?.isSupported == true && widget.phoneNumber.trim().isNotEmpty;
     final canDisable = _isEnabled;
@@ -1718,21 +1719,21 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Remove Telegram Backup'),
-        content: const Text(
-          'OTP will only be sent via SMS after removing Telegram backup.',
+        title: Text(AppLocalizations.of(context)?.removeTelegramBackup ?? 'Remove Telegram Backup'),
+        content: Text(
+          AppLocalizations.of(context)?.otpSmsWarningTelegram ?? 'OTP will only be sent via SMS after removing Telegram backup.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)?.cancel ?? 'Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: Theme.of(ctx).colorScheme.primary,
             ),
-            child: const Text('Remove'),
+            child: Text(AppLocalizations.of(context)?.remove ?? 'Remove'),
           ),
         ],
       ),

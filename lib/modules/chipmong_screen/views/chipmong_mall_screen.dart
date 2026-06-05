@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import '../bloc/chipmong_mall_bloc.dart';
 import '../bloc/chipmong_mall_event.dart';
 import '../bloc/chipmong_mall_state.dart';
@@ -250,7 +251,7 @@ class _MallSearchDelegate extends SearchDelegate<ChipmongMallPromotion?> {
   _MallSearchDelegate(this.items)
     : super(
         searchFieldLabel: 'Search shops, offers and events',
-        searchFieldStyle: AppTypography.input,
+        searchFieldStyle: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
       );
 
   final List<ChipmongMallPromotion> items;

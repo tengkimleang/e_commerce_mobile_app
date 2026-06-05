@@ -7,6 +7,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../core/maps/address_search_view.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class MapReceivingAddressResult {
@@ -375,7 +376,7 @@ class _MapReceivingAddressViewState extends State<MapReceivingAddressView> {
             color: Colors.transparent,
             child: TextField(
               controller: _searchController,
-              style: AppTypography.input,
+              style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
               readOnly: true,
               showCursor: false,
               textInputAction: TextInputAction.search,

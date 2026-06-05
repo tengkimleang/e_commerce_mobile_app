@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:e_commerce_mobile_app/core/router/app_router.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/maps/map_marker_icons.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_bloc.dart';
 import 'package:e_commerce_mobile_app/modules/address/blocs/address_event.dart';
@@ -578,7 +579,7 @@ class _PromoCodeRow extends StatelessWidget {
                   ),
                   child: TextField(
                     controller: controller,
-                    style: AppTypography.input,
+                    style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                     onChanged: (v) =>
                         context.read<CheckoutCubit>().updatePromoCode(v),
                     decoration: InputDecoration(

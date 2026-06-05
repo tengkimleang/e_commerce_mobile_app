@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import '../utils/text_input_utils.dart';
 import 'address_geocoding_service.dart';
 
@@ -253,7 +254,7 @@ class _AddressSearchViewState extends State<AddressSearchView> {
         cursorColor: primary,
         textInputAction: TextInputAction.search,
         onSubmitted: (_) => _submitSearch(),
-        style: AppTypography.input.copyWith(fontSize: 18, color: _textColor),
+        style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer).copyWith(fontSize: 18, color: _textColor),
         decoration: InputDecoration(
           hintText: 'Search address',
           hintStyle: const TextStyle(color: Color(0xFFA2A0AA)),

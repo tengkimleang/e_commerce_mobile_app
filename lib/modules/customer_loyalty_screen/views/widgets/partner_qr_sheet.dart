@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 void showPartnerQrSheet(
   BuildContext context, {
   required String username,
@@ -63,11 +63,11 @@ void showPartnerQrSheet(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _infoLine('Username:', username),
+                        _infoLine(AppLocalizations.of(sheetContext)?.usernameLabel ?? 'Username:', username),
                         const SizedBox(height: 12),
-                        _infoLine('Phone number:', phone),
+                        _infoLine(AppLocalizations.of(sheetContext)?.phoneNumberLabel ?? 'Phone number:', phone),
                         const SizedBox(height: 12),
-                        _infoRow('Supermarket Point:', points),
+                        _infoRow(AppLocalizations.of(sheetContext)?.supermarketPointLabel ?? 'Supermarket Point:', points),
                       ],
                     ),
                   ),

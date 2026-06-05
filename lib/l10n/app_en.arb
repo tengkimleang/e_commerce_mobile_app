@@ -336,5 +336,52 @@
   "next": "NEXT",
   "@next": {
     "description": "Primary action button on signup form."
-  }
+  },
+  "enterPinCode": "Enter your PIN Code",
+  "@enterPinCode": {
+    "description": "Title on PIN login form."
+  },
+  "pleaseEnterPinCodeFor": "Please enter the PIN Code to login for {phoneNumber}",
+  "@pleaseEnterPinCodeFor": {
+    "description": "Subtitle on PIN login form.",
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String",
+        "example": "0963267044"
+      }
+    }
+  },
+  "showPin": "Show PIN",
+  "@showPin": {
+    "description": "Button to show PIN input."
+  },
+  "hidePin": "Hide PIN",
+  "@hidePin": {
+    "description": "Button to hide PIN input."
+  },
+  "forgotPinCode": "Forgot the PIN code?",
+  "@forgotPinCode": {
+    "description": "Button for forgotten PIN."
+  },
+  "submitAllCaps": "SUBMIT",
+  "@submitAllCaps": {
+    "description": "Submit button text in all caps."
+  },
+  "setNewPin": "Set new PIN",
+  "makeSureYouRemember": "Make sure you remember",
+  "oldPin": "Old PIN",
+  "newPin": "New PIN",
+  "resetYourPin": "Reset your PIN",
+  "chooseNewPinForLogin": "Choose a new PIN for login",
+  "chooseNewPinToReactivate": "Choose a new PIN to reactivate your account",
+  "loginWithFaceId": "Login with Face ID",
+  "@loginWithFaceId": {
+    "description": "'Login with Face ID'"
+  },
+  "usernameLabel": "Username:",
+  "phoneNumberLabel": "Phone number:",
+  "supermarketPointLabel": "Supermarket Point:",
+  "removeTelegramBackup": "Remove Telegram Backup",
+  "otpSmsWarningTelegram": "OTP will only be sent via SMS after removing Telegram backup.",
+  "remove": "Remove"
 }

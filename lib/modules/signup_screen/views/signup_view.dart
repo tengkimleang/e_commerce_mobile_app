@@ -3,6 +3,7 @@ import 'dart:async' show TimeoutException;
 import 'package:dio/dio.dart';
 import 'package:e_commerce_mobile_app/core/services/auth_service.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/utils/otp_request_message.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/term_condition_screen/views/term_condition_view.dart';
@@ -459,7 +460,7 @@ class _SignupViewState extends State<SignupView> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _fullNameController,
-                  style: AppTypography.input,
+                  style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                   onChanged: (_) => setState(() {
                     _showFullNameError = false;
                   }),

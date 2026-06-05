@@ -14,7 +14,7 @@ void main() {
       MaterialApp(
         theme: AppTheme.light,
         home: Scaffold(
-          body: TextField(controller: controller, style: AppTypography.input),
+          body: TextField(controller: controller, style: AppTypography.inputStyle(isKhmer: true)),
         ),
       ),
     );
@@ -29,6 +29,6 @@ void main() {
     await tester.pump();
 
     expect(controller.value, composingValue);
-    expect(AppTypography.input.fontFamily, 'Battambang');
+    expect(AppTypography.inputStyle(isKhmer: true).fontFamily, 'Battambang');
   });
 }

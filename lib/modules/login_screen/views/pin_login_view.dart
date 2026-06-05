@@ -941,7 +941,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                 SizedBox(height: isShortScreen ? 14 : 24),
                 Center(
                   child: Text(
-                    'Enter your PIN Code',
+                    AppLocalizations.of(context)?.enterPinCode ?? 'Enter your PIN Code',
                     style: TextStyle(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.w700,
@@ -952,7 +952,8 @@ class _PinLoginViewState extends State<PinLoginView> {
                 SizedBox(height: isShortScreen ? 8 : 12),
                 Center(
                   child: Text(
-                    'Please enter the PIN Code to login for ${widget.phoneNumber}',
+                    AppLocalizations.of(context)?.pleaseEnterPinCodeFor(widget.phoneNumber) ??
+                        'Please enter the PIN Code to login for ${widget.phoneNumber}',
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 15, color: Colors.black54),
                   ),
@@ -1004,7 +1005,9 @@ class _PinLoginViewState extends State<PinLoginView> {
                         ? null
                         : () => setState(() => _showPin = !_showPin),
                     child: Text(
-                      'Show PIN',
+                      _showPin
+                          ? (AppLocalizations.of(context)?.hidePin ?? 'Hide PIN')
+                          : (AppLocalizations.of(context)?.showPin ?? 'Show PIN'),
                       style: TextStyle(
                         color: _isPinLocked ? Colors.grey[400] : primary,
                         fontSize: 16,
@@ -1054,7 +1057,7 @@ class _PinLoginViewState extends State<PinLoginView> {
                     child: Text(
                       _isSendingForgotOtp
                           ? 'Sending OTP...'
-                          : 'Forgot the PIN code?',
+                          : (AppLocalizations.of(context)?.forgotPinCode ?? 'Forgot the PIN code?'),
                       style: TextStyle(
                         color: _isSendingForgotOtp ? Colors.grey : primary,
                         fontSize: 16,
@@ -1091,9 +1094,9 @@ class _PinLoginViewState extends State<PinLoginView> {
                                 strokeWidth: 2.5,
                               ),
                             )
-                          : const Text(
-                              'SUBMIT',
-                              style: TextStyle(
+                          : Text(
+                              AppLocalizations.of(context)?.submitAllCaps ?? 'SUBMIT',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),

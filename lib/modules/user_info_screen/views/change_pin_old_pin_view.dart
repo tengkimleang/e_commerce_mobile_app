@@ -544,8 +544,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'Set new PIN',
+                    Text(
+                      AppLocalizations.of(context)?.setNewPin ?? 'Set new PIN',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -553,15 +553,15 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Make sure you remember',
+                    Text(
+                      AppLocalizations.of(context)?.makeSureYouRemember ?? 'Make sure you remember',
                       style: TextStyle(fontSize: 16, color: Color(0xFF4A4A4A)),
                     ),
                     const SizedBox(height: 32),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Old PIN',
+                        AppLocalizations.of(context)?.oldPin ?? 'Old PIN',
                         style: TextStyle(fontSize: 16, color: primary),
                       ),
                     ),
@@ -576,7 +576,7 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'New PIN',
+                        AppLocalizations.of(context)?.newPin ?? 'New PIN',
                         style: TextStyle(fontSize: 16, color: primary),
                       ),
                     ),
@@ -628,8 +628,8 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    'SUBMIT',
+                : Text(
+                    AppLocalizations.of(context)?.submitAllCaps ?? 'SUBMIT',
                     style: TextStyle(fontSize: 15, letterSpacing: 1.2),
                   ),
           ),

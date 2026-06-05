@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:e_commerce_mobile_app/core/theme/remote_theme_config.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized app colors — single source of truth.
 abstract final class AppColors {
@@ -15,14 +16,34 @@ abstract final class AppColors {
 
 /// App-wide typography tokens.
 ///
-/// Inter is the primary Latin UI font. Khmer fonts stay in the fallback list
-/// so mixed English/Khmer content can render consistently.
+/// Inter is the primary Latin UI font. Battambang is the primary Khmer font,
+/// bundled locally so the google_fonts package never needs HTTP fetching.
 abstract final class AppTypography {
   static const String primaryFontFamily = 'Inter';
+  static const String khmerFontFamily = 'Battambang';
   static const List<String> fontFamilyFallback = [
     'Battambang',
     'KhmerOSSiemreap',
   ];
+
+  /// Returns a [TextStyle] using [GoogleFonts.battambang] (from bundled assets).
+  /// Defaults to Light (w300) — pass [fontWeight] to override per call-site.
+  static TextStyle battambangTextStyle({
+    TextStyle? textStyle,
+    double? fontSize,
+    FontWeight? fontWeight,
+    double? height,
+    double? letterSpacing,
+    Color? color,
+  }) =>
+      GoogleFonts.battambang(
+        textStyle: textStyle,
+        fontSize: fontSize,
+        fontWeight: fontWeight ?? FontWeight.w300,
+        height: height,
+        letterSpacing: letterSpacing ?? 0,
+        color: color,
+      );
 
   static const TextStyle pageTitle = TextStyle(
     fontFamily: primaryFontFamily,
@@ -60,14 +81,29 @@ abstract final class AppTypography {
     letterSpacing: 0,
   );
 
-  /// Keeps Khmer combining marks stable while an IME is composing input.
-  static const TextStyle input = TextStyle(
-    fontFamily: 'Battambang',
-    fontFamilyFallback: ['KhmerOSSiemreap', primaryFontFamily],
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    letterSpacing: 0,
-  );
+  /// Returns the correct input [TextStyle] for the active language.
+  ///
+  /// Khmer → Battambang Light (w300) via [GoogleFonts.battambang].
+  /// English → Inter w400 with Battambang as a glyph-level fallback only.
+  static TextStyle inputStyle({bool isKhmer = false}) {
+    if (isKhmer) {
+      return GoogleFonts.battambang(
+        textStyle: const TextStyle(
+          fontFamilyFallback: ['KhmerOSSiemreap', primaryFontFamily],
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+          letterSpacing: 0,
+        ),
+      );
+    }
+    return const TextStyle(
+      fontFamily: primaryFontFamily,
+      fontFamilyFallback: ['Battambang', 'KhmerOSSiemreap'],
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      letterSpacing: 0,
+    );
+  }
 
   static const TextStyle caption = TextStyle(
     fontFamily: primaryFontFamily,
@@ -87,31 +123,47 @@ abstract final class AppTypography {
     letterSpacing: 0,
   );
 
+  /// Builds the [TextTheme] for the current language.
+  ///
+  /// When [isKhmer] is true, every style is produced via
+  /// [GoogleFonts.battambang] so Khmer script renders with correct metrics.
+  /// For Latin text the Inter styles remain as-is with Battambang as fallback.
   static TextTheme textTheme(
     ColorScheme colorScheme, {
     Color primary = AppColors.textPrimary,
+    bool isKhmer = false,
   }) {
     final secondary = AppColors.textSecondary;
 
+    TextStyle resolve(TextStyle base) {
+      if (!isKhmer) return base;
+      // Always render Khmer text at Light (w300) for the clean, airy look.
+      return GoogleFonts.battambang(
+        textStyle: base,
+        fontWeight: FontWeight.w300,
+        letterSpacing: 0,
+      );
+    }
+
     return TextTheme(
-      displaySmall: pageTitle.copyWith(color: primary),
-      headlineMedium: pageTitle.copyWith(color: primary),
-      headlineSmall: sectionTitle.copyWith(color: primary),
-      titleLarge: sectionTitle.copyWith(color: primary),
-      titleMedium: cardTitle.copyWith(color: primary),
-      titleSmall: caption.copyWith(color: primary, fontWeight: FontWeight.w600),
-      bodyLarge: body.copyWith(color: primary),
-      bodyMedium: body.copyWith(color: primary),
-      bodySmall: smallMeta.copyWith(color: secondary),
-      labelLarge: body.copyWith(
+      displaySmall: resolve(pageTitle.copyWith(color: primary)),
+      headlineMedium: resolve(pageTitle.copyWith(color: primary)),
+      headlineSmall: resolve(sectionTitle.copyWith(color: primary)),
+      titleLarge: resolve(sectionTitle.copyWith(color: primary)),
+      titleMedium: resolve(cardTitle.copyWith(color: primary)),
+      titleSmall: resolve(caption.copyWith(color: primary, fontWeight: FontWeight.w600)),
+      bodyLarge: resolve(body.copyWith(color: primary)),
+      bodyMedium: resolve(body.copyWith(color: primary)),
+      bodySmall: resolve(smallMeta.copyWith(color: secondary)),
+      labelLarge: resolve(body.copyWith(
         color: colorScheme.onPrimary,
         fontWeight: FontWeight.w700,
-      ),
-      labelMedium: caption.copyWith(
+      )),
+      labelMedium: resolve(caption.copyWith(
         color: primary,
         fontWeight: FontWeight.w600,
-      ),
-      labelSmall: smallMeta.copyWith(color: secondary),
+      )),
+      labelSmall: resolve(smallMeta.copyWith(color: secondary)),
     );
   }
 }
@@ -153,7 +205,7 @@ extension AppBrandThemeContext on BuildContext {
 abstract final class AppTheme {
   static ThemeData get light => fromConfig(RemoteThemeConfig.fallback);
 
-  static ThemeData fromConfig(RemoteThemeConfig config) {
+  static ThemeData fromConfig(RemoteThemeConfig config, {bool isKhmer = false}) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: config.primary,
       primary: config.primary,
@@ -165,12 +217,21 @@ abstract final class AppTheme {
     final textTheme = AppTypography.textTheme(
       colorScheme,
       primary: config.onSurface,
+      isKhmer: isKhmer,
     );
+
+    // Determine primary font family for this locale
+    final activeFontFamily = isKhmer
+        ? AppTypography.khmerFontFamily
+        : AppTypography.primaryFontFamily;
+    final activeFallback = isKhmer
+        ? <String>[AppTypography.primaryFontFamily, 'KhmerOSSiemreap']
+        : AppTypography.fontFamilyFallback;
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: AppTypography.primaryFontFamily,
-      fontFamilyFallback: AppTypography.fontFamilyFallback,
+      fontFamily: activeFontFamily,
+      fontFamilyFallback: activeFallback,
       textTheme: textTheme,
       primaryTextTheme: textTheme,
       colorScheme: colorScheme,
@@ -195,23 +256,41 @@ abstract final class AppTheme {
         foregroundColor: config.onPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
-          fontFamily: AppTypography.primaryFontFamily,
-          fontFamilyFallback: AppTypography.fontFamilyFallback,
-          color: config.onPrimary,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-          height: 1.25,
-          letterSpacing: 0,
-        ),
+        titleTextStyle: isKhmer
+            ? GoogleFonts.battambang(
+                textStyle: TextStyle(
+                  color: config.onPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w300,
+                  height: 1.4,
+                  letterSpacing: 0,
+                ),
+              )
+            : TextStyle(
+                fontFamily: AppTypography.primaryFontFamily,
+                fontFamilyFallback: AppTypography.fontFamilyFallback,
+                color: config.onPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                height: 1.25,
+                letterSpacing: 0,
+              ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: AppTypography.caption.copyWith(
-          color: AppColors.textSecondary,
-        ),
-        labelStyle: AppTypography.caption.copyWith(
-          color: AppColors.textSecondary,
-        ),
+        hintStyle: (isKhmer
+            ? GoogleFonts.battambang(
+                textStyle: AppTypography.caption,
+                fontWeight: FontWeight.w300,
+              )
+            : AppTypography.caption)
+            .copyWith(color: AppColors.textSecondary),
+        labelStyle: (isKhmer
+            ? GoogleFonts.battambang(
+                textStyle: AppTypography.caption,
+                fontWeight: FontWeight.w300,
+              )
+            : AppTypography.caption)
+            .copyWith(color: AppColors.textSecondary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

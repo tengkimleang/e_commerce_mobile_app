@@ -1031,7 +1031,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneNumberLabel.
   ///
   /// In en, this message translates to:
-  /// **'Phone Number'**
+  /// **'Phone number:'**
   String get phoneNumberLabel;
 
   /// Security section label for biometric login toggle.
@@ -1171,6 +1171,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NEXT'**
   String get next;
+
+  /// Title on PIN login form.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your PIN Code'**
+  String get enterPinCode;
+
+  /// Subtitle on PIN login form.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the PIN Code to login for {phoneNumber}'**
+  String pleaseEnterPinCodeFor(String phoneNumber);
+
+  /// Button to show PIN input.
+  ///
+  /// In en, this message translates to:
+  /// **'Show PIN'**
+  String get showPin;
+
+  /// Button to hide PIN input.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide PIN'**
+  String get hidePin;
+
+  /// Button for forgotten PIN.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot the PIN code?'**
+  String get forgotPinCode;
+
+  /// Submit button text in all caps.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBMIT'**
+  String get submitAllCaps;
+
+  /// No description provided for @setNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set new PIN'**
+  String get setNewPin;
+
+  /// No description provided for @makeSureYouRemember.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure you remember'**
+  String get makeSureYouRemember;
+
+  /// No description provided for @oldPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Old PIN'**
+  String get oldPin;
+
+  /// No description provided for @newPin.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
+  String get newPin;
+
+  /// No description provided for @resetYourPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your PIN'**
+  String get resetYourPin;
+
+  /// No description provided for @chooseNewPinForLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new PIN for login'**
+  String get chooseNewPinForLogin;
+
+  /// No description provided for @chooseNewPinToReactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new PIN to reactivate your account'**
+  String get chooseNewPinToReactivate;
+
+  /// 'Login with Face ID'
+  ///
+  /// In en, this message translates to:
+  /// **'Login with Face ID'**
+  String get loginWithFaceId;
+
+  /// No description provided for @usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username:'**
+  String get usernameLabel;
+
+  /// No description provided for @supermarketPointLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Supermarket Point:'**
+  String get supermarketPointLabel;
+
+  /// No description provided for @removeTelegramBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Telegram Backup'**
+  String get removeTelegramBackup;
+
+  /// No description provided for @otpSmsWarningTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP will only be sent via SMS after removing Telegram backup.'**
+  String get otpSmsWarningTelegram;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
 }
 
 class _AppLocalizationsDelegate

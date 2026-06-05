@@ -602,7 +602,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
       child: TextFormField(
         controller: controller,
         initialValue: controller == null ? initial : null,
-        style: AppTypography.input,
+        style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
         maxLines: maxLines,
         decoration: const InputDecoration(
           contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),

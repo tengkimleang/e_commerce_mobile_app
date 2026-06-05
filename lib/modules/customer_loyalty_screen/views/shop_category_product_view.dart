@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:e_commerce_mobile_app/core/common/di.dart';
 import 'package:e_commerce_mobile_app/core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/core/widgets/app_skeleton.dart';
 import 'package:e_commerce_mobile_app/core/utils/text_input_utils.dart';
 import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
@@ -655,7 +656,7 @@ class _SearchField extends StatelessWidget {
               key: const ValueKey('shop-category-search-field'),
               controller: controller,
               focusNode: focusNode,
-              style: AppTypography.input,
+              style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: l10n?.searchProducts ?? 'Search products',

@@ -586,15 +586,15 @@ class _SetPinViewState extends State<SetPinView> {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final title = switch (widget.flow) {
-      PinSetupFlow.signup => 'Set new PIN',
-      PinSetupFlow.forgotPin => 'Reset your PIN',
-      PinSetupFlow.reactivation => 'Set new PIN',
+      PinSetupFlow.signup => AppLocalizations.of(context)?.setNewPin ?? 'Set new PIN',
+      PinSetupFlow.forgotPin => AppLocalizations.of(context)?.resetYourPin ?? 'Reset your PIN',
+      PinSetupFlow.reactivation => AppLocalizations.of(context)?.setNewPin ?? 'Set new PIN',
     };
     final subtitle = switch (widget.flow) {
-      PinSetupFlow.signup => 'Make sure you remember',
-      PinSetupFlow.forgotPin => 'Choose a new PIN for login',
+      PinSetupFlow.signup => AppLocalizations.of(context)?.makeSureYouRemember ?? 'Make sure you remember',
+      PinSetupFlow.forgotPin => AppLocalizations.of(context)?.chooseNewPinForLogin ?? 'Choose a new PIN for login',
       PinSetupFlow.reactivation =>
-        'Choose a new PIN to reactivate your account',
+        AppLocalizations.of(context)?.chooseNewPinToReactivate ?? 'Choose a new PIN to reactivate your account',
     };
 
     return Scaffold(
@@ -677,7 +677,9 @@ class _SetPinViewState extends State<SetPinView> {
                 child: GestureDetector(
                   onTap: () => setState(() => _showPin = !_showPin),
                   child: Text(
-                    'Show PIN',
+                    _showPin
+                        ? (AppLocalizations.of(context)?.hidePin ?? 'Hide PIN')
+                        : (AppLocalizations.of(context)?.showPin ?? 'Show PIN'),
                     style: TextStyle(color: primary, fontSize: 16),
                   ),
                 ),
@@ -708,9 +710,9 @@ class _SetPinViewState extends State<SetPinView> {
                               strokeWidth: 2.5,
                             ),
                           )
-                        : const Text(
-                            'SUBMIT',
-                            style: TextStyle(
+                        : Text(
+                            AppLocalizations.of(context)?.submitAllCaps ?? 'SUBMIT',
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

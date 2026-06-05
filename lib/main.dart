@@ -27,14 +27,27 @@ import 'package:e_commerce_mobile_app/modules/shop_selector/blocs/shop_event.dar
 import 'package:e_commerce_mobile_app/modules/shop_selector/repositories/shop_repository.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/services/profile_image_pick_recovery.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Disable HTTP fetching — Battambang is fully bundled in assets/google_fonts/
+  GoogleFonts.config.allowRuntimeFetching = false;
+
+  // Register the Battambang Open Font License
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString('assets/google_fonts/OFL.txt');
+    yield LicenseEntryWithLineBreaks(<String>['Battambang (Google Fonts)'], license);
+  });
+
   await dotenv.load(fileName: '.env', isOptional: true);
   await initializeDependenciesInjection();
   await UserSession.init();
@@ -151,7 +164,10 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
             locale: languageState.locale,
             supportedLocales: AppLocalizations.supportedLocales,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
-            theme: AppTheme.fromConfig(state.config),
+            theme: AppTheme.fromConfig(
+              state.config,
+              isKhmer: languageState.isKhmer,
+            ),
             scrollBehavior: const AppScrollBehavior(),
             initialRoute: widget.initialRoute,
             onGenerateRoute: onGenerateRoute,

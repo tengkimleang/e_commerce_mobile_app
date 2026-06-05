@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../../core/services/user_session.dart';
 import '../../../core/theme/app_theme.dart';
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import '../../location_screen/views/map_receiving_address_view.dart';
 import '../repositories/loyalty_repository.dart';
 import '../widget/loyalty_widget/loyalty_models.dart';
@@ -909,7 +910,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _receiverNameController,
-                          style: AppTypography.input,
+                          style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                           textInputAction: TextInputAction.next,
                           decoration: const InputDecoration(
                             labelText: 'Receiver full name',
@@ -921,7 +922,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _receiverPhoneController,
-                          style: AppTypography.input,
+                          style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
                           inputFormatters: [
@@ -1030,7 +1031,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             const SizedBox(height: 10),
                             TextFormField(
                               controller: _representativeNameController,
-                              style: AppTypography.input,
+                              style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                               textInputAction: TextInputAction.next,
                               decoration: const InputDecoration(
                                 labelText: 'Representative full name',
@@ -1050,7 +1051,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                             const SizedBox(height: 10),
                             TextFormField(
                               controller: _representativePhoneController,
-                              style: AppTypography.input,
+                              style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                               keyboardType: TextInputType.phone,
                               textInputAction: TextInputAction.next,
                               inputFormatters: [
@@ -1082,7 +1083,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _deliveryAddressController,
-                            style: AppTypography.input,
+                            style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                             readOnly: true,
                             onTap: _openDeliveryAddressPicker,
                             decoration: const InputDecoration(
@@ -1110,7 +1111,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _noteController,
-                          style: AppTypography.input,
+                          style: AppTypography.inputStyle(isKhmer: AppLanguage.isKhmer),
                           maxLines: 2,
                           textInputAction: TextInputAction.done,
                           decoration: const InputDecoration(

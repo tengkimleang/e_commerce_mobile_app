@@ -498,7 +498,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'OK';
 
   @override
-  String get phoneNumberLabel => 'Phone Number';
+  String get phoneNumberLabel => 'Phone number:';
 
   @override
   String get loginWithBiometric => 'Login with Biometric';
@@ -572,4 +572,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get next => 'NEXT';
+
+  @override
+  String get enterPinCode => 'Enter your PIN Code';
+
+  @override
+  String pleaseEnterPinCodeFor(String phoneNumber) {
+    return 'Please enter the PIN Code to login for $phoneNumber';
+  }
+
+  @override
+  String get showPin => 'Show PIN';
+
+  @override
+  String get hidePin => 'Hide PIN';
+
+  @override
+  String get forgotPinCode => 'Forgot the PIN code?';
+
+  @override
+  String get submitAllCaps => 'SUBMIT';
+
+  @override
+  String get setNewPin => 'Set new PIN';
+
+  @override
+  String get makeSureYouRemember => 'Make sure you remember';
+
+  @override
+  String get oldPin => 'Old PIN';
+
+  @override
+  String get newPin => 'New PIN';
+
+  @override
+  String get resetYourPin => 'Reset your PIN';
+
+  @override
+  String get chooseNewPinForLogin => 'Choose a new PIN for login';
+
+  @override
+  String get chooseNewPinToReactivate =>
+      'Choose a new PIN to reactivate your account';
+
+  @override
+  String get loginWithFaceId => 'Login with Face ID';
+
+  @override
+  String get usernameLabel => 'Username:';
+
+  @override
+  String get supermarketPointLabel => 'Supermarket Point:';
+
+  @override
+  String get removeTelegramBackup => 'Remove Telegram Backup';
+
+  @override
+  String get otpSmsWarningTelegram =>
+      'OTP will only be sent via SMS after removing Telegram backup.';
+
+  @override
+  String get remove => 'Remove';
 }
