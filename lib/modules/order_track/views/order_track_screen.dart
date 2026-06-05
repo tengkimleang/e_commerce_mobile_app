@@ -165,7 +165,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
           markerId: const MarkerId('store'),
           position: shopLatLng,
           icon: _shopMarkerIcon,
-          infoWindow: InfoWindow(title: order.shopName),
+          infoWindow: InfoWindow(title: order.displayShopName),
         ),
       );
     }
@@ -350,7 +350,7 @@ class _OrderTrackScreenState extends State<OrderTrackScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            order.shopName,
+                            order.displayShopName,
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,

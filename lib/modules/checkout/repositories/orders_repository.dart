@@ -238,6 +238,8 @@ class OrdersRepository {
         orderNumber: latest.orderNumber,
         orderDate: latest.orderDate,
         shopName: latest.shopName,
+        shopNameEn: latest.shopNameEn,
+        shopNameKm: latest.shopNameKm,
         items: latest.items,
         deliveryAddress: latest.deliveryAddress,
         subtotal: latest.subtotal,
@@ -459,6 +461,16 @@ class OrdersRepository {
         _asString(shopMap['storeName']),
         _asString(data['shopName']),
       ]),
+      shopNameEn: _firstNonEmpty([
+        _asString(shopMap['storeNameEn']),
+        _asString(data['shopNameEn']),
+        _asString(shopMap['storeName']),
+        _asString(data['shopName']),
+      ]),
+      shopNameKm: _firstNonEmpty([
+        _asString(shopMap['storeNameKm']),
+        _asString(data['shopNameKm']),
+      ]),
       items: resolvedItems,
       deliveryAddress: resolvedDelivery,
       subtotal: subtotal,
@@ -544,7 +556,21 @@ class OrdersRepository {
         id: productId,
         name: _firstNonEmpty([
           _asString(map['name']),
+          _asString(map['productName']),
           fallback?.product.name ?? '',
+        ]),
+        nameEn: _firstNonEmpty([
+          _asString(map['nameEn']),
+          _asString(map['productNameEn']),
+          _asString(map['name']),
+          _asString(map['productName']),
+          fallback?.product.nameEn ?? '',
+          fallback?.product.name ?? '',
+        ]),
+        nameKm: _firstNonEmpty([
+          _asString(map['nameKm']),
+          _asString(map['productNameKm']),
+          fallback?.product.nameKm ?? '',
         ]),
         price: unitPrice,
         imageUrl: _firstNonEmpty([

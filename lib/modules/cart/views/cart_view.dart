@@ -243,7 +243,7 @@ class _CartItemRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.product.name,
+                    item.product.displayName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -410,7 +410,7 @@ class _CartItemSheetState extends State<_CartItemSheet> {
 
                         // Product name
                         Text(
-                          product.name.toUpperCase(),
+                          product.displayName.toUpperCase(),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,

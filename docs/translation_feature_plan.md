@@ -211,11 +211,18 @@ Subcategories:
 
 Products:
 
-- Add `nameEn`
-- Add `nameKm`
-- Optional: `descriptionEn`, `descriptionKm`
-- Optional: `subCategoryNameEn`, `subCategoryNameKm`
+- Implemented by BE for product endpoints:
+  - `name`
+  - `nameEn`
+  - `nameKm`
+  - `descriptionEn`
+  - `descriptionKm`
+  - `subCategoryName`
+  - `subCategoryNameEn`
+  - `subCategoryNameKm`
+  - `countryOfOrigin`
 - Keep `name` temporarily for backward compatibility.
+- Product search checks `name`, `nameEn`, and `nameKm`.
 
 Promotions/news/notifications/mall content:
 
@@ -232,12 +239,13 @@ Orders:
   - `DELIVERED`
   - `CANCELED`
 - FE translates status labels locally.
-- Order items should include bilingual product names if users can change language after placing an order.
+- Order item snapshots now support `nameEn` / `nameKm`.
+- Order shop snapshots now support `shop.storeNameEn` / `shop.storeNameKm`.
 
 Stores:
 
-- Confirm if store names are brand names only or need `storeNameEn` / `storeNameKm`.
-- If branch labels are user-facing, add `branchLabelEn` / `branchLabelKm`.
+- Store selector supports `storeName`, `storeNameEn`, `storeNameKm`,
+  `branchLabel`, `branchLabelEn`, and `branchLabelKm`.
 
 Countries:
 
@@ -293,21 +301,36 @@ Already bilingual or partially bilingual:
 
 - Categories support `nameEn` / `nameKm`.
 - Shop-by-category supports `titleEn` / `titleKm`.
+- Product endpoints now return `nameEn`, `nameKm`, `descriptionEn`,
+  `descriptionKm`, `subCategoryNameEn`, and `subCategoryNameKm`:
+  - `GET /products`
+  - `GET /products/{id}`
+  - `GET /products/by-barcode/{code}`
+  - `GET /categories/{categoryId}/products`
+  - `GET /subcategories/{subCategoryId}/products`
+  - `GET /shop-by-categories/{shopByCategoryId}/products`
+- Product search now checks `name`, `nameEn`, and `nameKm`; Khmer keyword
+  results depend on Khmer product names being populated in CMS/admin data.
+- Stores now return `storeNameEn`, `storeNameKm`, `branchLabelEn`, and
+  `branchLabelKm`.
+- Orders now return localized shop snapshots through
+  `shop.storeNameEn` / `shop.storeNameKm` and item snapshots through
+  `item.nameEn` / `item.nameKm`.
+- Loyalty rewards/exchanges now return `titleEn` / `titleKm`,
+  `categoryLabelEn` / `categoryLabelKm`, `pointConditionEn` /
+  `pointConditionKm`, and `termsAndConditionsEn` / `termsAndConditionsKm`.
+- User profile supports `languageCode` through `GET /user/me` and
+  `PUT /user/me`.
 
 Pending BE fields or confirmation:
 
-- Products: add `nameEn`, `nameKm`, optional `descriptionEn`, `descriptionKm`.
 - Subcategories: add `nameEn`, `nameKm`.
 - Promotions/notifications: add `titleEn`, `titleKm`, `descriptionEn`,
   `descriptionKm`, optional `contentEn`, `contentKm`.
-- Order item snapshots: add `nameEn`, `nameKm` or
-  `productNameEn`, `productNameKm`.
-- Loyalty rewards/exchanges/history: add bilingual display fields for title,
-  category, condition, terms, and status labels where those are BE-managed.
-- Stores: confirm `storeNameEn`, `storeNameKm`, `branchLabelEn`, `branchLabelKm`.
+- Loyalty history status labels: keep canonical status code stable so FE can
+  localize labels locally, or provide bilingual display labels if BE-managed.
 - Country of origin: prefer ISO country code so FE can localize country names.
-- Product search: later search both English and Khmer product names; filters
-  should use IDs/canonical codes, not localized display strings.
+- Filters should use IDs/canonical codes, not localized display strings.
 
 FE rollout fallback during migration:
 

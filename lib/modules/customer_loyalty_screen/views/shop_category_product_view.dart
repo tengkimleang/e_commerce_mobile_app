@@ -12,7 +12,6 @@ import 'package:e_commerce_mobile_app/modules/home_screen/model/sub_category_mod
 import 'package:e_commerce_mobile_app/modules/home_screen/view/product_detail_view.dart';
 import 'package:e_commerce_mobile_app/modules/home_screen/view/widgets/product_card.dart';
 import 'package:flutter/material.dart';
-import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class ShopCategoryProductView extends StatefulWidget {
   const ShopCategoryProductView({

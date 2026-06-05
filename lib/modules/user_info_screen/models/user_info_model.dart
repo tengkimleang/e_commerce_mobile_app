@@ -1,3 +1,5 @@
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+
 class UserInfoModel {
   final String username;
   final DateTime? dateOfBirth;
@@ -51,12 +53,16 @@ class UserInfoModel {
       verified = value == 'true' || value == '1';
     }
 
+    final remoteLanguage = (json['languageCode'] ?? '').toString().trim();
+
     return UserInfoModel(
       username: (json['fullName'] ?? json['username'] ?? '').toString().trim(),
       dateOfBirth: parsedDate == null
           ? null
           : DateTime(parsedDate.year, parsedDate.month, parsedDate.day),
-      languageCode: fallbackLanguageCode,
+      languageCode: remoteLanguage.isEmpty
+          ? AppLanguage.normalize(fallbackLanguageCode)
+          : AppLanguage.normalize(remoteLanguage),
       profileImageUrl: (json['profileImageUrl'] ?? '').toString().trim(),
       address: (json['address'] ?? '').toString().trim(),
       phoneNumber: (json['phoneNumber'] ?? json['phone'] ?? '')

@@ -1,3 +1,4 @@
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
 import 'package:e_commerce_mobile_app/modules/address/models/delivery_address.dart';
 import 'package:e_commerce_mobile_app/modules/cart/blocs/cart_state.dart';
 
@@ -7,6 +8,8 @@ class OrderSummary {
     required this.orderNumber,
     required this.orderDate,
     required this.shopName,
+    this.shopNameEn = '',
+    this.shopNameKm = '',
     required this.items,
     required this.deliveryAddress,
     required this.subtotal,
@@ -31,6 +34,8 @@ class OrderSummary {
   final String orderNumber;
   final DateTime orderDate;
   final String shopName;
+  final String shopNameEn;
+  final String shopNameKm;
   final List<CartItemViewModel> items;
   final DeliveryAddress deliveryAddress;
   final double subtotal;
@@ -59,4 +64,14 @@ class OrderSummary {
   /// Store location — used to draw the route on the Order Track map.
   final double? shopLatitude;
   final double? shopLongitude;
+
+  String get displayShopName =>
+      displayShopNameFor(AppLanguage.currentLanguageCode);
+
+  String displayShopNameFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: shopNameEn,
+    khmer: shopNameKm,
+    legacy: shopName,
+  );
 }

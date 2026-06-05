@@ -174,6 +174,9 @@ class AppLocalizationsKm extends AppLocalizations {
   String get noProductsFound => 'រកមិនឃើញផលិតផល';
 
   @override
+  String get productDescription => 'ពិពណ៌នា';
+
+  @override
   String get searchProducts => 'ស្វែងរកផលិតផល';
 
   @override
@@ -272,7 +275,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get selectShopFallback => 'ជ្រើសរើសហាង';
 
   @override
-  String get searchProductsBrandsMore => 'ស្វែងរកផលិតផល ម៉ាក និងផ្សេងៗទៀត';
+  String get searchProductsBrandsMore => 'ស្វែងរក';
 
   @override
   String get skip => 'រំលង';

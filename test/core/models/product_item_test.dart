@@ -78,4 +78,63 @@ void main() {
     expect(product.displayNameFor(AppLanguage.english), 'Legacy Product');
     expect(product.displayNameFor(AppLanguage.khmer), 'Legacy Product');
   });
+
+  test('reads product description and subcategory bilingual fields', () {
+    final product = ProductModel.fromJson({
+      'id': '1',
+      'name': 'Legacy Product',
+      'nameEn': 'English Product',
+      'nameKm': 'ផលិតផលខ្មែរ',
+      'descriptionEn': 'English description',
+      'descriptionKm': 'ការពិពណ៌នាខ្មែរ',
+      'subCategoryName': 'Legacy Subcategory',
+      'subCategoryNameEn': 'English Subcategory',
+      'subCategoryNameKm': 'ប្រភេទរងខ្មែរ',
+      'price': 1,
+      'imageUrl': '',
+    });
+
+    expect(
+      product.displayDescriptionFor(AppLanguage.english),
+      'English description',
+    );
+    expect(product.displayDescriptionFor(AppLanguage.khmer), 'ការពិពណ៌នាខ្មែរ');
+    expect(
+      product.displaySubCategoryNameFor(AppLanguage.english),
+      'English Subcategory',
+    );
+    expect(
+      product.displaySubCategoryNameFor(AppLanguage.khmer),
+      'ប្រភេទរងខ្មែរ',
+    );
+  });
+
+  test(
+    'falls back to English product fields while Khmer CMS data is empty',
+    () {
+      final product = ProductModel.fromJson({
+        'id': '1',
+        'name': 'Legacy Product',
+        'nameEn': 'English Product',
+        'nameKm': '',
+        'descriptionEn': 'English description',
+        'descriptionKm': '',
+        'subCategoryName': 'Legacy Subcategory',
+        'subCategoryNameEn': 'English Subcategory',
+        'subCategoryNameKm': '',
+        'price': 1,
+        'imageUrl': '',
+      });
+
+      expect(product.displayNameFor(AppLanguage.khmer), 'English Product');
+      expect(
+        product.displayDescriptionFor(AppLanguage.khmer),
+        'English description',
+      );
+      expect(
+        product.displaySubCategoryNameFor(AppLanguage.khmer),
+        'English Subcategory',
+      );
+    },
+  );
 }

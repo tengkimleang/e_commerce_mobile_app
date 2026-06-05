@@ -193,7 +193,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            product.category,
+                            product.displayCategory,
                             style: TextStyle(
                               fontFamily: 'Battambang',
                               fontSize: 13,
@@ -202,7 +202,7 @@ class LoyaltyItemExchangedDetailScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            product.title,
+                            product.displayTitle,
                             style: const TextStyle(
                               fontFamily: 'Battambang',
                               fontSize: 17,

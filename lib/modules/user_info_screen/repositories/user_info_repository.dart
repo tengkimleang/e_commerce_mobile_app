@@ -79,7 +79,6 @@ class UserInfoRepository {
                 response['profileImageUrl'],
               ]),
             ).isNotEmpty,
-            languageCode: cached.languageCode,
           );
 
       await cacheUserInfo(remote);
@@ -110,6 +109,7 @@ class UserInfoRepository {
         fullName: draft.username,
         dateOfBirth: _formatDateOnly(draft.dateOfBirth),
         address: draft.address,
+        languageCode: AppLanguage.normalize(draft.languageCode),
       );
       final errorCode = (response['errorCode'] ?? '').toString().trim();
       final success = response['success'] == true;
@@ -155,7 +155,6 @@ class UserInfoRepository {
                 response['profileImageUrl'],
               ]),
             ).isNotEmpty,
-            languageCode: draft.languageCode,
           );
 
       await cacheUserInfo(remote);

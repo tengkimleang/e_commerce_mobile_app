@@ -174,6 +174,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noProductsFound => 'No products found';
 
   @override
+  String get productDescription => 'Description';
+
+  @override
   String get searchProducts => 'Search products';
 
   @override
@@ -279,7 +282,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectShopFallback => 'Select Shop';
 
   @override
-  String get searchProductsBrandsMore => 'Search products, brands and more';
+  String get searchProductsBrandsMore => 'Search';
 
   @override
   String get skip => 'Skip';

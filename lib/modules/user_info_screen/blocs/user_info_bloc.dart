@@ -80,6 +80,8 @@ class UserInfoBloc extends Bloc<UserInfoEvent, UserInfoState> {
       languageCode: AppLanguage.normalize(event.languageCode),
     );
     await _emitUpdated(emit);
+    _model = await _repository.updateProfile(current: _model);
+    emit(UserInfoUpdated(_model));
   }
 
   Future<void> _onUpdateProfileImage(

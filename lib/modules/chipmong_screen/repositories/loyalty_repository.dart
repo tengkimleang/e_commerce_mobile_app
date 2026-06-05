@@ -273,6 +273,26 @@ class LoyaltyRepository {
       _rewardCategoryLabel(rawCategory),
       'Shopping Voucher',
     ]);
+    final categoryLabelEn = _firstNonEmpty([
+      map['categoryLabelEn'],
+      map['categoryLabel'],
+      _rewardCategoryLabel(rawCategory),
+      'Shopping Voucher',
+    ]);
+    final categoryLabelKm = _firstNonEmpty([map['categoryLabelKm']]);
+    final title = _firstNonEmpty([map['title'], map['name'], 'Reward']);
+    final titleEn = _firstNonEmpty([
+      map['titleEn'],
+      map['title'],
+      map['name'],
+      'Reward',
+    ]);
+    final titleKm = _firstNonEmpty([map['titleKm']]);
+    final pointCondition = _firstNonEmpty([
+      map['pointCondition'],
+      map['description'],
+      map['title'],
+    ]);
 
     final points = _readInt([
       map['pointsRequired'],
@@ -298,7 +318,11 @@ class LoyaltyRepository {
       ]),
       brandName: _firstNonEmpty([map['brandName'], map['brand'], 'Chip Mong']),
       category: categoryLabel,
-      title: _firstNonEmpty([map['title'], map['name'], 'Reward']),
+      categoryEn: categoryLabelEn,
+      categoryKm: categoryLabelKm,
+      title: title,
+      titleEn: titleEn,
+      titleKm: titleKm,
       store: _firstNonEmpty([
         map['store'],
         map['storeName'],
@@ -311,15 +335,24 @@ class LoyaltyRepository {
         map['redeemLimit'],
         map['remaining'],
       ], fallback: 0),
-      pointCondition: _firstNonEmpty([
+      pointCondition: pointCondition,
+      pointConditionEn: _firstNonEmpty([
+        map['pointConditionEn'],
         map['pointCondition'],
         map['description'],
         map['title'],
       ]),
+      pointConditionKm: _firstNonEmpty([map['pointConditionKm']]),
       termsAndConditions: _firstNonEmpty([
         map['termsAndConditions'],
         map['terms'],
       ]),
+      termsAndConditionsEn: _firstNonEmpty([
+        map['termsAndConditionsEn'],
+        map['termsAndConditions'],
+        map['terms'],
+      ]),
+      termsAndConditionsKm: _firstNonEmpty([map['termsAndConditionsKm']]),
     );
   }
 
@@ -503,13 +536,29 @@ class LoyaltyRepository {
         category: parsed.category.isEmpty
             ? fallbackProduct.category
             : parsed.category,
+        categoryEn: parsed.categoryEn.isEmpty
+            ? fallbackProduct.categoryEn
+            : parsed.categoryEn,
+        categoryKm: parsed.categoryKm.isEmpty
+            ? fallbackProduct.categoryKm
+            : parsed.categoryKm,
         title: parsed.title.isEmpty ? fallbackProduct.title : parsed.title,
+        titleEn: parsed.titleEn.isEmpty
+            ? fallbackProduct.titleEn
+            : parsed.titleEn,
+        titleKm: parsed.titleKm.isEmpty
+            ? fallbackProduct.titleKm
+            : parsed.titleKm,
         store: parsed.store.isEmpty ? fallbackProduct.store : parsed.store,
         points: parsed.points <= 0 ? fallbackProduct.points : parsed.points,
         expiryDate: parsed.expiryDate,
         redeemLimit: parsed.redeemLimit,
         pointCondition: parsed.pointCondition,
+        pointConditionEn: parsed.pointConditionEn,
+        pointConditionKm: parsed.pointConditionKm,
         termsAndConditions: parsed.termsAndConditions,
+        termsAndConditionsEn: parsed.termsAndConditionsEn,
+        termsAndConditionsKm: parsed.termsAndConditionsKm,
       );
     }
 

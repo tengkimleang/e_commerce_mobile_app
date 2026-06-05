@@ -114,6 +114,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     final accent = Theme.of(context).colorScheme.primary;
     final product = widget.product;
     final images = _productImages;
+    final description = product.displayDescription.trim();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -438,6 +439,30 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                               );
                             },
                           ),
+                          if (description.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+                              child: Text(
+                                l10n?.productDescription ?? 'Description',
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1D1B24),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                              child: Text(
+                                description,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  height: 1.45,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
                           const Padding(
                             padding: EdgeInsets.fromLTRB(16, 18, 16, 8),
                             child: Text(

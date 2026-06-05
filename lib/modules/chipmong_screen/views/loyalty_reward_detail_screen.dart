@@ -306,12 +306,12 @@ class _LoyaltyRewardDetailScreenState extends State<LoyaltyRewardDetailScreen> {
 
   Widget _buildTabContent(LoyaltyProduct product) {
     final text = _selectedTab == 0
-        ? (product.pointCondition.isEmpty
-              ? product.title
-              : product.pointCondition)
-        : (product.termsAndConditions.isEmpty
+        ? (product.displayPointCondition.isEmpty
+              ? product.displayTitle
+              : product.displayPointCondition)
+        : (product.displayTermsAndConditions.isEmpty
               ? 'Subject to store terms and actual stock availability.'
-              : product.termsAndConditions);
+              : product.displayTermsAndConditions);
     return Container(
       width: double.infinity,
       color: Colors.white,
@@ -367,7 +367,7 @@ class _RewardSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            product.category,
+            product.displayCategory,
             style: TextStyle(
               fontFamily: 'Battambang',
               fontSize: 16,
@@ -376,7 +376,7 @@ class _RewardSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            product.title,
+            product.displayTitle,
             style: const TextStyle(
               fontFamily: 'Battambang',
               fontSize: 21,
@@ -852,7 +852,7 @@ class _ExchangeDetailsFormSheetState extends State<_ExchangeDetailsFormSheet> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      widget.product.title,
+                                      widget.product.displayTitle,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(

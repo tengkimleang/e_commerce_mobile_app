@@ -88,6 +88,20 @@ class _UserInfoViewState extends State<UserInfoView> {
           if (state is UserInfoUpdated && _showProfileSkeleton) {
             unawaited(_hideProfileSkeletonAfterMinimum());
           }
+          if (state is UserInfoUpdated) {
+            final remoteLanguage = AppLanguage.normalize(
+              state.userInfo.languageCode,
+            );
+            final currentLanguage = context
+                .read<LanguageCubit>()
+                .state
+                .languageCode;
+            if (remoteLanguage != currentLanguage) {
+              unawaited(
+                context.read<LanguageCubit>().changeLanguage(remoteLanguage),
+              );
+            }
+          }
         },
         builder: (context, state) {
           if (_showProfileSkeleton) {

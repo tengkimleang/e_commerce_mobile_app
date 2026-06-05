@@ -428,6 +428,12 @@ abstract class AppLocalizations {
   /// **'No products found'**
   String get noProductsFound;
 
+  /// No description provided for @productDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get productDescription;
+
   /// No description provided for @searchProducts.
   ///
   /// In en, this message translates to:
@@ -611,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchProductsBrandsMore.
   ///
   /// In en, this message translates to:
-  /// **'Search products, brands and more'**
+  /// **'Search'**
   String get searchProductsBrandsMore;
 
   /// No description provided for @skip.

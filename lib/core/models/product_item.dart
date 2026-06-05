@@ -17,6 +17,8 @@ class ProductModel {
   final bool isFavorite;
   final int? subCategoryId;
   final String? subCategoryName;
+  final String subCategoryNameEn;
+  final String subCategoryNameKm;
 
   /// Optional country of origin (e.g. "Cambodia", "USA", "Japan").
   /// When set, a country flag badge is shown on product cards and the detail view.
@@ -51,6 +53,8 @@ class ProductModel {
     this.isFavorite = false,
     this.subCategoryId,
     this.subCategoryName,
+    this.subCategoryNameEn = '',
+    this.subCategoryNameKm = '',
     this.countryOfOrigin,
     this.isOutOfStock = false,
     this.stockQty,
@@ -72,6 +76,8 @@ class ProductModel {
     bool? isFavorite,
     int? subCategoryId,
     String? subCategoryName,
+    String? subCategoryNameEn,
+    String? subCategoryNameKm,
     String? countryOfOrigin,
     bool? isOutOfStock,
     int? stockQty,
@@ -92,6 +98,8 @@ class ProductModel {
       isFavorite: isFavorite ?? this.isFavorite,
       subCategoryId: subCategoryId ?? this.subCategoryId,
       subCategoryName: subCategoryName ?? this.subCategoryName,
+      subCategoryNameEn: subCategoryNameEn ?? this.subCategoryNameEn,
+      subCategoryNameKm: subCategoryNameKm ?? this.subCategoryNameKm,
       countryOfOrigin: countryOfOrigin ?? this.countryOfOrigin,
       isOutOfStock: isOutOfStock ?? this.isOutOfStock,
       stockQty: stockQty ?? this.stockQty,
@@ -106,6 +114,10 @@ class ProductModel {
     final rawDiscountPercent = (json['discountPercent'] as num?)?.toInt();
     final rawSubCategoryId = (json['subCategoryId'] as num?)?.toInt();
     final rawSubCategoryName = (json['subCategoryName'] as String? ?? '')
+        .trim();
+    final rawSubCategoryNameEn =
+        (json['subCategoryNameEn'] as String? ?? rawSubCategoryName).trim();
+    final rawSubCategoryNameKm = (json['subCategoryNameKm'] as String? ?? '')
         .trim();
     final rawCountryOfOrigin = (json['countryOfOrigin'] as String? ?? '')
         .trim();
@@ -160,6 +172,8 @@ class ProductModel {
       subCategoryName: rawSubCategoryName.isNotEmpty
           ? rawSubCategoryName
           : null,
+      subCategoryNameEn: rawSubCategoryNameEn,
+      subCategoryNameKm: rawSubCategoryNameKm,
       countryOfOrigin: rawCountryOfOrigin.isNotEmpty
           ? rawCountryOfOrigin
           : null,
@@ -185,6 +199,8 @@ class ProductModel {
       'isFavorite': isFavorite,
       'subCategoryId': subCategoryId,
       'subCategoryName': subCategoryName,
+      'subCategoryNameEn': subCategoryNameEn,
+      'subCategoryNameKm': subCategoryNameKm,
       'countryOfOrigin': countryOfOrigin,
       'isOutOfStock': isOutOfStock,
       'stockQty': stockQty,
@@ -225,6 +241,20 @@ class ProductModel {
         english: descriptionEn,
         khmer: descriptionKm,
       );
+
+  String get displayDescription =>
+      displayDescriptionFor(AppLanguage.currentLanguageCode);
+
+  String displaySubCategoryNameFor(String languageCode) =>
+      AppLanguage.localizedText(
+        languageCode: languageCode,
+        english: subCategoryNameEn,
+        khmer: subCategoryNameKm,
+        legacy: subCategoryName ?? '',
+      );
+
+  String get displaySubCategoryName =>
+      displaySubCategoryNameFor(AppLanguage.currentLanguageCode);
 
   static List<String> _parseImageUrls(Map<String, dynamic> json) {
     final rawGallery =

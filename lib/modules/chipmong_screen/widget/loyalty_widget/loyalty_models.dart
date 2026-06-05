@@ -5,6 +5,8 @@ import '../../../../core/theme/app_theme.dart';
 // ---------------------------------------------------------------------------
 // Tier model + data
 // ---------------------------------------------------------------------------
+import 'package:e_commerce_mobile_app/core/localization/app_language.dart';
+
 class LoyaltyTier {
   final String name;
   final List<Color> gradient;
@@ -54,26 +56,42 @@ class LoyaltyProduct {
   final String imageUrl;
   final String brandName;
   final String category;
+  final String categoryEn;
+  final String categoryKm;
   final String title;
+  final String titleEn;
+  final String titleKm;
   final String store;
   final int points;
   final String expiryDate;
   final int redeemLimit;
   final String pointCondition;
+  final String pointConditionEn;
+  final String pointConditionKm;
   final String termsAndConditions;
+  final String termsAndConditionsEn;
+  final String termsAndConditionsKm;
 
   const LoyaltyProduct({
     this.rewardId = '',
     required this.imageUrl,
     required this.brandName,
     this.category = 'Shopping Voucher',
+    this.categoryEn = '',
+    this.categoryKm = '',
     required this.title,
+    this.titleEn = '',
+    this.titleKm = '',
     required this.store,
     required this.points,
     this.expiryDate = 'Dec 31, 2026',
     this.redeemLimit = 1,
     this.pointCondition = '',
+    this.pointConditionEn = '',
+    this.pointConditionKm = '',
     this.termsAndConditions = '',
+    this.termsAndConditionsEn = '',
+    this.termsAndConditionsKm = '',
   });
 
   LoyaltyProduct copyWith({
@@ -81,28 +99,85 @@ class LoyaltyProduct {
     String? imageUrl,
     String? brandName,
     String? category,
+    String? categoryEn,
+    String? categoryKm,
     String? title,
+    String? titleEn,
+    String? titleKm,
     String? store,
     int? points,
     String? expiryDate,
     int? redeemLimit,
     String? pointCondition,
+    String? pointConditionEn,
+    String? pointConditionKm,
     String? termsAndConditions,
+    String? termsAndConditionsEn,
+    String? termsAndConditionsKm,
   }) {
     return LoyaltyProduct(
       rewardId: rewardId ?? this.rewardId,
       imageUrl: imageUrl ?? this.imageUrl,
       brandName: brandName ?? this.brandName,
       category: category ?? this.category,
+      categoryEn: categoryEn ?? this.categoryEn,
+      categoryKm: categoryKm ?? this.categoryKm,
       title: title ?? this.title,
+      titleEn: titleEn ?? this.titleEn,
+      titleKm: titleKm ?? this.titleKm,
       store: store ?? this.store,
       points: points ?? this.points,
       expiryDate: expiryDate ?? this.expiryDate,
       redeemLimit: redeemLimit ?? this.redeemLimit,
       pointCondition: pointCondition ?? this.pointCondition,
+      pointConditionEn: pointConditionEn ?? this.pointConditionEn,
+      pointConditionKm: pointConditionKm ?? this.pointConditionKm,
       termsAndConditions: termsAndConditions ?? this.termsAndConditions,
+      termsAndConditionsEn: termsAndConditionsEn ?? this.termsAndConditionsEn,
+      termsAndConditionsKm: termsAndConditionsKm ?? this.termsAndConditionsKm,
     );
   }
+
+  String get displayTitle => displayTitleFor(AppLanguage.currentLanguageCode);
+
+  String displayTitleFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: titleEn,
+    khmer: titleKm,
+    legacy: title,
+  );
+
+  String get displayCategory =>
+      displayCategoryFor(AppLanguage.currentLanguageCode);
+
+  String displayCategoryFor(String languageCode) => AppLanguage.localizedText(
+    languageCode: languageCode,
+    english: categoryEn,
+    khmer: categoryKm,
+    legacy: category,
+  );
+
+  String get displayPointCondition =>
+      displayPointConditionFor(AppLanguage.currentLanguageCode);
+
+  String displayPointConditionFor(String languageCode) =>
+      AppLanguage.localizedText(
+        languageCode: languageCode,
+        english: pointConditionEn,
+        khmer: pointConditionKm,
+        legacy: pointCondition,
+      );
+
+  String get displayTermsAndConditions =>
+      displayTermsAndConditionsFor(AppLanguage.currentLanguageCode);
+
+  String displayTermsAndConditionsFor(String languageCode) =>
+      AppLanguage.localizedText(
+        languageCode: languageCode,
+        english: termsAndConditionsEn,
+        khmer: termsAndConditionsKm,
+        legacy: termsAndConditions,
+      );
 }
 
 enum LoyaltyFulfillmentMethod { delivery, pickup }

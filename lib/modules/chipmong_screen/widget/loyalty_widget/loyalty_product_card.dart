@@ -89,7 +89,7 @@ class LoyaltyProductCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.category,
+                      product.displayCategory,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey[500],
@@ -98,7 +98,7 @@ class LoyaltyProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      product.title,
+                      product.displayTitle,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,

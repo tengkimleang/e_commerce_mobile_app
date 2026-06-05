@@ -18,7 +18,6 @@ import '../../chipmong_screen/views/chipmong_mall_screen.dart';
 import '../../home_screen/view/supermarket_main_screen.dart';
 import '../../user_info_screen/views/edit_language_view.dart';
 import '../../login_screen/views/login_view.dart';
-import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class IndexView extends StatefulWidget {
   const IndexView({super.key});
@@ -72,6 +71,12 @@ class _IndexViewState extends State<IndexView> {
       fallbackLanguageCode: AppLanguage.currentLanguageCode,
     );
     if (!mounted) return;
+    final remoteLanguage = AppLanguage.normalize(userInfo.languageCode);
+    final currentLanguage = context.read<LanguageCubit>().state.languageCode;
+    if (remoteLanguage != currentLanguage) {
+      await context.read<LanguageCubit>().changeLanguage(remoteLanguage);
+      if (!mounted) return;
+    }
 
     setState(() {
       _userInfo = userInfo;

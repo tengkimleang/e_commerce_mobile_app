@@ -19,7 +19,6 @@ import 'package:e_commerce_mobile_app/modules/order_track/views/order_track_scre
 import 'package:e_commerce_mobile_app/modules/promotion_screen/views/promotion_view.dart';
 import 'package:e_commerce_mobile_app/modules/qr_code_screen/views/qr_code_view.dart';
 import 'package:e_commerce_mobile_app/modules/user_info_screen/views/user_info_view.dart';
-import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 enum _OrderStatusFilter {
   all,
@@ -198,6 +197,9 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
     final timeText = DateFormat('h:mm a').format(order.orderDate);
     final searchable = [
       order.shopName,
+      order.shopNameEn,
+      order.shopNameKm,
+      order.displayShopName,
       order.orderNumber,
       'order ${order.orderNumber}',
       entry.statusTitle,
@@ -373,6 +375,7 @@ class _OrderHistoryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final hasActiveFilter = selectedFilter != _OrderStatusFilter.all;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return SizedBox(
       width: double.infinity,
@@ -389,7 +392,7 @@ class _OrderHistoryHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        AppLocalizations.of(context)!.orders,
+                        l10n?.orders ?? 'Orders',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               color: const Color(0xFF15131A),
@@ -400,7 +403,8 @@ class _OrderHistoryHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        AppLocalizations.of(context)!.yourRecentPurchaseHistory,
+                        l10n?.yourRecentPurchaseHistory ??
+                            'Your recent purchase history',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: const Color(0xFF7A7780),
                           fontSize: 15,
@@ -591,6 +595,7 @@ class _OrderStatusFilterSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.86;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return SafeArea(
       top: false,
@@ -619,7 +624,7 @@ class _OrderStatusFilterSheet extends StatelessWidget {
                 ),
                 const SizedBox(height: 18),
                 Text(
-                  AppLocalizations.of(context)!.filterByStatus,
+                  l10n?.filterByStatus ?? 'Filter by status',
                   style: TextStyle(
                     color: Color(0xFF1D1B24),
                     fontSize: 18,
@@ -786,6 +791,7 @@ class _OrderCard extends StatelessWidget {
     final timeText = DateFormat('h:mm a').format(order.orderDate);
     final itemCount = entry.displayItemCount;
     final itemSuffix = itemCount > 1 ? 'items' : 'item';
+    final shopDisplayName = order.displayShopName;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -826,7 +832,7 @@ class _OrderCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              order.shopName.toUpperCase(),
+                              shopDisplayName.toUpperCase(),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(

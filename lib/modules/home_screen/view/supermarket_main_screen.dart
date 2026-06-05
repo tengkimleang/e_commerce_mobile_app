@@ -829,8 +829,7 @@ class _SupermarketMainViewState extends State<SupermarketMainView> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          l10n?.searchProductsBrandsMore ??
-                              'Search products, brands and more',
+                          l10n?.searchProductsBrandsMore ?? 'Search',
                           style: const TextStyle(color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -17,7 +17,6 @@ import 'package:e_commerce_mobile_app/modules/login_screen/views/otp_view.dart';
 import 'package:e_commerce_mobile_app/modules/login_screen/views/pin_login_view.dart';
 import 'package:flutter/services.dart';
 import 'package:e_commerce_mobile_app/core/services/user_session.dart';
-import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 class _ReactivateOtpLaunch {
   const _ReactivateOtpLaunch({

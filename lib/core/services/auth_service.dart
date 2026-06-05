@@ -1464,10 +1464,14 @@ class AuthService {
     required String fullName,
     required String dateOfBirth,
     required String address,
+    String languageCode = '',
   }) async {
     final payload = <String, dynamic>{'fullName': fullName, 'address': address};
     if (dateOfBirth.isNotEmpty) {
       payload['dateOfBirth'] = dateOfBirth;
+    }
+    if (languageCode.trim().isNotEmpty) {
+      payload['languageCode'] = languageCode.trim();
     }
 
     debugPrint('[AuthService] updateUserProfile payload: $payload');
