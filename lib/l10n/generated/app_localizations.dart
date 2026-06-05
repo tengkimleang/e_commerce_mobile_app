@@ -1285,6 +1285,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove'**
   String get remove;
+
+  /// No description provided for @submit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get submit;
 }
 
 class _AppLocalizationsDelegate

@@ -198,5 +198,6 @@
   "supermarketPointLabel": "ពិន្ទុផ្សារទំនើប:",
   "removeTelegramBackup": "លុបការបម្រុងទុកតាមតេឡេក្រាម",
   "otpSmsWarningTelegram": "លេខកូដ OTP នឹងត្រូវផ្ញើតាម SMS តែប៉ុណ្ណោះ បន្ទាប់ពីអ្នកលុបការបម្រុងទុកតាមតេឡេក្រាម។",
-  "remove": "លុប"
+  "remove": "លុប",
+  "submit": "បញ្ជូន"
 }

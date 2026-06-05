@@ -328,17 +328,17 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
-                          const Text(
-                            'Customer Name',
-                            style: TextStyle(fontSize: 14),
+                          Text(
+                            AppLocalizations.of(context)!.customerName,
+                            style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           _buildField(controller: _nameController),
                           const SizedBox(height: 16),
 
-                          const Text(
-                            'Phone number',
-                            style: TextStyle(fontSize: 14),
+                          Text(
+                            AppLocalizations.of(context)!.phoneNumber,
+                            style: const TextStyle(fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           // Phone field: only rebuilds when isPhoneValid changes
@@ -350,7 +350,7 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                               keyboardType: TextInputType.phone,
                               textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
-                                hintText: 'Enter phone number',
+                                hintText: AppLocalizations.of(context)!.enterPhoneNumber,
                                 hintStyle: TextStyle(color: Colors.grey[500]),
                                 filled: true,
                                 fillColor: Colors.grey.shade50,
@@ -450,14 +450,14 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                               ),
                               child: Row(
                                 children: [
-                                  const Expanded(
+                                  Expanded(
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         vertical: 14,
                                       ),
                                       child: Text(
-                                        'Search product',
-                                        style: TextStyle(color: Colors.grey),
+                                        AppLocalizations.of(context)!.searchProduct,
+                                        style: const TextStyle(color: Colors.grey),
                                       ),
                                     ),
                                   ),
@@ -519,9 +519,9 @@ class _WholesaleFormViewState extends State<WholesaleFormView> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Submit',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.submit,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                 ),

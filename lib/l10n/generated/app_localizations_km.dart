@@ -626,4 +626,7 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get remove => 'លុប';
+
+  @override
+  String get submit => 'បញ្ជូន';
 }

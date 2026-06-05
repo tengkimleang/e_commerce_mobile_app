@@ -383,5 +383,6 @@
   "supermarketPointLabel": "Supermarket Point:",
   "removeTelegramBackup": "Remove Telegram Backup",
   "otpSmsWarningTelegram": "OTP will only be sent via SMS after removing Telegram backup.",
-  "remove": "Remove"
+  "remove": "Remove",
+  "submit": "Submit"
 }
