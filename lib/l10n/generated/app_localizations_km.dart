@@ -495,6 +495,19 @@ class AppLocalizationsKm extends AppLocalizations {
   String get phoneNumberLabel => 'លេខទូរស័ព្ទ';
 
   @override
+  String get loginWithBiometric => 'ចូលដោយជីវវិទ្យា';
+
+  @override
+  String get telegramOtpBackup => 'ការបម្រុងទុក OTP តេឡេក្រាម';
+
+  @override
+  String get deleteAccount => 'លុបគណនី';
+
+  @override
+  String get permanentlyDeleteAccount =>
+      'លុបគណនី និងទិន្នន័យទាំងអស់ជាអចិន្ត្រៃយ៍';
+
+  @override
   String get loginOrSignup => 'ចូលគណនី ឬ ចុះឈ្មោះ';
 
   @override
@@ -527,4 +540,29 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get searchProduct => 'ស្វែងរកផលិតផល';
+
+  @override
+  String get byClickingNextAgreeing =>
+      'តាមរយៈការចុចប៊ូតុង បន្ទាប់ អ្នកយល់ព្រមនឹង ';
+
+  @override
+  String get termsOfUse => 'លក្ខខណ្ឌប្រើប្រាស់';
+
+  @override
+  String get andThe => ' និង ';
+
+  @override
+  String get privacyPolicy => 'គោលការណ៍ភាពឯកជន';
+
+  @override
+  String get continueAsGuest => 'បន្តដោយមិនចូលគណនី';
+
+  @override
+  String get fullName => 'ឈ្មោះពេញ';
+
+  @override
+  String get enterFullName => 'បញ្ចូលឈ្មោះពេញ';
+
+  @override
+  String get next => 'បន្ទាប់';
 }

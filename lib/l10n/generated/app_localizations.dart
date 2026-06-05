@@ -1034,6 +1034,30 @@ abstract class AppLocalizations {
   /// **'Phone Number'**
   String get phoneNumberLabel;
 
+  /// Security section label for biometric login toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login with Biometric'**
+  String get loginWithBiometric;
+
+  /// Security section label for Telegram OTP backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram OTP Backup'**
+  String get telegramOtpBackup;
+
+  /// Danger zone tile title for deleting the account.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// Danger zone tile subtitle for deleting the account.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete your account and all data'**
+  String get permanentlyDeleteAccount;
+
   /// No description provided for @loginOrSignup.
   ///
   /// In en, this message translates to:
@@ -1099,6 +1123,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search product'**
   String get searchProduct;
+
+  /// First part of the terms agreement text on login/signup screens.
+  ///
+  /// In en, this message translates to:
+  /// **'By clicking Next button you are agreeing to the '**
+  String get byClickingNextAgreeing;
+
+  /// Tappable Terms of Use link label.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get termsOfUse;
+
+  /// Connector text between Terms of Use and Privacy Policy.
+  ///
+  /// In en, this message translates to:
+  /// **' and the '**
+  String get andThe;
+
+  /// Tappable Privacy Policy link label.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// Button to continue browsing without logging in.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue as guest'**
+  String get continueAsGuest;
+
+  /// Full name field label on signup form.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get fullName;
+
+  /// Full name input placeholder on signup form.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter full name'**
+  String get enterFullName;
+
+  /// Primary action button on signup form.
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get next;
 }
 
 class _AppLocalizationsDelegate

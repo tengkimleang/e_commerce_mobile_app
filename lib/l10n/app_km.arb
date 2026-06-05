@@ -156,6 +156,10 @@
   "availablePoints": "ពិន្ទុដែលមាន",
   "ok": "យល់ព្រម",
   "phoneNumberLabel": "លេខទូរស័ព្ទ",
+  "loginWithBiometric": "ចូលដោយជីវវិទ្យា",
+  "telegramOtpBackup": "ការបម្រុងទុក OTP តេឡេក្រាម",
+  "deleteAccount": "លុបគណនី",
+  "permanentlyDeleteAccount": "លុបគណនី និងទិន្នន័យទាំងអស់ជាអចិន្ត្រៃយ៍",
   "loginOrSignup": "ចូលគណនី ឬ ចុះឈ្មោះ",
   "done": "រួចរាល់",
   "wholesaleForm": "ទម្រង់លក់ដុំ",
@@ -166,5 +170,13 @@
   "requestSubmitted": "សំណើត្រូវបានបញ្ជូន!",
   "wholesaleRequestSuccess": "សំណើលក់ដុំរបស់អ្នកត្រូវបានបញ្ជូនដោយជោគជ័យ។ ក្រុមការងារយើងនឹងទាក់ទងអ្នកក្នុងពេលឆាប់ៗនេះ។",
   "customerName": "ឈ្មោះអតិថិជន",
-  "searchProduct": "ស្វែងរកផលិតផល"
+  "searchProduct": "ស្វែងរកផលិតផល",
+  "byClickingNextAgreeing": "តាមរយៈការចុចប៊ូតុង បន្ទាប់ អ្នកយល់ព្រមនឹង ",
+  "termsOfUse": "លក្ខខណ្ឌប្រើប្រាស់",
+  "andThe": " និង ",
+  "privacyPolicy": "គោលការណ៍ភាពឯកជន",
+  "continueAsGuest": "បន្តដោយមិនចូលគណនី",
+  "fullName": "ឈ្មោះពេញ",
+  "enterFullName": "បញ្ចូលឈ្មោះពេញ",
+  "next": "បន្ទាប់"
 }

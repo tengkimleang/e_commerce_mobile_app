@@ -501,6 +501,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneNumberLabel => 'Phone Number';
 
   @override
+  String get loginWithBiometric => 'Login with Biometric';
+
+  @override
+  String get telegramOtpBackup => 'Telegram OTP Backup';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get permanentlyDeleteAccount =>
+      'Permanently delete your account and all data';
+
+  @override
   String get loginOrSignup => 'Login or Signup';
 
   @override
@@ -534,4 +547,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchProduct => 'Search product';
+
+  @override
+  String get byClickingNextAgreeing =>
+      'By clicking Next button you are agreeing to the ';
+
+  @override
+  String get termsOfUse => 'Terms of Use';
+
+  @override
+  String get andThe => ' and the ';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get continueAsGuest => 'Continue as guest';
+
+  @override
+  String get fullName => 'Full name';
+
+  @override
+  String get enterFullName => 'Enter full name';
+
+  @override
+  String get next => 'NEXT';
 }

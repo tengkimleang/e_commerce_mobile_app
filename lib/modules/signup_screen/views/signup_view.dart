@@ -434,7 +434,7 @@ class _SignupViewState extends State<SignupView> {
                     () => _isPhoneValid = _isValidPhone(value.trim()),
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Enter phone number',
+                    hintText: AppLocalizations.of(context)?.enterPhoneNumber ?? 'Enter phone number',
                     filled: true,
                     fillColor: Colors.grey.shade50,
                     contentPadding: const EdgeInsets.symmetric(
@@ -452,7 +452,10 @@ class _SignupViewState extends State<SignupView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Full name', style: TextStyle(fontSize: 15)),
+                Text(
+                  AppLocalizations.of(context)?.fullName ?? 'Full name',
+                  style: const TextStyle(fontSize: 15),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _fullNameController,
@@ -461,7 +464,7 @@ class _SignupViewState extends State<SignupView> {
                     _showFullNameError = false;
                   }),
                   decoration: InputDecoration(
-                    hintText: 'Enter full name',
+                    hintText: AppLocalizations.of(context)?.enterFullName ?? 'Enter full name',
                     filled: true,
                     fillColor: Colors.grey.shade50,
                     contentPadding: const EdgeInsets.symmetric(
@@ -487,21 +490,23 @@ class _SignupViewState extends State<SignupView> {
                       height: 1.4,
                     ),
                     children: [
-                      const TextSpan(
-                        text:
+                      TextSpan(
+                        text: AppLocalizations.of(context)?.byClickingNextAgreeing ??
                             'By clicking Next button you are agreeing to the ',
                       ),
                       TextSpan(
-                        text: 'Terms of Use',
+                        text: AppLocalizations.of(context)?.termsOfUse ?? 'Terms of Use',
                         style: TextStyle(
                           color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _termsTapRecognizer,
                       ),
-                      const TextSpan(text: ' and the '),
                       TextSpan(
-                        text: 'Privacy Policy',
+                        text: AppLocalizations.of(context)?.andThe ?? ' and the ',
+                      ),
+                      TextSpan(
+                        text: AppLocalizations.of(context)?.privacyPolicy ?? 'Privacy Policy',
                         style: TextStyle(
                           color: primary,
                           decoration: TextDecoration.underline,
@@ -538,9 +543,9 @@ class _SignupViewState extends State<SignupView> {
                                   strokeWidth: 2.2,
                                 ),
                               )
-                            : const Text(
-                                'NEXT',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)?.next ?? 'NEXT',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,

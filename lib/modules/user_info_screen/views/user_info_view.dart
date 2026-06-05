@@ -558,6 +558,7 @@ class _UserInfoViewState extends State<UserInfoView> {
 
   void _showLogoutBottomSheet(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -570,18 +571,18 @@ class _UserInfoViewState extends State<UserInfoView> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Logout',
-              style: TextStyle(
+            Text(
+              l10n?.logout ?? 'Logout',
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1D1B22),
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Really want to logout?',
-              style: TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
+            Text(
+              l10n?.reallyWantToLogout ?? 'Really want to logout?',
+              style: const TextStyle(fontSize: 15, color: Color(0xFF1D1B22)),
             ),
             const SizedBox(height: 28),
             Row(
@@ -599,9 +600,9 @@ class _UserInfoViewState extends State<UserInfoView> {
                         ),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontSize: 15),
+                      child: Text(
+                        l10n?.cancel ?? 'Cancel',
+                        style: const TextStyle(fontSize: 15),
                       ),
                     ),
                   ),
@@ -633,7 +634,7 @@ class _UserInfoViewState extends State<UserInfoView> {
                           (route) => false,
                         );
                       },
-                      child: const Text('Yes', style: TextStyle(fontSize: 15)),
+                      child: Text(l10n?.yes ?? 'Yes', style: const TextStyle(fontSize: 15)),
                     ),
                   ),
                 ),
@@ -764,10 +765,11 @@ class _BiometricLoginTileState extends State<_BiometricLoginTile> {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     final status = _deviceStatus;
     final rawLabel = status?.settingsLabel ?? 'Login with Biometric:';
     final label = rawLabel.replaceFirst(RegExp(r':+$'), '').trim();
-    final displayLabel = label.isEmpty ? 'Login with Biometric' : label;
+    final displayLabel = label.isEmpty ? (l10n?.loginWithBiometric ?? 'Login with Biometric') : label;
     final canEnable =
         status?.isSupported == true && widget.phoneNumber.trim().isNotEmpty;
     final canDisable = _isEnabled;
@@ -1404,6 +1406,7 @@ class _PhoneInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
       child: Row(
@@ -1414,9 +1417,9 @@ class _PhoneInfoRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Phone Number',
-                  style: TextStyle(
+                Text(
+                  l10n?.phoneNumberLabel ?? 'Phone Number',
+                  style: const TextStyle(
                     fontSize: 14,
                     height: 1.15,
                     color: _profileMuted,
@@ -1565,6 +1568,7 @@ class _DangerZoneTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
     return Material(
       color: const Color(0xFFFFEEF5),
       borderRadius: BorderRadius.circular(10),
@@ -1577,25 +1581,25 @@ class _DangerZoneTile extends StatelessWidget {
             children: [
               const _ProfileIconWell(icon: Icons.delete_outline_rounded),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Delete Account',
-                      style: TextStyle(
+                      l10n?.deleteAccount ?? 'Delete Account',
+                      style: const TextStyle(
                         fontSize: 13.5,
                         height: 1.15,
                         color: _profileText,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Permanently delete your account and all data',
+                      l10n?.permanentlyDeleteAccount ?? 'Permanently delete your account and all data',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         height: 1.2,
                         color: _profileMuted,
@@ -1622,6 +1626,7 @@ class _LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
+    final l10n = Localizations.of<AppLocalizations>(context, AppLocalizations);
 
     return Material(
       color: const Color(0xFFF1EDF1),
@@ -1638,7 +1643,7 @@ class _LogoutButton extends StatelessWidget {
               Icon(Icons.logout_rounded, color: primary, size: 19),
               const SizedBox(width: 8),
               Text(
-                'Logout',
+                l10n?.logout ?? 'Logout',
                 style: TextStyle(
                   color: primary,
                   fontSize: 15,
@@ -1817,17 +1822,22 @@ class _TelegramBackupTileState extends State<_TelegramBackupTile> {
             children: [
               const _ProfileIconWell(icon: Icons.near_me_outlined),
               const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  'Telegram OTP Backup',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    height: 1.15,
-                    fontWeight: FontWeight.w800,
-                    color: _profileText,
-                  ),
+              Expanded(
+                child: Builder(
+                  builder: (ctx) {
+                    final l10n = Localizations.of<AppLocalizations>(ctx, AppLocalizations);
+                    return Text(
+                      l10n?.telegramOtpBackup ?? 'Telegram OTP Backup',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                        color: _profileText,
+                      ),
+                    );
+                  },
                 ),
               ),
               trailing,

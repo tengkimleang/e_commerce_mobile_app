@@ -278,6 +278,22 @@
   "availablePoints": "Available points",
   "ok": "OK",
   "phoneNumberLabel": "Phone Number",
+  "loginWithBiometric": "Login with Biometric",
+  "@loginWithBiometric": {
+    "description": "Security section label for biometric login toggle."
+  },
+  "telegramOtpBackup": "Telegram OTP Backup",
+  "@telegramOtpBackup": {
+    "description": "Security section label for Telegram OTP backup."
+  },
+  "deleteAccount": "Delete Account",
+  "@deleteAccount": {
+    "description": "Danger zone tile title for deleting the account."
+  },
+  "permanentlyDeleteAccount": "Permanently delete your account and all data",
+  "@permanentlyDeleteAccount": {
+    "description": "Danger zone tile subtitle for deleting the account."
+  },
   "loginOrSignup": "Login or Signup",
   "done": "Done",
   "wholesaleForm": "Wholesale Form",
@@ -288,5 +304,37 @@
   "requestSubmitted": "Request Submitted!",
   "wholesaleRequestSuccess": "Your wholesale request has been submitted successfully. Our team will contact you shortly.",
   "customerName": "Customer Name",
-  "searchProduct": "Search product"
+  "searchProduct": "Search product",
+  "byClickingNextAgreeing": "By clicking Next button you are agreeing to the ",
+  "@byClickingNextAgreeing": {
+    "description": "First part of the terms agreement text on login/signup screens."
+  },
+  "termsOfUse": "Terms of Use",
+  "@termsOfUse": {
+    "description": "Tappable Terms of Use link label."
+  },
+  "andThe": " and the ",
+  "@andThe": {
+    "description": "Connector text between Terms of Use and Privacy Policy."
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Tappable Privacy Policy link label."
+  },
+  "continueAsGuest": "Continue as guest",
+  "@continueAsGuest": {
+    "description": "Button to continue browsing without logging in."
+  },
+  "fullName": "Full name",
+  "@fullName": {
+    "description": "Full name field label on signup form."
+  },
+  "enterFullName": "Enter full name",
+  "@enterFullName": {
+    "description": "Full name input placeholder on signup form."
+  },
+  "next": "NEXT",
+  "@next": {
+    "description": "Primary action button on signup form."
+  }
 }

@@ -579,21 +579,23 @@ class _LoginContentState extends State<_LoginContent> {
                       height: 1.4,
                     ),
                     children: [
-                      const TextSpan(
-                        text:
+                      TextSpan(
+                        text: AppLocalizations.of(context)?.byClickingNextAgreeing ??
                             "By clicking Next button you are agreeing to the ",
                       ),
                       TextSpan(
-                        text: "Terms of Use",
+                        text: AppLocalizations.of(context)?.termsOfUse ?? "Terms of Use",
                         style: TextStyle(
                           color: primary,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: _termsTapRecognizer,
                       ),
-                      const TextSpan(text: " and the "),
                       TextSpan(
-                        text: "Privacy Policy",
+                        text: AppLocalizations.of(context)?.andThe ?? " and the ",
+                      ),
+                      TextSpan(
+                        text: AppLocalizations.of(context)?.privacyPolicy ?? "Privacy Policy",
                         style: TextStyle(
                           color: primary,
                           decoration: TextDecoration.underline,
@@ -617,7 +619,7 @@ class _LoginContentState extends State<_LoginContent> {
                       );
                     },
                     child: Text(
-                      "Continue as guest",
+                      AppLocalizations.of(context)?.continueAsGuest ?? "Continue as guest",
                       style: TextStyle(
                         color: primary,
                         fontSize: 15,
@@ -658,9 +660,9 @@ class _LoginContentState extends State<_LoginContent> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)?.login ?? "Login",
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                 ),
