@@ -296,9 +296,13 @@ class _ShopCategoryProductViewState extends State<ShopCategoryProductView> {
                   separatorBuilder: (context, index) =>
                       const SizedBox(width: 22),
                   itemBuilder: (context, index) {
+                    final l10n = Localizations.of<AppLocalizations>(
+                      context,
+                      AppLocalizations,
+                    );
                     final label = index == 0
-                        ? 'All'
-                        : _subCategories[index - 1].name;
+                        ? (l10n?.all ?? 'All')
+                        : _subCategories[index - 1].displayName;
                     return _SubCategoryTab(
                       label: label,
                       selected: _selectedTabIndex == index,

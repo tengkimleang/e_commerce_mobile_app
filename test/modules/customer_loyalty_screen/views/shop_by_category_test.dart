@@ -367,7 +367,7 @@ class _FakeShopByCategoryRepository implements ShopByCategoryRepository {
   ) async {
     await _wait(_delay);
     return const [
-      SubCategoryModel(id: 10, name: 'CHEESE', imageUrl: '', displayOrder: 1),
+      SubCategoryModel(id: 10, nameEn: 'CHEESE', imageUrl: '', displayOrder: 1),
     ];
   }
 
