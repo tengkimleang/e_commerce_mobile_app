@@ -295,11 +295,12 @@ class _ChangePinOldPinViewState extends State<ChangePinOldPinView> {
           final remaining = result['remainingAttempts'];
           final hasRemaining = remaining is int && remaining >= 0;
           final attemptsMsg = hasRemaining
-              ? '\n$remaining attempt${remaining == 1 ? '' : 's'} remaining before lockout.'
+              ? AppLocalizations.of(context)?.incorrectPinAttemptsRemaining(remaining) ?? ''
               : '';
+          final baseMessage = AppLocalizations.of(context)?.incorrectOldPinMessage ?? 'The old PIN you entered is incorrect.';
           _showErrorDialog(
-            title: 'Incorrect PIN',
-            message: 'The old PIN you entered is incorrect.$attemptsMsg',
+            title: AppLocalizations.of(context)?.incorrectPinTitle ?? 'Incorrect PIN',
+            message: '$baseMessage$attemptsMsg',
             icon: Icons.lock_outline_rounded,
             iconColor: Colors.orangeAccent,
           );

@@ -644,4 +644,24 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get searchHere => 'ស្វែងរកទីនេះ';
+
+  @override
+  String get incorrectPinTitle => 'លេខកូដ PIN មិនត្រឹមត្រូវ';
+
+  @override
+  String get incorrectPinMessage =>
+      'លេខកូដ PIN ដែលអ្នកបានបញ្ចូលមិនត្រឹមត្រូវទេ។';
+
+  @override
+  String get incorrectOldPinMessage =>
+      'លេខកូដ PIN ចាស់ដែលអ្នកបានបញ្ចូលមិនត្រឹមត្រូវទេ។';
+
+  @override
+  String get incorrectPinTryAgain =>
+      'លេខកូដ PIN មិនត្រឹមត្រូវ។ សូមព្យាយាមម្ដងទៀត។';
+
+  @override
+  String incorrectPinAttemptsRemaining(int attempts) {
+    return '\nនៅសល់ $attempts ដងទៀតមុនពេលចាក់សោ។';
+  }
 }

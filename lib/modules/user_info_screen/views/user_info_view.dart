@@ -1935,7 +1935,7 @@ class _TelegramPinVerificationViewState
   String _resolvePinErrorMessage(String rawMessage, {required bool locked}) {
     final fallback = locked
         ? 'PIN is temporarily locked. Please try again later.'
-        : 'Incorrect PIN. Please try again.';
+        : (AppLocalizations.of(context)?.incorrectPinTryAgain ?? 'Incorrect PIN. Please try again.');
     final normalized = rawMessage.replaceAll(RegExp(r'\s+'), ' ').trim();
     if (normalized.isEmpty) return fallback;
     if (normalized.length <= 140) return normalized;

@@ -651,4 +651,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHere => 'Search here';
+
+  @override
+  String get incorrectPinTitle => 'Incorrect PIN';
+
+  @override
+  String get incorrectPinMessage => 'The PIN you entered is incorrect.';
+
+  @override
+  String get incorrectOldPinMessage => 'The old PIN you entered is incorrect.';
+
+  @override
+  String get incorrectPinTryAgain => 'Incorrect PIN. Please try again.';
+
+  @override
+  String incorrectPinAttemptsRemaining(int attempts) {
+    String _temp0 = intl.Intl.pluralLogic(
+      attempts,
+      locale: localeName,
+      other: '$attempts attempts remaining before lockout.',
+      one: '1 attempt remaining before lockout.',
+    );
+    return '\n$_temp0';
+  }
 }

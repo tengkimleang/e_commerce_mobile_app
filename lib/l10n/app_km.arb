@@ -204,5 +204,10 @@
   "nameAddressHint": "សូមវាយបញ្ចូលឈ្មោះអាសយដ្ឋានរបស់អ្នក",
   "addAddress": "បន្ថែមអាសយដ្ឋាន",
   "editAddress": "កែប្រែអាសយដ្ឋាន",
-  "searchHere": "ស្វែងរកទីនេះ"
+  "searchHere": "ស្វែងរកទីនេះ",
+  "incorrectPinTitle": "លេខកូដ PIN មិនត្រឹមត្រូវ",
+  "incorrectPinMessage": "លេខកូដ PIN ដែលអ្នកបានបញ្ចូលមិនត្រឹមត្រូវទេ។",
+  "incorrectOldPinMessage": "លេខកូដ PIN ចាស់ដែលអ្នកបានបញ្ចូលមិនត្រឹមត្រូវទេ។",
+  "incorrectPinTryAgain": "លេខកូដ PIN មិនត្រឹមត្រូវ។ សូមព្យាយាមម្ដងទៀត។",
+  "incorrectPinAttemptsRemaining": "\nនៅសល់ {attempts} ដងទៀតមុនពេលចាក់សោ។"
 }

@@ -389,5 +389,17 @@
   "nameAddressHint": "Please type your address name",
   "addAddress": "Add address",
   "editAddress": "Edit address",
-  "searchHere": "Search here"
+  "searchHere": "Search here",
+  "incorrectPinTitle": "Incorrect PIN",
+  "incorrectPinMessage": "The PIN you entered is incorrect.",
+  "incorrectOldPinMessage": "The old PIN you entered is incorrect.",
+  "incorrectPinTryAgain": "Incorrect PIN. Please try again.",
+  "incorrectPinAttemptsRemaining": "\n{attempts, plural, =1{1 attempt remaining before lockout.} other{{attempts} attempts remaining before lockout.}}",
+  "@incorrectPinAttemptsRemaining": {
+    "placeholders": {
+      "attempts": {
+        "type": "int"
+      }
+    }
+  }
 }

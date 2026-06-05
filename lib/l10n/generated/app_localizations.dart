@@ -1321,6 +1321,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search here'**
   String get searchHere;
+
+  /// No description provided for @incorrectPinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN'**
+  String get incorrectPinTitle;
+
+  /// No description provided for @incorrectPinMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The PIN you entered is incorrect.'**
+  String get incorrectPinMessage;
+
+  /// No description provided for @incorrectOldPinMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The old PIN you entered is incorrect.'**
+  String get incorrectOldPinMessage;
+
+  /// No description provided for @incorrectPinTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN. Please try again.'**
+  String get incorrectPinTryAgain;
+
+  /// No description provided for @incorrectPinAttemptsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'\n{attempts, plural, =1{1 attempt remaining before lockout.} other{{attempts} attempts remaining before lockout.}}'**
+  String incorrectPinAttemptsRemaining(int attempts);
 }
 
 class _AppLocalizationsDelegate

@@ -105,11 +105,12 @@ class _DeleteAccountPinViewState extends State<DeleteAccountPinView> {
           final remaining = result['remainingAttempts'];
           final hasRemaining = remaining is int && remaining >= 0;
           final attemptsMessage = hasRemaining
-              ? '\n$remaining attempt${remaining == 1 ? '' : 's'} remaining.'
+              ? AppLocalizations.of(context)?.incorrectPinAttemptsRemaining(remaining) ?? ''
               : '';
+          final baseMessage = AppLocalizations.of(context)?.incorrectPinMessage ?? 'The PIN you entered is incorrect.';
           _showErrorDialog(
-            title: 'Incorrect PIN',
-            message: 'The PIN you entered is incorrect.$attemptsMessage',
+            title: AppLocalizations.of(context)?.incorrectPinTitle ?? 'Incorrect PIN',
+            message: '$baseMessage$attemptsMessage',
             icon: Icons.lock_outline_rounded,
             iconColor: Colors.orangeAccent,
           );
