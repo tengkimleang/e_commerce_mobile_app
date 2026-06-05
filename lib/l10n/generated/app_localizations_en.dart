@@ -636,4 +636,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get submit => 'Submit';
+
+  @override
+  String get nameAddressLabel => 'Name address';
+
+  @override
+  String get nameAddressHint => 'Please type your address name';
+
+  @override
+  String get addAddress => 'Add address';
+
+  @override
+  String get editAddress => 'Edit address';
+
+  @override
+  String get searchHere => 'Search here';
 }

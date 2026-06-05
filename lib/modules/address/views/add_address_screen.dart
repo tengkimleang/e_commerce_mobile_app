@@ -317,7 +317,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           ),
         ),
         title: Text(
-          isEditing ? 'Edit address' : 'Add address',
+          isEditing ? AppLocalizations.of(context)!.editAddress : AppLocalizations.of(context)!.addAddress,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -390,7 +390,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     textInputAction: TextInputAction.search,
                     onTap: _openAddressSearch,
                     decoration: InputDecoration(
-                      hintText: 'Search here',
+                      hintText: AppLocalizations.of(context)!.searchHere,
                       filled: true,
                       fillColor: Colors.white,
                       prefixIcon: const Icon(Icons.search_rounded),
@@ -498,20 +498,20 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  _FormLabel(label: 'Name address', required: true),
+                  _FormLabel(label: AppLocalizations.of(context)!.nameAddressLabel, required: true),
                   const SizedBox(height: 8),
                   _FormTextField(
                     controller: _nameCtrl,
-                    hintText: 'Please type your address name',
+                    hintText: AppLocalizations.of(context)!.nameAddressHint,
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
 
-                  _FormLabel(label: 'Phone number', required: true),
+                  _FormLabel(label: AppLocalizations.of(context)!.phoneNumber, required: true),
                   const SizedBox(height: 8),
                   _FormTextField(
                     controller: _phoneCtrl,
-                    hintText: 'Enter phone number',
+                    hintText: AppLocalizations.of(context)!.enterPhoneNumber,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(

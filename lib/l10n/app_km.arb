@@ -93,7 +93,7 @@
   "noPromotionsAvailable": "មិនមានប្រូម៉ូសិន",
   "paymentMethod": "វិធីបង់ប្រាក់",
   "cashOnDelivery": "បង់ប្រាក់ពេលទទួលទំនិញ",
-  "checkOut": "ពិនិត្យការបញ្ជាទិញ",
+  "checkOut": "បញ្ជាទិញ",
   "yourCart": "រទេះទំនិញរបស់អ្នក",
   "yourCartIsEmpty": "រទេះទំនិញរបស់អ្នកទទេ",
   "deliveryInfo": "ព័ត៌មានដឹកជញ្ជូន",
@@ -199,5 +199,10 @@
   "removeTelegramBackup": "លុបការបម្រុងទុកតាមតេឡេក្រាម",
   "otpSmsWarningTelegram": "លេខកូដ OTP នឹងត្រូវផ្ញើតាម SMS តែប៉ុណ្ណោះ បន្ទាប់ពីអ្នកលុបការបម្រុងទុកតាមតេឡេក្រាម។",
   "remove": "លុប",
-  "submit": "បញ្ជូន"
+  "submit": "បញ្ជូន",
+  "nameAddressLabel": "ឈ្មោះអាសយដ្ឋាន",
+  "nameAddressHint": "សូមវាយបញ្ចូលឈ្មោះអាសយដ្ឋានរបស់អ្នក",
+  "addAddress": "បន្ថែមអាសយដ្ឋាន",
+  "editAddress": "កែប្រែអាសយដ្ឋាន",
+  "searchHere": "ស្វែងរកទីនេះ"
 }

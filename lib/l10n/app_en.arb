@@ -384,5 +384,10 @@
   "removeTelegramBackup": "Remove Telegram Backup",
   "otpSmsWarningTelegram": "OTP will only be sent via SMS after removing Telegram backup.",
   "remove": "Remove",
-  "submit": "Submit"
+  "submit": "Submit",
+  "nameAddressLabel": "Name address",
+  "nameAddressHint": "Please type your address name",
+  "addAddress": "Add address",
+  "editAddress": "Edit address",
+  "searchHere": "Search here"
 }

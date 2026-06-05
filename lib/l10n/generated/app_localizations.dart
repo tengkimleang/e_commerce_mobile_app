@@ -1291,6 +1291,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Submit'**
   String get submit;
+
+  /// No description provided for @nameAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name address'**
+  String get nameAddressLabel;
+
+  /// No description provided for @nameAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please type your address name'**
+  String get nameAddressHint;
+
+  /// No description provided for @addAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Add address'**
+  String get addAddress;
+
+  /// No description provided for @editAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit address'**
+  String get editAddress;
+
+  /// No description provided for @searchHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Search here'**
+  String get searchHere;
 }
 
 class _AppLocalizationsDelegate

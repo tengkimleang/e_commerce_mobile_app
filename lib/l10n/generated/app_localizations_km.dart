@@ -296,7 +296,7 @@ class AppLocalizationsKm extends AppLocalizations {
   String get cashOnDelivery => 'បង់ប្រាក់ពេលទទួលទំនិញ';
 
   @override
-  String get checkOut => 'ពិនិត្យការបញ្ជាទិញ';
+  String get checkOut => 'បញ្ជាទិញ';
 
   @override
   String get yourCart => 'រទេះទំនិញរបស់អ្នក';
@@ -629,4 +629,19 @@ class AppLocalizationsKm extends AppLocalizations {
 
   @override
   String get submit => 'បញ្ជូន';
+
+  @override
+  String get nameAddressLabel => 'ឈ្មោះអាសយដ្ឋាន';
+
+  @override
+  String get nameAddressHint => 'សូមវាយបញ្ចូលឈ្មោះអាសយដ្ឋានរបស់អ្នក';
+
+  @override
+  String get addAddress => 'បន្ថែមអាសយដ្ឋាន';
+
+  @override
+  String get editAddress => 'កែប្រែអាសយដ្ឋាន';
+
+  @override
+  String get searchHere => 'ស្វែងរកទីនេះ';
 }
