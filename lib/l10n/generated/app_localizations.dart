@@ -1351,6 +1351,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\n{attempts, plural, =1{1 attempt remaining before lockout.} other{{attempts} attempts remaining before lockout.}}'**
   String incorrectPinAttemptsRemaining(int attempts);
+
+  /// No description provided for @privacyPolicyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyTitle;
+
+  /// No description provided for @termsOfConditionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Conditions'**
+  String get termsOfConditionsTitle;
+
+  /// No description provided for @privacyPolicyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'At CHIP MONG RETAIL APP, we are committed to protecting Customers\' privacy and ensuring Customers\' personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, disclose, and protect your information when you use our mobile application (the “App”) and any services provided through the App (collectively, the “Service”).'**
+  String get privacyPolicyIntro;
+
+  /// No description provided for @privacyPolicySection1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Personal Data Protection Principles'**
+  String get privacyPolicySection1Title;
+
+  /// No description provided for @privacyPolicySection1Intro.
+  ///
+  /// In en, this message translates to:
+  /// **'We are conducting the following efforts to ensure the basic policy of personal data protection:'**
+  String get privacyPolicySection1Intro;
+
+  /// No description provided for @privacyPolicySection1Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.'**
+  String get privacyPolicySection1Bullet1;
+
+  /// No description provided for @privacyPolicySection1Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.'**
+  String get privacyPolicySection1Bullet2;
+
+  /// No description provided for @privacyPolicySection1Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.'**
+  String get privacyPolicySection1Bullet3;
+
+  /// No description provided for @privacyPolicySection2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'2. How We Handle Your Personal Information'**
+  String get privacyPolicySection2Title;
+
+  /// No description provided for @privacyPolicySection2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We will clarify the purpose of collecting and using personal information, and we will not use it for any other purposes without your consent. We will take appropriate measures to protect your personal information from unauthorized access, disclosure, alteration, or destruction. We will not share your personal information with third parties without your consent, except as required by law or as necessary to provide our services.'**
+  String get privacyPolicySection2Body;
+
+  /// No description provided for @privacyPolicySection3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'3. How We Use Your Information'**
+  String get privacyPolicySection3Title;
+
+  /// No description provided for @privacyPolicySection3Intro.
+  ///
+  /// In en, this message translates to:
+  /// **'We may use the infomation we collect for various purposes, including to:'**
+  String get privacyPolicySection3Intro;
+
+  /// No description provided for @privacyPolicySection3Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide, operate, and maintain our App and services'**
+  String get privacyPolicySection3Bullet1;
+
+  /// No description provided for @privacyPolicySection3Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve, personalize, and expand our App and services'**
+  String get privacyPolicySection3Bullet2;
+
+  /// No description provided for @privacyPolicySection3Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand and analyze how you use our App and services'**
+  String get privacyPolicySection3Bullet3;
+
+  /// No description provided for @privacyPolicySection3Bullet4.
+  ///
+  /// In en, this message translates to:
+  /// **'Develop new products, services, features, and functionality'**
+  String get privacyPolicySection3Bullet4;
+
+  /// No description provided for @privacyPolicySection3Bullet5.
+  ///
+  /// In en, this message translates to:
+  /// **'Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the App, and for marketing and promotional purposes'**
+  String get privacyPolicySection3Bullet5;
+
+  /// No description provided for @privacyPolicySection3Bullet6.
+  ///
+  /// In en, this message translates to:
+  /// **'Process your transactions and manage your orders'**
+  String get privacyPolicySection3Bullet6;
+
+  /// No description provided for @privacyPolicySection3Bullet7.
+  ///
+  /// In en, this message translates to:
+  /// **'Send you text messages and push notifications'**
+  String get privacyPolicySection3Bullet7;
+
+  /// No description provided for @privacyPolicySection3Bullet8.
+  ///
+  /// In en, this message translates to:
+  /// **'Find and prevent fraud'**
+  String get privacyPolicySection3Bullet8;
+
+  /// No description provided for @privacyPolicySection3Bullet9.
+  ///
+  /// In en, this message translates to:
+  /// **'Comply with legal obligations'**
+  String get privacyPolicySection3Bullet9;
+
+  /// No description provided for @privacyPolicySection3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'CHIP MONG RETAIL APP will not sell, rent, or lease your personal information to third parties. We may share your personal information with third-party service providers who perform services on our behalf, such as payment processing, data analysis, email delivery, hosting services, customer service, and marketing assistance. These third-party service providers are contractually obligated to protect your personal information and only use it for the purposes for which we disclose it to them. We may also disclose your personal information if required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency).'**
+  String get privacyPolicySection3Body;
+
+  /// No description provided for @privacyPolicySection4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Your Choices'**
+  String get privacyPolicySection4Title;
+
+  /// No description provided for @privacyPolicySection4Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'You may opt-out of receiving promotional communications from us by following the unsubscribe instructions in any marketing email we send you'**
+  String get privacyPolicySection4Bullet1;
+
+  /// No description provided for @privacyPolicySection4Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'You have the right to access, correct, or delete your personal information'**
+  String get privacyPolicySection4Bullet2;
+
+  /// No description provided for @privacyPolicySection4Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'You may disable cookies through your browser settings'**
+  String get privacyPolicySection4Bullet3;
+
+  /// No description provided for @privacyPolicySection5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'5. Sharing Your Information'**
+  String get privacyPolicySection5Title;
+
+  /// No description provided for @privacyPolicySection5Intro.
+  ///
+  /// In en, this message translates to:
+  /// **'We may share your personal information in the following circumstances:'**
+  String get privacyPolicySection5Intro;
+
+  /// No description provided for @privacyPolicySection5Bullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.'**
+  String get privacyPolicySection5Bullet1;
+
+  /// No description provided for @privacyPolicySection5Bullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.'**
+  String get privacyPolicySection5Bullet2;
+
+  /// No description provided for @privacyPolicySection5Bullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.'**
+  String get privacyPolicySection5Bullet3;
+
+  /// No description provided for @privacyPolicySection6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'6. Data Security'**
+  String get privacyPolicySection6Title;
+
+  /// No description provided for @privacyPolicySection6Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We take reasonable measures to protect your personal information from unauthorized access, disclosure, alteration, and destruction. However, no method of transmission over the Internet or method of electronic storage is 100% secure. Therefore, we cannot guarantee its absolute security.'**
+  String get privacyPolicySection6Body;
+
+  /// No description provided for @privacyPolicySection7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'7. Changes to This Privacy Policy'**
+  String get privacyPolicySection7Title;
+
+  /// No description provided for @privacyPolicySection7Body.
+  ///
+  /// In en, this message translates to:
+  /// **'We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.'**
+  String get privacyPolicySection7Body;
+
+  /// No description provided for @privacyPolicySection8Title.
+  ///
+  /// In en, this message translates to:
+  /// **'8. Contact Us'**
+  String get privacyPolicySection8Title;
+
+  /// No description provided for @privacyPolicySection8Intro.
+  ///
+  /// In en, this message translates to:
+  /// **'If you have any questions about this Privacy Policy, please contact us at:'**
+  String get privacyPolicySection8Intro;
+
+  /// No description provided for @privacyPolicyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone: (855) 90 877 811'**
+  String get privacyPolicyPhone;
+
+  /// No description provided for @copyrightNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'© 2024 Chip Mong Retails. All rights reserved.'**
+  String get copyrightNotice;
 }
 
 class _AppLocalizationsDelegate

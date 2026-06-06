@@ -674,4 +674,149 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '\n$_temp0';
   }
+
+  @override
+  String get privacyPolicyTitle => 'Privacy Policy';
+
+  @override
+  String get termsOfConditionsTitle => 'Terms of Conditions';
+
+  @override
+  String get privacyPolicyIntro =>
+      'At CHIP MONG RETAIL APP, we are committed to protecting Customers\' privacy and ensuring Customers\' personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, disclose, and protect your information when you use our mobile application (the “App”) and any services provided through the App (collectively, the “Service”).';
+
+  @override
+  String get privacyPolicySection1Title =>
+      '1. Personal Data Protection Principles';
+
+  @override
+  String get privacyPolicySection1Intro =>
+      'We are conducting the following efforts to ensure the basic policy of personal data protection:';
+
+  @override
+  String get privacyPolicySection1Bullet1 =>
+      'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.';
+
+  @override
+  String get privacyPolicySection1Bullet2 =>
+      'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.';
+
+  @override
+  String get privacyPolicySection1Bullet3 =>
+      'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.';
+
+  @override
+  String get privacyPolicySection2Title =>
+      '2. How We Handle Your Personal Information';
+
+  @override
+  String get privacyPolicySection2Body =>
+      'We will clarify the purpose of collecting and using personal information, and we will not use it for any other purposes without your consent. We will take appropriate measures to protect your personal information from unauthorized access, disclosure, alteration, or destruction. We will not share your personal information with third parties without your consent, except as required by law or as necessary to provide our services.';
+
+  @override
+  String get privacyPolicySection3Title => '3. How We Use Your Information';
+
+  @override
+  String get privacyPolicySection3Intro =>
+      'We may use the infomation we collect for various purposes, including to:';
+
+  @override
+  String get privacyPolicySection3Bullet1 =>
+      'Provide, operate, and maintain our App and services';
+
+  @override
+  String get privacyPolicySection3Bullet2 =>
+      'Improve, personalize, and expand our App and services';
+
+  @override
+  String get privacyPolicySection3Bullet3 =>
+      'Understand and analyze how you use our App and services';
+
+  @override
+  String get privacyPolicySection3Bullet4 =>
+      'Develop new products, services, features, and functionality';
+
+  @override
+  String get privacyPolicySection3Bullet5 =>
+      'Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the App, and for marketing and promotional purposes';
+
+  @override
+  String get privacyPolicySection3Bullet6 =>
+      'Process your transactions and manage your orders';
+
+  @override
+  String get privacyPolicySection3Bullet7 =>
+      'Send you text messages and push notifications';
+
+  @override
+  String get privacyPolicySection3Bullet8 => 'Find and prevent fraud';
+
+  @override
+  String get privacyPolicySection3Bullet9 => 'Comply with legal obligations';
+
+  @override
+  String get privacyPolicySection3Body =>
+      'CHIP MONG RETAIL APP will not sell, rent, or lease your personal information to third parties. We may share your personal information with third-party service providers who perform services on our behalf, such as payment processing, data analysis, email delivery, hosting services, customer service, and marketing assistance. These third-party service providers are contractually obligated to protect your personal information and only use it for the purposes for which we disclose it to them. We may also disclose your personal information if required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency).';
+
+  @override
+  String get privacyPolicySection4Title => '4. Your Choices';
+
+  @override
+  String get privacyPolicySection4Bullet1 =>
+      'You may opt-out of receiving promotional communications from us by following the unsubscribe instructions in any marketing email we send you';
+
+  @override
+  String get privacyPolicySection4Bullet2 =>
+      'You have the right to access, correct, or delete your personal information';
+
+  @override
+  String get privacyPolicySection4Bullet3 =>
+      'You may disable cookies through your browser settings';
+
+  @override
+  String get privacyPolicySection5Title => '5. Sharing Your Information';
+
+  @override
+  String get privacyPolicySection5Intro =>
+      'We may share your personal information in the following circumstances:';
+
+  @override
+  String get privacyPolicySection5Bullet1 =>
+      'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.';
+
+  @override
+  String get privacyPolicySection5Bullet2 =>
+      'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.';
+
+  @override
+  String get privacyPolicySection5Bullet3 =>
+      'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.';
+
+  @override
+  String get privacyPolicySection6Title => '6. Data Security';
+
+  @override
+  String get privacyPolicySection6Body =>
+      'We take reasonable measures to protect your personal information from unauthorized access, disclosure, alteration, and destruction. However, no method of transmission over the Internet or method of electronic storage is 100% secure. Therefore, we cannot guarantee its absolute security.';
+
+  @override
+  String get privacyPolicySection7Title => '7. Changes to This Privacy Policy';
+
+  @override
+  String get privacyPolicySection7Body =>
+      'We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.';
+
+  @override
+  String get privacyPolicySection8Title => '8. Contact Us';
+
+  @override
+  String get privacyPolicySection8Intro =>
+      'If you have any questions about this Privacy Policy, please contact us at:';
+
+  @override
+  String get privacyPolicyPhone => 'Phone: (855) 90 877 811';
+
+  @override
+  String get copyrightNotice =>
+      '© 2024 Chip Mong Retails. All rights reserved.';
 }

@@ -1,5 +1,6 @@
 // lib/modules/term_condition_screen/views/term_condition_view.dart
 import 'package:flutter/material.dart';
+import 'package:e_commerce_mobile_app/l10n/generated/app_localizations.dart';
 
 enum TermConditionType { termsOfUse, privacyPolicy }
 
@@ -36,8 +37,8 @@ class TermConditionView extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Terms of Conditions',
+        title: Text(
+          AppLocalizations.of(context)!.termsOfConditionsTitle,
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w600,
@@ -58,8 +59,8 @@ class TermConditionView extends StatelessWidget {
               alignment: Alignment.center,
               color: Colors.grey[700],
               padding: const EdgeInsets.all(16.0),
-              child: const Text(
-                '© 2024 Chip Mong Retails. All rights reserved.',
+              child: Text(
+                AppLocalizations.of(context)!.copyrightNotice,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -105,8 +106,8 @@ class _Banner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          const Text(
-            'Privacy Policy',
+          Text(
+            AppLocalizations.of(context)!.privacyPolicyTitle,
             style: TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -127,64 +128,56 @@ class _PolicyContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
-    final intro =
-        "At CHIP MONG RETAIL APP, we are committed to protecting Customers' privacy and ensuring Customers' personal information is handled in a safe and responsible manner. This Privacy Policy outlines how we collect, use, disclose, and protect your information when you use our mobile application (the “App”) and any services provided through the App (collectively, the “Service”).";
+    final l10n = AppLocalizations.of(context)!;
+    final intro = l10n.privacyPolicyIntro;
 
-    const sectionTitle1 = '1. Personal Data Protection Principles';
-    const sectionBodyIntro =
-        'We are conducting the following efforts to ensure the basic policy of personal data protection:';
+    final sectionTitle1 = l10n.privacyPolicySection1Title;
+    final sectionBodyIntro = l10n.privacyPolicySection1Intro;
 
-    const bulletItems = [
-      'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.',
-      'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.',
-      'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.',
+    final bulletItems = [
+      l10n.privacyPolicySection1Bullet1,
+      l10n.privacyPolicySection1Bullet2,
+      l10n.privacyPolicySection1Bullet3,
     ];
 
-    const sectionTitle2 = '2. How We Handle Your Personal Information';
-    const sectionBody2 =
-        'We will clarify the purpose of collecting and using personal information, and we will not use it for any other purposes without your consent. We will take appropriate measures to protect your personal information from unauthorized access, disclosure, alteration, or destruction. We will not share your personal information with third parties without your consent, except as required by law or as necessary to provide our services.';
-    const sectionTitle3 = '3. How We Use Your Information';
-    const sectionBody3 =
-        'We may use the infomation we collect for various purposes, including to:';
+    final sectionTitle2 = l10n.privacyPolicySection2Title;
+    final sectionBody2 = l10n.privacyPolicySection2Body;
+    final sectionTitle3 = l10n.privacyPolicySection3Title;
+    final sectionBody3 = l10n.privacyPolicySection3Intro;
 
-    const bulletItems2 = [
-      'Provide, operate, and maintain our App and services',
-      'Improve, personalize, and expand our App and services',
-      'Understand and analyze how you use our App and services',
-      'Develop new products, services, features, and functionality',
-      'Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the App, and for marketing and promotional purposes',
-      'Process your transactions and manage your orders',
-      'Send you text messages and push notifications',
-      'Find and prevent fraud',
-      'Comply with legal obligations',
+    final bulletItems2 = [
+      l10n.privacyPolicySection3Bullet1,
+      l10n.privacyPolicySection3Bullet2,
+      l10n.privacyPolicySection3Bullet3,
+      l10n.privacyPolicySection3Bullet4,
+      l10n.privacyPolicySection3Bullet5,
+      l10n.privacyPolicySection3Bullet6,
+      l10n.privacyPolicySection3Bullet7,
+      l10n.privacyPolicySection3Bullet8,
+      l10n.privacyPolicySection3Bullet9,
     ];
-    const sectionBody4 =
-        'CHIP MONG RETAIL APP will not sell, rent, or lease your personal information to third parties. We may share your personal information with third-party service providers who perform services on our behalf, such as payment processing, data analysis, email delivery, hosting services, customer service, and marketing assistance. These third-party service providers are contractually obligated to protect your personal information and only use it for the purposes for which we disclose it to them. We may also disclose your personal information if required to do so by law or in response to valid requests by public authorities (e.g., a court or a government agency).';
+    final sectionBody4 = l10n.privacyPolicySection3Body;
 
-    const sectionTitle4 = '4. Your Choices';
-    const sectionBody5 = [
-      'You may opt-out of receiving promotional communications from us by following the unsubscribe instructions in any marketing email we send you',
-      'You have the right to access, correct, or delete your personal information',
-      'You may disable cookies through your browser settings',
+    final sectionTitle4 = l10n.privacyPolicySection4Title;
+    final sectionBody5 = [
+      l10n.privacyPolicySection4Bullet1,
+      l10n.privacyPolicySection4Bullet2,
+      l10n.privacyPolicySection4Bullet3,
     ];
-    const sectionTitle5 = '5. Sharing Your Information';
-    const sectionBody6 =
-        'We may share your personal information in the following circumstances:';
-    const bulletItems3 = [
-      'All executives and employees shall adhere to applicable laws, regulations, and internal policies regarding personal data protection.',
-      'We will regularly review and update our personal data protection policies and practices to ensure they remain effective and compliant with relevant laws and regulations.',
-      'We will provide regular training and awareness programs to our employees to ensure they understand their responsibilities regarding personal data protection and are equipped to handle personal data securely.',
+    final sectionTitle5 = l10n.privacyPolicySection5Title;
+    final sectionBody6 = l10n.privacyPolicySection5Intro;
+    final bulletItems3 = [
+      l10n.privacyPolicySection5Bullet1,
+      l10n.privacyPolicySection5Bullet2,
+      l10n.privacyPolicySection5Bullet3,
     ];
-    const sectionTitle6 = '6. Data Security';
-    const sectionBody7 =
-        'We take reasonable measures to protect your personal information from unauthorized access, disclosure, alteration, and destruction. However, no method of transmission over the Internet or method of electronic storage is 100% secure. Therefore, we cannot guarantee its absolute security.';
-    const sectionTitle7 = '7. Changes to This Privacy Policy';
-    const sectionBody8 =
-        'We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.';
-    const sectionTitle8 = '8. Contact Us';
-    const sectionBody9 =
-        'If you have any questions about this Privacy Policy, please contact us at:';
-    const sectionBody10 = 'Phone: (855) 90 877 811';
+    final sectionTitle6 = l10n.privacyPolicySection6Title;
+    final sectionBody7 = l10n.privacyPolicySection6Body;
+    final sectionTitle7 = l10n.privacyPolicySection7Title;
+    final sectionBody8 = l10n.privacyPolicySection7Body;
+    final sectionTitle8 = l10n.privacyPolicySection8Title;
+    final sectionBody9 = l10n.privacyPolicySection8Intro;
+    final sectionBody10 = l10n.privacyPolicyPhone;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,7 +202,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBodyIntro,
           style: TextStyle(
             color: Color.fromARGB(221, 86, 84, 84),
@@ -231,7 +224,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBody2,
           style: TextStyle(
             color: Colors.black87,
@@ -251,7 +244,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBody3,
           style: TextStyle(
             color: Colors.black87,
@@ -263,7 +256,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 10),
         ...bulletItems2.map((item) => _BulletItem(text: item)),
         const SizedBox(height: 28),
-        const Text(
+        Text(
           sectionBody4,
           style: TextStyle(
             color: Colors.black87,
@@ -295,7 +288,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           sectionBody6,
           style: TextStyle(
             color: Colors.black87,
@@ -317,7 +310,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBody7,
           style: TextStyle(
             color: Colors.black87,
@@ -337,7 +330,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBody8,
           style: TextStyle(
             color: Colors.black87,
@@ -357,7 +350,7 @@ class _PolicyContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           sectionBody9,
           style: TextStyle(
             color: Colors.black87,
